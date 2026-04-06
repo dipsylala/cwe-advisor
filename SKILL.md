@@ -1,6 +1,6 @@
 ---
 name: cwe-advisor
-description: Educate developers about CWE vulnerabilities and guide remediation using a local knowledge base. Use when a developer reports a CWE ID from a security scan, SAST/DAST finding, wants to understand a weakness, or asks for help with a specific CWE number. Explains the vulnerability, teaches underlying security concepts, and optionally applies fixes to the developer's code.
+description: Educate developers about CWE vulnerabilities and guide remediation using a local knowledge base. Use when a developer mentions a CWE ID, a vulnerability name (e.g. SQL injection, XSS, path traversal, command injection, CSRF, deserialization), a SAST/DAST finding, or asks how to fix insecure code. Maps vulnerability names to CWE IDs automatically. Explains the vulnerability, teaches underlying security concepts, and optionally applies fixes to the developer's code.
 ---
 
 # CWE Advisor
