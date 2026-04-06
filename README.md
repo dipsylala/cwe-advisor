@@ -130,6 +130,20 @@ See [89/java/INDEX.md](89/java/INDEX.md) for SQL Injection in Java as a referenc
 
 ---
 
+## Underlying Principles
+
+The guidance in this repository is written with a specific philosophy: **teach the LLM what to do, not what it already knows**.
+
+- **Avoid stating the obvious.** LLMs already understand common security concepts at a general level. Restating that "SQL injection is dangerous" or explaining what a prepared statement is wastes context and dilutes signal. Every sentence should add information the LLM cannot reliably infer on its own.
+
+- **Guide, don't dictate.** General CWE guidance intentionally contains no code examples. Instead it describes the *approach* — what to locate, what pattern to replace, and what mechanism to use — so the LLM reasons its way to a correct implementation rather than copying a provided snippet. This produces more idiomatic, context-aware fixes. Language-specific files include a minimal `Safe Pattern` only as a concrete anchor for the correct API surface; the surrounding steps remain guidance-driven.
+
+- **Be prescriptive, not encyclopaedic.** Each entry targets the most common, highest-impact form of a vulnerability. Edge cases and exotic scenarios are omitted on purpose; covering them would increase length without improving the fix rate for the majority of real findings.
+
+This means reviewers should flag guidance that explains background the LLM is already expected to know, repeats information covered elsewhere in the entry, or replaces guidance with a worked code example where guidance alone suffices.
+
+---
+
 ## Adding New CWE Guidance
 
 1. Create directory: `mkdir {CWE_ID}`
