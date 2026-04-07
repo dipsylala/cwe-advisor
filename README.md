@@ -167,4 +167,4 @@ Current language directories in use:
 
 ## Usage
 
-The remediation guidance tool loads these files automatically and provides them to LLMs when developers need help fixing security vulnerabilities identified by Veracode scans.
+The remediation guidance tool loads these files automatically and provides them to LLMs when developers need help fixing security vulnerabilities identified by SAST security scans.
