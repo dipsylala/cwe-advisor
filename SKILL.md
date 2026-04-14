@@ -51,7 +51,20 @@ If no language subfolder exists, rely solely on the general guidance from Step 2
 
 ### Step 4: Trace the Data Flow
 
-Before proposing a fix, start at the vulnerable sink and work backwards to the source:
+Before proposing a fix, trace the data flow from source to sink. Use the best available method:
+
+**Option A — Use available tooling (preferred)**
+
+If any of the following are available, use them first:
+- A SAST/DAST report that includes a call path or taint trace for the finding
+- Code navigation tools (e.g. `find_all_references`, `go_to_definition`, symbol search) to follow the variable through the call graph
+- An existing data-flow or call-graph result attached to the conversation
+
+Extract the source, sink, and any intermediate steps directly from that output. Skip to Step 5 once you have a clear picture.
+
+**Option B — Manual trace (fallback)**
+
+If no tooling or results are available, trace the flow by hand:
 
 1. **Start at the sink** — locate the exact operation the scanner flagged (e.g. SQL query, shell exec, file write). This is your fixed reference point.
 2. **Trace backwards** — follow the data through function calls, assignments, and transformations back towards the entry point. Note every place the value could have been validated or sanitised but wasn't.
@@ -59,7 +72,7 @@ Before proposing a fix, start at the vulnerable sink and work backwards to the s
 4. **Find the best fix point** — the nearest upstream location where validation is both feasible and reliable. This is usually the first trust boundary the data crosses, not the sink itself.
 5. **Forward pass for other sinks** — from that fix point, briefly check whether the same input flows to any other dangerous operations that would also need covering.
 
-This analysis determines where to apply the fix and whether a single change is sufficient.
+Either way, the goal is the same: determine where to apply the fix and whether a single change is sufficient.
 
 ### Step 5: Offer a Fix
 
