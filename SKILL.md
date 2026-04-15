@@ -49,7 +49,43 @@ Check whether the subfolder exists, then read it:
 
 If no language subfolder exists, rely solely on the general guidance from Step 2.
 
-### Step 4: Trace the Data Flow
+### Step 4: Check Library Dependencies
+
+After loading the guidance, ask the developer whether they would like a library/dependency check as part of the advice. This is always optional but recommended when the CWE is commonly introduced through a third-party library (e.g. deserialization, XML/YAML parsing, cryptography, authentication).
+
+**Ask:** *"Would you like me to also check whether any related libraries are on a safe version?"*
+
+If the developer agrees:
+
+**Option A — Use an available SCA skill (preferred)**
+
+Check whether any SCA or dependency-analysis skill is available in the current environment (e.g. a Snyk, OWASP Dependency-Check, Veracode, Trivy, or similar tool integration). If one is available, invoke it to retrieve dependency findings relevant to the libraries mentioned in the guidance loaded in Steps 2–3. Extract:
+- Library name and version currently in use
+- Whether the version is flagged as vulnerable (CVE or advisory)
+- The minimum safe version recommended by the tool
+
+**Option B — Read manifest files (fallback)**
+
+If no SCA skill is available, search the workspace for dependency manifests and read the relevant library versions:
+
+| Ecosystem   | Files to check                                          |
+|-------------|---------------------------------------------------------|
+| Java        | `pom.xml`, `build.gradle`, `build.gradle.kts`           |
+| JavaScript  | `package.json`, `package-lock.json`, `yarn.lock`        |
+| Python      | `requirements.txt`, `pyproject.toml`, `Pipfile`         |
+| C#          | `*.csproj`, `packages.config`, `Directory.Packages.props` |
+| PHP         | `composer.json`, `composer.lock`                        |
+| C / C++     | `vcpkg.json`, `conanfile.txt`, `CMakeLists.txt`         |
+
+Extract the declared version of any library referenced in the guidance. If multiple manifests exist, prefer lock files over loose version ranges.
+
+**After gathering dependency information:**
+
+1. Note which libraries are relevant to the finding.
+2. If a vulnerable version is detected, record the vulnerable version and the safe upgrade target. Carry this into Step 6 so the fix includes both the library upgrade and the code-level remediation.
+3. If the version cannot be determined (no manifest found, no SCA output), flag this and recommend the developer verify it manually.
+
+### Step 5: Trace the Data Flow
 
 Before proposing a fix, trace the data flow from source to sink. Use the best available method:
 
@@ -60,7 +96,7 @@ If any of the following are available, use them first:
 - Code navigation tools (e.g. `find_all_references`, `go_to_definition`, symbol search) to follow the variable through the call graph
 - An existing data-flow or call-graph result attached to the conversation
 
-Extract the source, sink, and any intermediate steps directly from that output. Skip to Step 5 once you have a clear picture.
+Extract the source, sink, and any intermediate steps directly from that output. Skip to Step 6 once you have a clear picture.
 
 **Option B — Manual trace (fallback)**
 
@@ -74,15 +110,18 @@ If no tooling or results are available, trace the flow by hand:
 
 Either way, the goal is the same: determine where to apply the fix and whether a single change is sufficient.
 
-### Step 5: Offer a Fix
+### Step 6: Offer a Fix
 
 Summarise the vulnerability and the data flow findings, then **ask the developer if they would like a fix applied** before making any code changes.
 
 Only proceed once they confirm. Then:
 
-1. Show the **vulnerable** code with a comment marking the problem.
-2. Show the **fixed** code using the safe pattern from the guidance, applied at the point identified in Step 4.
-3. Briefly explain what changed and why it eliminates the weakness.
+1. **If a vulnerable library version was identified in Step 4**, show the upgrade first:
+   - State the current version, the vulnerability (CVE or advisory if known), and the minimum safe version.
+   - Show the exact change needed in the manifest file (e.g. updated version string in `pom.xml` or `package.json`).
+2. Show the **vulnerable** code with a comment marking the problem.
+3. Show the **fixed** code using the safe pattern from the guidance, applied at the point identified in Step 5.
+4. Briefly explain what changed and why it eliminates the weakness. If both a library upgrade and a code change are required, clarify which part each fix addresses — the library upgrade may close the CVE but the code-level safe pattern is still needed to enforce correct usage.
 
 Always prefer the language-specific safe pattern over the general one when both are available.
 
@@ -90,4 +129,5 @@ Always prefer the language-specific safe pattern over the general one when both 
 
 - Never guess a fix — always base it on the loaded guidance.
 - If the user's code spans multiple languages, handle each language separately.
-- After applying the fix, suggest the developer re-run their scanner to verify.
+- After applying the fix, suggest the developer re-run their scanner and SCA tool to verify.
+       
