@@ -12,7 +12,7 @@ Cross-Site Scripting (XSS) occurs when untrusted data is included in web pages w
 - Use defence-in-depth with Content Security Policy (CSP) as a secondary layer
 - Validate input format where possible, but rely on output encoding as primary defence
 
-## Actionable Steps
+## Remediation Steps
 
 - Identify sources: Locate all untrusted data entry points (user input, external files, databases, network requests, cookies, headers)
 - Trace data flow: Follow transformations from source through the application to output

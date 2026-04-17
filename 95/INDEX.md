@@ -11,7 +11,7 @@ Eval Injection occurs when untrusted input (from HTTP requests, external APIs, d
 - Treat all external data sources (user input, APIs, databases, files, configuration) as untrusted
 - Use static analysis tools to detect and eliminate dangerous functions
 
-## Actionable Steps
+## Remediation Steps
 
 - Trace data flow: Identify where untrusted data enters (source), how it moves through the application, and where it reaches code execution functions (sink)
 - Remove eval/exec functions: Refactor code to eliminate `eval()`, `exec()`, `Function()`, `compile()`, and similar dynamic execution entirely

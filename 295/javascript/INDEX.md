@@ -17,7 +17,7 @@ Improper certificate validation in JavaScript/Node.js applications allows man-in
 - Remove any `rejectUnauthorized - false` or `NODE_TLS_REJECT_UNAUTHORIZED='0'` settings
 - Use built-in `https` module with default settings or libraries that respect certificate validation
 - Configure custom CAs using `ca` option instead of disabling validation
-- Implement certificate pinning only if required, using tools like `node-http-mitm-proxy`
+- Implement certificate pinning only if required — use the `agent` option on `https.request()` with a custom `checkServerIdentity` callback or specify a `ca` bundle rather than disabling validation
 - Test HTTPS connections in staging with valid certificates
 - Enable strict transport security headers (HSTS) to enforce HTTPS
 
