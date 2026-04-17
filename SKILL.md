@@ -51,9 +51,11 @@ If no language subfolder exists, rely solely on the general guidance from Step 2
 
 ### Step 4: Check Library Dependencies
 
-After loading the guidance, ask the developer whether they would like a library/dependency check as part of the advice. This is always optional but recommended when the CWE is commonly introduced through a third-party library (e.g. deserialization, XML/YAML parsing, cryptography, authentication).
+After loading the guidance, check whether the loaded guidance (Steps 2–3) references any specific third-party library by name (e.g. SnakeYAML, Jackson, Log4j, OpenSSL, Newtonsoft.Json). If it does, **you must offer** to run an SCA scan or read existing SCA results for that library before proceeding.
 
-**Ask:** *"Would you like me to also check whether any related libraries are on a safe version?"*
+**Ask:** *"The guidance references [library name]. Would you like me to check whether the version in use is safe — either by running an SCA scan or reading any existing SCA results?"*
+
+If the guidance does not name a specific library, skip the rest of this step and proceed to Step 5.
 
 If the developer agrees:
 
@@ -112,6 +114,20 @@ Either way, the goal is the same: determine where to apply the fix and whether a
 
 ### Step 6: Offer a Fix
 
+#### Tone
+
+Security findings often arrive as unexpected mandatory blockers. Developers may feel defensive, sceptical about exploitability, or daunted by the migration effort involved. When presenting findings and fixes:
+
+- **Lead with the path forward**, not the severity. The developer knows it must be addressed; focus on how.
+- **Acknowledge migration cost** — replacing a serializer, refactoring an auth flow, or switching a crypto primitive is real work. Say so plainly rather than making it sound trivial.
+- **Use calm, precise language** — avoid alarm phrasing like "DANGEROUS" or "critical vulnerability". Prefer: "this pattern is unsafe because X, and the fix is Y."
+- **Validate pushback on exploitability** — if a developer argues their context reduces risk ("this is internal-only"), acknowledge the point before explaining why the safe pattern is still the right path regardless.
+- **Don't assign blame** — frame findings as patterns to update, not mistakes to own.
+
+The goal is a developer who understands the problem and feels equipped to fix it, not one who is alarmed or defensive.
+
+---
+
 Summarise the vulnerability and the data flow findings, then **ask the developer if they would like a fix applied** before making any code changes.
 
 Only proceed once they confirm. Then:
@@ -130,4 +146,3 @@ Always prefer the language-specific safe pattern over the general one when both 
 - Never guess a fix — always base it on the loaded guidance.
 - If the user's code spans multiple languages, handle each language separately.
 - After applying the fix, suggest the developer re-run their scanner and SCA tool to verify.
-       
