@@ -7,7 +7,7 @@ Code injection occurs when untrusted input flows into code execution functions l
 ## Key Principles
 
 - Never pass user input to code evaluation functions (`eval`, `Function`, `vm` modules)
-- Use safe alternatives: JSON.parse() for data, allow-lists for dynamic operations
+- Use safe alternatives: JSON.parse() for data, allowlists for dynamic operations
 - Sanitize template engine inputs and use auto-escaping modes
 - Apply principle of least privilege to execution contexts
 - Validate and restrict all dynamic code paths
@@ -16,7 +16,7 @@ Code injection occurs when untrusted input flows into code execution functions l
 
 - Replace `eval()` with `JSON.parse()` for data parsing
 - Convert `setTimeout(string)` to `setTimeout(function)` with callbacks
-- Use allow-lists for dynamic property access instead of bracket notation with user input
+- Use allowlists for dynamic property access instead of bracket notation with user input
 - Configure template engines (EJS, Pug, Handlebars) with auto-escaping enabled
 - If `vm` module is required, use isolated contexts with frozen globals
 - Apply input validation at entry points before any processing
@@ -27,7 +27,7 @@ Code injection occurs when untrusted input flows into code execution functions l
 // UNSAFE: eval with user input
 const result = eval(userInput);
 
-// SAFE: Parse data, use allow-list for operations
+// SAFE: Parse data, use allowlist for operations
 const data = JSON.parse(userInput);
 const allowedOps = { add: (a,b) => a+b, multiply: (a,b) => a*b };
 const operation = allowedOps[data.operation];

@@ -2,12 +2,12 @@
 
 ## LLM Guidance
 
-Java eval injection occurs when untrusted input flows into dynamic code execution mechanisms like scripting engines (Nashorn, Groovy), reflection APIs, or expression languages (SpEL, OGNL, MVEL). While Java lacks a native `eval()`, these components enable runtime code execution. The core fix is eliminating dynamic code execution entirely or using strict allow-lists with sandboxed execution contexts.
+Java eval injection occurs when untrusted input flows into dynamic code execution mechanisms like scripting engines (Nashorn, Groovy), reflection APIs, or expression languages (SpEL, OGNL, MVEL). While Java lacks a native `eval()`, these components enable runtime code execution. The core fix is eliminating dynamic code execution entirely or using strict allowlists with sandboxed execution contexts.
 
 ## Key Principles
 
 - Eliminate dynamic evaluation: Replace scripting engines and expression languages with static business logic
-- Use allow-lists over deny-lists: If dynamic features are required, restrict to predefined safe operations only
+- Use allowlists over deny-lists: If dynamic features are required, restrict to predefined safe operations only
 - Apply strict input validation: Validate against narrow patterns before any dynamic processing
 - Isolate execution contexts: Use SecurityManager, separate classloaders, or restricted script engine bindings
 - Prefer safe alternatives: Use configuration files, domain-specific languages, or rule engines with declarative syntax
@@ -16,7 +16,7 @@ Java eval injection occurs when untrusted input flows into dynamic code executio
 
 - Identify all uses of ScriptEngine, expression evaluators (SpEL, OGNL), and reflection with user input
 - Remove dynamic evaluation and replace with static method calls or lookup maps
-- If dynamic features are unavoidable, implement strict allow-list validation of all inputs
+- If dynamic features are unavoidable, implement strict allowlist validation of all inputs
 - Configure script engine bindings to expose only required, safe objects
 - Enable Java SecurityManager with restrictive policies for scripted code
 - Add automated scanning to detect new eval injection vectors in code reviews
