@@ -16,6 +16,6 @@ This vulnerability occurs when applications include code, libraries, or function
 - Identify the vulnerability - Review flaw details for specific file, line number, and code pattern where untrusted inclusion occurs (dynamic imports, eval(), exec(), third-party libraries)
 - Trace data flow - Determine where the code source originates (URL, user input, external API, package manager) and assess what privileges and data access the included code has
 - Use verified sources only - Download libraries exclusively from official package repositories and trusted vendors with established reputations
-- Implement integrity verification - Use cryptographic checksums, digital signatures, or subresource integrity (SRI) to validate code before execution
+- Implement integrity verification - Use pinned checksums, digital signatures, signed releases, package-manager verification, or subresource integrity (SRI) from a trusted channel before execution
 - Remove dynamic code execution - Eliminate eval(), exec(), and dynamic imports; replace with static alternatives or whitelist-based approaches
 - Apply allowlisting - If dynamic loading is required, maintain a strict allowlist of approved components and block all others by default

@@ -17,7 +17,7 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 ## Remediation Steps
 
 - Replace all string concatenation and f-strings in SQL queries with parameterized placeholders
-- Use library-specific parameter syntax (?, %s, or  -name depending on the database driver)
+- Use library-specific parameter syntax (`?`, `%s`, `:name`, or `%(name)s` depending on the database driver)
 - Pass user input as separate arguments to execute() methods, never embedded in query strings
 - For dynamic table/column names, validate against a predefined allowlist of safe values
 - Review all database interaction code for direct string manipulation

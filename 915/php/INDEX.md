@@ -2,12 +2,12 @@
 
 ## LLM Guidance
 
-Mass assignment in Laravel Eloquent occurs when `Model::create($request->all())` or `$model->update($request->all())` is called, allowing request parameters to overwrite any model attribute including protected ones like `is_admin`, `role`, or `email_verified_at`. Laravel's guard against this is the `$fillable` (allowlist) or `$guarded` (denylist) property on the model — but models with `$guarded = []` or missing both properties are fully exposed. Always define `$fillable` with an explicit allowlist.
+Mass assignment in Laravel Eloquent occurs when `Model::create($request->all())` or `$model->update($request->all())` is called, allowing request parameters to overwrite any model attribute including protected ones like `is_admin`, `role`, or `email_verified_at`. Laravel's guard against this is the `$fillable` (allowlist) or `$guarded` (denylist) property on the model - but models with `$guarded = []` or missing both properties are fully exposed. Always define `$fillable` with an explicit allowlist.
 
 ## Key Principles
 
 - Define `$fillable` on every Eloquent model to explicitly allowlist mass-assignable attributes
-- Never set `$guarded = []` or `protected $guarded = ['*']` (the latter disables protection entirely in some versions)
+- Never set `$guarded = []`; `protected $guarded = ['*']` guards all fields, but explicit `$fillable` is clearer for intended mass assignment
 - Never pass `$request->all()` or `$request->input()` directly to `create()` or `update()` without filtering
 - Use `$request->only(['field1', 'field2'])` to select permitted fields from the request
 - Set security-critical attributes (role, is_admin, verified_at) only through dedicated code paths, not from request input
@@ -28,9 +28,9 @@ Mass assignment in Laravel Eloquent occurs when `Model::create($request->all())`
 // app/Models/User.php
 class User extends Model
 {
-    // Explicit allowlist — only these fields can be mass-assigned
+    // Explicit allowlist - only these fields can be mass-assigned
     protected $fillable = ['name', 'email', 'password'];
-    // 'is_admin', 'role', 'email_verified_at' are NOT listed — they cannot be mass-assigned
+    // 'is_admin', 'role', 'email_verified_at' are NOT listed - they cannot be mass-assigned
 }
 
 // app/Http/Requests/UpdateProfileRequest.php

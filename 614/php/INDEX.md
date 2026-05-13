@@ -36,7 +36,7 @@ session_set_cookie_params([
 ]);
 session_start();
 
-// Custom cookie — PHP 7.3+ options array syntax
+// Custom cookie - PHP 7.3+ options array syntax
 setcookie('auth_token', $token, [
     'expires'  => time() + 3600,
     'path'     => '/',

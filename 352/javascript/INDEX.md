@@ -19,7 +19,7 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 - Generate a token per request with `generateToken(req, res)` and inject it into forms or expose via a GET endpoint for SPA clients
 - Configure client to send token in `x-csrf-token` header (AJAX/fetch) or `_csrf` body field (forms)
 - Set cookie SameSite attribute to `Strict` or `Lax` and verify implementation with security tests
-- Handle CSRF errors gracefully — catch `invalidCsrfTokenError` and return 403
+- Handle CSRF errors gracefully - catch `invalidCsrfTokenError` and return 403
 
 ## Safe Pattern
 

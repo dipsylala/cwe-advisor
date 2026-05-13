@@ -1,4 +1,4 @@
-# CWE-321 - Use of Hard-coded Cryptographic Key
+# CWE-321: Use of Hard-coded Cryptographic Key
 
 ## LLM Guidance
 

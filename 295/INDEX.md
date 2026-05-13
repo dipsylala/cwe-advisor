@@ -8,14 +8,17 @@ SSL/TLS certificates serve two critical purposes: authentication (prove the serv
 
 ## Key Principles
 
-1. Replace unsafe sinks with safe native APIs or library functions.
-2. Apply the primary safe pattern for this CWE.
-3. Validate untrusted data with strict allowlists and type checks.
-4. Apply least privilege and safe defaults.
+- Never disable TLS certificate validation or hostname verification
+- Remove trust-all callbacks and dangerous certificate validators
+- Use platform trust stores for public CAs and install private CAs into trusted stores
+- For custom validation, validate the full certificate chain and expected hostname
+- Fail closed on any certificate, chain, revocation, or name validation error
 
 ## Remediation Steps
 
-- Identify the sink and confirm the data path from untrusted data
-- Apply the primary safe pattern for this CWE
-- Add allowlist validation or encoding where required
-- Verify behavior with normal and boundary cases
+- Locate certificate validation callbacks, custom trust managers, or flags that ignore TLS errors
+- Remove bypasses such as callbacks that always return `true` or hostname verifiers that accept all hosts
+- Restore default platform certificate validation wherever possible
+- Configure private/internal CAs by adding them to the appropriate trust store instead of bypassing checks
+- If custom validation is unavoidable, verify the full chain, hostname, revocation policy, and expected trust anchor
+- Test with expired, self-signed, wrong-hostname, and untrusted-chain certificates to confirm failures are blocked

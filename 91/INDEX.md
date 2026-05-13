@@ -1,4 +1,4 @@
-# CWE-91: XML Injection - LLM Guidance
+# CWE-91: XML Injection
 
 ## LLM Guidance
 

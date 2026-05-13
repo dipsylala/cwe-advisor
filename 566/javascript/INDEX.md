@@ -10,12 +10,12 @@ IDOR vulnerabilities in Node.js REST APIs occur when route parameters or request
 - Prefer composite queries: `Model.findOne({ _id: req.params.id, userId: req.user.id })` to enforce authorization at the database layer
 - Read the authenticated user identity from the verified token or session (`req.user.id`), never from the request body
 - Return 404 for both non-existent and unauthorized resources to avoid confirming resource existence to attackers
-- Apply consistent ownership checks across all HTTP verbs — GET, PUT, PATCH, and DELETE on the same resource all need protection
+- Apply consistent ownership checks across all HTTP verbs - GET, PUT, PATCH, and DELETE on the same resource all need protection
 
 ## Remediation Steps
 
 - Locate route parameters used as resource identifiers (`req.params.id`, `req.params.orderId`, etc.)
-- Trace them to database queries — find calls to `findById()`, `findByPk()`, or similar without a user filter
+- Trace them to database queries - find calls to `findById()`, `findByPk()`, or similar without a user filter
 - Replace with a composite query or add an ownership check after retrieval
 - Ensure `req.user` is set by authentication middleware that runs before the handler
 - Return `res.sendStatus(404)` (not 403) when the resource doesn't exist or is not owned by the user
@@ -24,7 +24,7 @@ IDOR vulnerabilities in Node.js REST APIs occur when route parameters or request
 ## Safe Pattern
 
 ```javascript
-// Mongoose — composite query (preferred)
+// Mongoose - composite query (preferred)
 router.get('/orders/:id', authenticate, async (req, res) => {
   const order = await Order.findOne({
     _id: req.params.id,
@@ -34,7 +34,7 @@ router.get('/orders/:id', authenticate, async (req, res) => {
   res.json(order);
 });
 
-// Sequelize — composite query
+// Sequelize - composite query
 router.delete('/documents/:id', authenticate, async (req, res) => {
   const deleted = await Document.destroy({
     where: { id: req.params.id, ownerId: req.user.id },
@@ -49,7 +49,8 @@ router.put('/invoices/:id', authenticate, async (req, res) => {
   if (!invoice || invoice.userId.toString() !== req.user.id) {
     return res.sendStatus(404);
   }
-  await invoice.set(req.body).save();
+  const { amount, note } = req.body; // allowlisted update fields only
+  await invoice.set({ amount, note }).save();
   res.json(invoice);
 });
 ```

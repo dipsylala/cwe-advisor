@@ -9,7 +9,7 @@ Improper certificate validation in Java occurs when code replaces the default `T
 - Never implement `X509TrustManager` with empty `checkServerTrusted` / `checkClientTrusted` methods
 - Never set `HttpsURLConnection.setDefaultHostnameVerifier((h, s) -> true)`
 - Remove any `SSLContext` initialized with a trust-all `TrustManager` array
-- For custom CA certificates (internal PKI), import the CA into a `KeyStore` and build a `TrustManagerFactory` from it — do not disable validation
+- For custom CA certificates (internal PKI), import the CA into a `KeyStore` and build a `TrustManagerFactory` from it - do not disable validation
 - Use `HttpClient` (Java 11+) with default SSL configuration; it validates certificates by default
 
 ## Remediation Steps

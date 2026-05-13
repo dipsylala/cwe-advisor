@@ -11,7 +11,7 @@ XXE vulnerabilities in .NET occur when XML parsers process external entity refer
 - Prohibit DTD processing entirely using `DtdProcessing.Prohibit` to reject DOCTYPE declarations
 - Set `XmlResolver = null` to block external entity resolution even if DTDs bypass other controls
 - Apply secure settings to all XML parsing APIs (XmlDocument, XmlReader, XmlSerializer, DataContractSerializer)
-- Use `MaxCharactersFromEntities = 0` to prevent entity expansion DoS attacks
+- Keep DTD processing prohibited; if entity expansion is allowed for trusted XML, set a positive `MaxCharactersFromEntities` limit and consider `MaxCharactersInDocument`
 - Create reusable secure configuration helpers to ensure consistent protection across the codebase
 
 ## Remediation Steps
@@ -34,7 +34,7 @@ public void ParseXmlSecure(string xml)
     {
         DtdProcessing = DtdProcessing.Prohibit,
         XmlResolver = null,
-        MaxCharactersFromEntities = 0
+        MaxCharactersInDocument = 1_000_000
     };
     
     using (var reader = XmlReader.Create(new StringReader(xml), settings))

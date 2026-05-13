@@ -8,8 +8,8 @@
 
 - Replace `new Random()` and `Random.Shared.Next()` in security contexts with `RandomNumberGenerator` static methods
 - Use `RandomNumberGenerator.GetBytes()` for raw entropy, `GetInt32()` for bounded integers, `GetHexString()` for hex tokens
-- Never seed `Random` from timestamp or `Environment.TickCount` for security use — seeded `Random` is reproducible
-- `Guid.NewGuid()` is not a suitable security token — it may encode timestamp or MAC address depending on the platform
+- Never seed `Random` from timestamp or `Environment.TickCount` for security use - seeded `Random` is reproducible
+- `Guid.NewGuid()` is not a suitable security token - UUIDv4 values have fixed bits, at most 122 bits of entropy, and are not cryptographic PRFs
 - Keep `System.Random` only for non-security simulation, gaming, or test data generation
 
 ## Remediation Steps
@@ -33,7 +33,7 @@ string tokenBase64 = Convert.ToBase64String(token);
 // SAFE: hex token (.NET 5+)
 string hexToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
 
-// SAFE: secure integer range — OTP between 100000 and 999999
+// SAFE: secure integer range - OTP between 100000 and 999999
 int otp = RandomNumberGenerator.GetInt32(100_000, 1_000_000);
 
 // .NET Framework / .NET 5 fallback

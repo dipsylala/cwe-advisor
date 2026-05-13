@@ -9,7 +9,7 @@ Open Redirect vulnerabilities occur when an application redirects users to URLs 
 - Always validate redirect URLs before using them in redirect responses
 - Prefer allowlists of known-safe redirect destinations over validation
 - Use framework-provided validation methods rather than custom regex patterns
-- Reject URLs with absolute paths, external domains, or protocol handlers
+- Reject absolute URLs, external domains, protocol-relative URLs, and dangerous schemes; allow validated local absolute paths such as `/dashboard`
 - Default to safe fallback URLs when validation fails
 
 ## Remediation Steps
@@ -19,7 +19,7 @@ Open Redirect vulnerabilities occur when an application redirects users to URLs 
 - Replace direct redirects with validation using `Url.IsLocalUrl()` or allowlist checks
 - Add null/empty checks before validation to prevent exceptions
 - Implement fallback redirects to safe defaults (e.g., home page) when validation fails
-- Test with malicious URLs like `//evil.com`, `javascript -alert(1)`, and `http -//attacker.com`
+- Test with malicious URLs like `//evil.com`, `javascript:alert(1)`, and `http://attacker.com`
 
 ## Safe Pattern
 

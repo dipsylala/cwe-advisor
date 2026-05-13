@@ -14,10 +14,10 @@ XXE vulnerabilities occur when XML parsers process external entity references in
 ## Remediation Steps
 
 - Enable secure processing - `factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)`
-- Disable DTDs - `factory.setFeature("http -//apache.org/xml/features/disallow-doctype-decl", true)`
-- Disable external general entities - `factory.setFeature("http -//xml.org/sax/features/external-general-entities", false)`
-- Disable external parameter entities - `factory.setFeature("http -//xml.org/sax/features/external-parameter-entities", false)`
-- Disable external DTDs - `factory.setFeature("http -//apache.org/xml/features/nonvalidating/load-external-dtd", false)`
+- Disable DTDs - `factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)`
+- Disable external general entities - `factory.setFeature("http://xml.org/sax/features/external-general-entities", false)`
+- Disable external parameter entities - `factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)`
+- Disable external DTDs - `factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)`
 - Apply these settings to all DocumentBuilderFactory, SAXParserFactory, and XMLInputFactory instances
 
 ## Safe Pattern

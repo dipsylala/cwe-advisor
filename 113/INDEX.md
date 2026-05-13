@@ -9,7 +9,7 @@ HTTP Response Splitting occurs when untrusted user input is included in HTTP hea
 - Never allow untrusted input to directly influence HTTP response headers
 - Header values must be validated or sanitized by the server to prevent CRLF injection
 - Construct headers server-side rather than incorporating external data
-- Block or encode CR (`\r`, U+000D) and LF (`\n`, U+000A) in all header values — also strip Unicode line terminators that some HTTP parsers treat equivalently: U+0085 (NEL), U+2028 (LINE SEPARATOR), and U+2029 (PARAGRAPH SEPARATOR)
+- Block or encode CR (`\r`, U+000D) and LF (`\n`, U+000A) in all header values - also strip Unicode line terminators that some HTTP parsers treat equivalently: U+0085 (NEL), U+2028 (LINE SEPARATOR), and U+2029 (PARAGRAPH SEPARATOR)
 - Use framework-provided header-setting functions that auto-sanitize
 
 ## Remediation Steps

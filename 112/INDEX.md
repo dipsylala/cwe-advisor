@@ -19,4 +19,4 @@ Missing XML validation occurs when applications parse XML without validating it 
 - Enforce length limits with `maxLength` attributes to prevent oversized payloads
 - Define cardinality constraints using `minOccurs` and `maxOccurs` to limit element repetition
 - Restrict attribute values with enumerations or regex patterns to allowlist valid inputs
-- Configure your XML parser to validate against the schema and reject invalid documents before processing
+- Configure your XML parser to validate against trusted local schemas, reject invalid documents before processing, disable external entity resolution, restrict external DTD/schema access, and apply document size/depth limits

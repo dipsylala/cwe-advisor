@@ -1,4 +1,4 @@
-# CWE-256 - Plaintext Storage of a Password
+# CWE-256: Plaintext Storage of a Password
 
 ## LLM Guidance
 
@@ -6,7 +6,7 @@ Storing passwords in plaintext (database, files, configuration, logs) exposes al
 
 ## Key Principles
 
-- Use strong, salted, slow hashing algorithms (Argon2, bcrypt, scrypt) exclusively
+- Use strong, salted, slow hashing algorithms (Argon2, bcrypt, scrypt, or PBKDF2-HMAC-SHA256 where required)
 - Never store passwords in reversible form (plaintext, encoding, weak hashing, encryption)
 - Implement proper work factors to resist brute-force attacks
 - Use unique salts per password to prevent rainbow table attacks
@@ -19,5 +19,5 @@ Storing passwords in plaintext (database, files, configuration, logs) exposes al
 - Search codebase for logging - Eliminate password variables from log statements
 - Audit client-side storage - Remove passwords from cookies and session storage
 - Review API responses - Ensure passwords are never returned in responses
-- Replace plaintext storage - Implement bcrypt/Argon2 hashing with automatic salt generation
+- Replace plaintext storage - Implement bcrypt, Argon2, scrypt, or PBKDF2-HMAC-SHA256 with automatic salt generation and current work factors
 - Migrate existing passwords - Hash plaintext passwords on next user login, prompt password reset if needed

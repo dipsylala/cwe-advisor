@@ -11,6 +11,7 @@ Using weak cryptographic algorithms (MD5, SHA-1, DES, RC4, weak RSA keys) instea
 - Use AES-256-GCM or ChaCha20-Poly1305 for symmetric encryption
 - Use RSA-2048+ with SHA-256 or ECDSA for digital signatures
 - Enforce server-controlled algorithm selection restricted to approved modern primitives
+- Disable weak negotiation, fallback modes, and client-selected downgrades in protocols
 
 ## Remediation Steps
 
@@ -18,5 +19,6 @@ Using weak cryptographic algorithms (MD5, SHA-1, DES, RC4, weak RSA keys) instea
 - Select appropriate replacement based on use case - passwords → bcrypt/Argon2, integrity → SHA-256+, encryption → AES-256-GCM, signatures → RSA-2048+/ECDSA
 - Plan migration strategy for existing hashed or encrypted data
 - Update code to use strong algorithms with proper configuration
+- Disable weak protocol/cipher negotiation and reject downgrade attempts
 - Test thoroughly including security validation and compatibility
 - Monitor continuously for any continued use of weak algorithms

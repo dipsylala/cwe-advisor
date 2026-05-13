@@ -6,7 +6,7 @@ Code injection in Java occurs when untrusted input is evaluated through scriptin
 
 ## Key Principles
 
-- Remove or disable `ScriptEngine` access to untrusted input entirely — there is no safe way to sandbox Nashorn/Rhino for arbitrary user expressions
+- Remove or disable `ScriptEngine` access to untrusted input entirely - there is no safe way to sandbox Nashorn/Rhino for arbitrary user expressions
 - Replace dynamic script evaluation with predefined logic: switch statements, strategy patterns, or configuration-driven dispatch tables
 - If a user-configurable expression language is required, use a purpose-built, sandboxed evaluator (e.g., Apache Commons JEXL with a restricted `Sandbox`, or SpEL with method-invocation disabled)
 - Never pass user input to Groovy's `GroovyShell.evaluate()`, `GroovyClassLoader.parseClass()`, or `GroovyScriptEngine`

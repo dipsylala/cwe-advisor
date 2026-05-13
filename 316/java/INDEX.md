@@ -17,7 +17,7 @@ Storing sensitive data (passwords, cryptographic keys, tokens) in memory as clea
 - Replace `String password` parameters with `char[] password`
 - Add `Arrays.fill(password, '\0')` in `finally` blocks after processing
 - Remove any `.toString()`, string concatenation, or logging of sensitive values
-- Use `SecureString` or `GuardedString` wrappers where available
+- Use `Destroyable`, `SecretKey`, `KeyStore`, or clearly documented framework wrappers such as `GuardedString` where available
 - Implement `AutoCloseable` or `Destroyable` for credential holder classes
 - Review heap dump and debugging configurations to prevent memory exposure
 

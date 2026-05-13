@@ -31,9 +31,9 @@ public boolean authenticate(String username, String password) {
     String validUser = "admin";
     String validPass = retrieveHashedPassword(username);
     
-    // Constant-first pattern prevents NPE, compares content not references
+    // Constant-first pattern prevents NPE; use a verifier for salted password hashes
     if (validUser.equals(username) && validPass != null) {
-        return validPass.equals(hashPassword(password));
+        return passwordEncoder.matches(password, validPass);
     }
     return false;
 }

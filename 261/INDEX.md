@@ -1,4 +1,4 @@
-# CWE-261 - Weak Encoding for Password
+# CWE-261: Weak Encoding for Password
 
 ## LLM Guidance
 

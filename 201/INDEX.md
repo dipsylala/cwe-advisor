@@ -4,7 +4,7 @@
 
 Insertion of sensitive information into sent data occurs when applications include confidential data (passwords, tokens, internal paths, stack traces, PII) in HTTP responses, error messages, logs, or API responses transmitted to users or external systems. This enables information disclosure that attackers can exploit to gain unauthorized access or escalate privileges.
 
-## Remediation Principles
+## Key Principles
 
 - Minimize data exposure: Only include necessary data in responses; exclude internal details, debug info, and sensitive fields
 - Sanitize error messages: Return generic errors to clients; log detailed errors server-side only

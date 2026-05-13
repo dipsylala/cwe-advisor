@@ -7,7 +7,7 @@ Path Traversal occurs when applications use user-supplied input to construct fil
 ## Key Principles
 
 - Reject direct user input in paths: Never use untrusted data directly as file paths or path components
-- Decode before canonicalization: URL-decode (and percent-decode) input fully before any filtering or path resolution — overlong UTF-8 sequences (e.g. `%c0%ae` → `.`) and double-encoded variants (e.g. `%252e%252e`) bypass filters applied to raw strings
+- Decode before canonicalization: URL-decode (and percent-decode) input fully before any filtering or path resolution - overlong UTF-8 sequences (e.g. `%c0%ae` → `.`) and double-encoded variants (e.g. `%252e%252e`) bypass filters applied to raw strings
 - Normalise Unicode before validation: Full-width and other Unicode equivalents of `/`, `\`, and `.` (e.g. U+FF0F FULLWIDTH SOLIDUS, U+2215 DIVISION SLASH) can survive naive character checks; apply Unicode NFC normalisation before validation
 - Canonicalize before validation: Resolve symlinks and relative paths (`.`, `..`) to absolute form before security checks
 - Enforce allowlist containment: Verify canonicalized paths stay within permitted root directories

@@ -4,7 +4,7 @@
 
 Origin validation errors occur when applications fail to properly verify the source of requests, accepting cross-origin requests without validation, trusting Referer headers, or misconfiguring CORS. This enables CSRF attacks, cross-site data theft, and unauthorized cross-domain access. The core fix is to validate the origin of security-relevant data and bind it to a trusted identity or channel before acting on it.
 
-## Key Remediation Principles
+## Key Principles
 
 - Validate request origin before processing state-changing operations
 - Implement anti-CSRF tokens for all sensitive forms and endpoints

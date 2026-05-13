@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) is vulnerable to padding oracle attacks and chosen ciphertext attacks. Node.js crypto defaults to insecure PKCS#1 v1.5 padding when OAEP is not explicitly specified. Always use `RSA_PKCS1_OAEP_PADDING` for all RSA encryption operations.
+RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) is vulnerable to padding oracle attacks and chosen ciphertext attacks. Audit explicit uses of `RSA_PKCS1_PADDING` and configure OAEP with SHA-256 or stronger; Node's OAEP defaults may use SHA-1 unless `oaepHash` is set.
 
 ## Key Principles
 
@@ -15,7 +15,7 @@ RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) is vulnerabl
 ## Remediation Steps
 
 - Locate all `crypto.publicEncrypt()` and `crypto.privateDecrypt()` calls
-- Add explicit `padding - crypto.constants.RSA_PKCS1_OAEP_PADDING` to options
+- Add explicit `padding: crypto.constants.RSA_PKCS1_OAEP_PADDING` and `oaepHash: 'sha256'` to options
 - Verify RSA key size is at least 2048 bits
 - Test encryption/decryption with OAEP padding enabled
 - Review and update all RSA encryption configurations

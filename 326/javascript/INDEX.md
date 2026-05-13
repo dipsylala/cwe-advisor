@@ -13,7 +13,7 @@ Inadequate Encryption Strength in JavaScript/Node.js applications occurs when de
 
 ## Remediation Steps
 
-- Replace weak ciphers (DES, RC4, AES-128) with AES-256-GCM or ChaCha20-Poly1305
+- Replace weak ciphers (DES, RC4, ECB, CBC without authentication, or sub-128-bit/policy-disallowed keys) with AES-GCM or ChaCha20-Poly1305
 - Generate 256-bit keys using `crypto.randomBytes(32)` or derive from passwords with `crypto.pbkdf2()` (100,000+ iterations)
 - Use authenticated encryption modes (GCM, CCM) that provide both confidentiality and integrity
 - Generate unique IVs/nonces per encryption operation using `crypto.randomBytes(12)` for GCM

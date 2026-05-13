@@ -10,7 +10,7 @@ Path Traversal in JavaScript/Node.js occurs when applications use unsanitized us
 
 - Use indirect reference mapping with IDs/tokens instead of accepting file paths from users
 - Validate all path inputs against strict allowlists of permitted files/directories
-- Resolve and normalize paths with `path.resolve()` and verify they start with the expected base directory
+- Resolve and normalize paths, then compare real paths so symlinks cannot escape the base directory
 - Reject inputs containing path traversal sequences (`../`, `..\\`, encoded variants)
 - Apply principle of least privilege to file system permissions
 
@@ -18,8 +18,8 @@ Path Traversal in JavaScript/Node.js occurs when applications use unsanitized us
 
 - Replace direct file path parameters with indirect references (database IDs, UUIDs)
 - Decode input with `decodeURIComponent()` and normalise Unicode with `.normalize('NFC')` before any path construction
-- Use `path.resolve()` to normalize user input and base directory to absolute paths
-- Verify resolved path starts with intended base directory using `path.relative()` or `startsWith()`
+- Use `path.resolve()` for path construction and `fs.realpathSync.native()` before containment checks
+- Verify the real requested path stays inside the real base directory using `path.relative()`
 - Implement allowlist validation for permitted file extensions and names
 - Sanitize input by rejecting `..`, null bytes, and encoded traversal attempts
 - Configure Express static middleware with `dotfiles: 'deny'` and strict root directories
@@ -31,17 +31,20 @@ const path = require('path');
 const fs = require('fs');
 
 const BASE_DIR = path.resolve('./uploads');
+const REAL_BASE_DIR = fs.realpathSync.native(BASE_DIR);
 
 function safeReadFile(userFilename) {
   // Decode URL encoding and normalise Unicode before any path logic
   const decoded = decodeURIComponent(userFilename).normalize('NFC');
 
   const requestedPath = path.resolve(BASE_DIR, decoded);
+  const realRequestedPath = fs.realpathSync.native(requestedPath);
+  const relative = path.relative(REAL_BASE_DIR, realRequestedPath);
 
-  if (!requestedPath.startsWith(BASE_DIR + path.sep)) {
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error('Access denied');
   }
 
-  return fs.readFileSync(requestedPath);
+  return fs.readFileSync(realRequestedPath);
 }
 ```

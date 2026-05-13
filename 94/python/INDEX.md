@@ -7,14 +7,14 @@ Code injection in Python occurs when untrusted input is passed to code execution
 ## Key Principles
 
 - Never use `eval()`, `exec()`, or `compile()` with any user-controlled input
-- Use `ast.literal_eval()` for safe evaluation of literals (strings, numbers, lists, dicts)
+- Prefer JSON for external data; use `ast.literal_eval()` only with strict input size and depth limits
 - Replace dynamic code execution with predefined function mappings or configuration
 - Validate and sanitize all inputs before processing, using allowlists not denylists
 - Use template engines with auto-escaping instead of string formatting for dynamic content
 
 ## Remediation Steps
 
-- Replace `eval()` calls with `ast.literal_eval()` for parsing data structures
+- Replace `eval()` calls with JSON parsing where possible; if using `ast.literal_eval()`, enforce input size and nesting limits
 - Convert dynamic code patterns to dictionary-based function dispatch
 - Use JSON parsing instead of evaluating Python code from external sources
 - Implement strict input validation with type checking and range limits
@@ -27,8 +27,10 @@ Code injection in Python occurs when untrusted input is passed to code execution
 import ast
 import json
 
-# Safe: Use ast.literal_eval for literals
+# Safer than eval for trusted-size literals; still enforce input limits
 user_input = "[1, 2, 3]"
+if len(user_input) > 4096:
+    raise ValueError("Input too large")
 safe_data = ast.literal_eval(user_input)
 
 # Safe: Use JSON for structured data

@@ -8,7 +8,7 @@ Insufficiently Protected Credentials in Java occurs when passwords, API keys, or
 
 - Store credentials in external secret management systems (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault)
 - Use environment variables or encrypted configuration files with restricted file permissions
-- Encrypt credentials at rest using AES-256 with Java KeyStore; never store plaintext passwords
+- Encrypt credentials at rest using a secrets manager/KMS, platform-backed storage, or PKCS12 KeyStore when local storage is unavoidable; never store plaintext passwords
 - Transmit credentials only over TLS/SSL; use char[] for passwords in memory and clear immediately after use
 - Implement credential rotation policies and audit access logs regularly
 
@@ -17,7 +17,7 @@ Insufficiently Protected Credentials in Java occurs when passwords, API keys, or
 - Remove hardcoded credentials from source code; scan with tools like git-secrets or TruffleHog
 - Migrate credentials to AWS Secrets Manager, Azure Key Vault, or HashiCorp Vault
 - Configure application to retrieve credentials at runtime from secret manager or environment variables
-- Use JCEKS KeyStore with strong passwords for local encrypted credential storage if needed
+- Use PKCS12 KeyStore or platform-backed storage for local encrypted credential storage if a secrets manager is not available
 - Replace String passwords with char[] and zero out arrays after authentication
 - Enable TLS 1.3 for all credential transmission; never send credentials in URLs or logs
 
@@ -36,7 +36,7 @@ GetSecretValueRequest request = new GetSecretValueRequest()
 GetSecretValueResult result = client.getSecretValue(request);
 String secret = result.getSecretString();
 
-// Use credential immediately, then clear
+// Use credential immediately; avoid claiming full clearing after creating a String copy
 char[] password = secret.toCharArray();
 authenticateUser(username, password);
 Arrays.fill(password, '\0'); // Clear sensitive data

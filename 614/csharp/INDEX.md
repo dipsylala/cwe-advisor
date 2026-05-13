@@ -16,7 +16,7 @@ In ASP.NET Core, cookies created without `CookieOptions.Secure = true` can be tr
 
 - Find all `Response.Cookies.Append()` calls and add `Secure = true` to their `CookieOptions`
 - In `Program.cs`, add `app.UseCookiePolicy()` and configure `services.Configure<CookiePolicyOptions>(o => o.Secure = CookieSecurePolicy.Always)`
-- For authentication cookies, set `options.Cookie.SecurePolicy = CookieSecurePolicy.Always` in `AddCookie()` or `AddJwtBearer()` configuration
+- For authentication cookies, set `options.Cookie.SecurePolicy = CookieSecurePolicy.Always` in `AddCookie()` configuration
 - For session cookies, configure `options.Cookie.SecurePolicy = CookieSecurePolicy.Always` in `AddSession()`
 - Add `app.UseHsts()` and `app.UseHttpsRedirection()` to enforce HTTPS at the application level
 - Test by proxying traffic over HTTP and confirming sensitive cookies are not transmitted

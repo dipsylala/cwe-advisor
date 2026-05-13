@@ -8,7 +8,7 @@ Path Traversal occurs when user-supplied input constructs file paths without val
 
 - Never directly concatenate user input into file paths
 - Use allowlists for filenames, not denylists for patterns
-- URL-decode and Unicode-normalise input before any filtering — overlong UTF-8 or full-width Unicode characters (e.g. U+FF0F) can bypass raw string checks
+- URL-decode and Unicode-normalise input before any filtering - overlong UTF-8 or full-width Unicode characters (e.g. U+FF0F) can bypass raw string checks
 - Canonicalize paths with `Path.GetFullPath()` before validation
 - Always verify resolved paths start with the intended base directory
 - Prefer indirect references (database IDs mapped to filenames)

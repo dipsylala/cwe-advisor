@@ -17,9 +17,9 @@ XML Injection in Java occurs when untrusted user input is used to construct XML 
 ## Remediation Steps
 
 - Replace string concatenation with DOM API methods for XML construction
-- Apply XML escaping using `StringEscapeUtils.escapeXml()` for string-based approaches
+- Apply current XML escaping (`escapeXml10`/`escapeXml11`) only when string-based construction is unavoidable
 - Validate input against whitelist patterns before XML processing
-- Configure parsers to disable DTDs and external entities (`setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)`)
+- Configure parsers to explicitly disable DOCTYPE declarations, external entities, and external schema/DTD access
 - Use parameterized XPath queries instead of string concatenation
 
 ## Safe Pattern

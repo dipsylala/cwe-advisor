@@ -21,7 +21,6 @@ Cross-Site Scripting (XSS) occurs when untrusted data is rendered in web pages w
 - Install and use DOMPurify for sanitizing user-generated HTML
 - Set CSP headers - `Content-Security-Policy - default-src 'self'; script-src 'self'`
 - Validate and encode URL parameters before rendering
-- Use parameterized queries for database operations to prevent injection
 
 ## Safe Pattern
 
@@ -38,7 +37,9 @@ import DOMPurify from 'dompurify';
 const clean = DOMPurify.sanitize(userHTML);
 element.innerHTML = clean;
 
-// Safe: Template engine with escaping
-app.set('view options', { escape: true });
+// Safe: Template engine escaped interpolation
+// EJS: <%= userInput %>
+// Pug: p= userInput
+// Handlebars: {{userInput}}
 res.render('page', { userInput });
 ```

@@ -18,7 +18,7 @@
 - Replace with a shared `SecureRandom` instance (thread-safe; safe to reuse)
 - Call `secureRandom.nextBytes(byte[])` to fill a buffer, then encode with `Base64.getUrlEncoder().withoutPadding().encodeToString()`
 - For integer ranges (OTP), use `secureRandom.nextInt(bound)` instead of `random.nextInt(bound)`
-- Verify all call sites — search for `import java.util.Random` across the codebase
+- Verify all call sites - search for `import java.util.Random` across the codebase
 - Run tests to confirm generated values are not sequential or predictable across restarts
 
 ## Safe Pattern

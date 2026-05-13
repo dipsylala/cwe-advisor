@@ -7,7 +7,7 @@ This vulnerability occurs when user input is used to construct file or directory
 ## Key Principles
 
 - Never use untrusted data directly as file names or path components
-- Decode fully before filtering: URL-decode input (including double-encoded variants such as `%252e`) and apply Unicode NFC normalisation before any character checks — full-width Unicode equivalents of `/`, `\`, and `.` (e.g. U+FF0F, U+2215) bypass naive filters applied to raw strings
+- Decode fully before filtering: URL-decode input (including double-encoded variants such as `%252e`) and apply Unicode NFC normalisation before any character checks - full-width Unicode equivalents of `/`, `\`, and `.` (e.g. U+FF0F, U+2215) bypass naive filters applied to raw strings
 - Map external identifiers to server-controlled filenames using whitelists or indirect references
 - Enforce canonical path validation and containment within safe directories
 - Apply defence-in-depth with both input validation and filesystem-level restrictions

@@ -18,7 +18,7 @@ HTTP Response Splitting occurs when attackers inject CRLF characters (`\r\n`) in
 - Use `redirect:` prefix in controller return values instead of manually setting `Location` headers
 - Apply input validation to reject `\r`, `\n`, `\u0085`, `\u2028`, and `\u2029` characters before any header operations; also strip percent-encoded variants (`%0d`, `%0a`)
 - Use `ContentDisposition.builder()` for file download headers instead of string concatenation
-- Implement allowlist validation for redirect URLs using `UrlValidator` or regex patterns
+- Implement allowlist validation for redirect URLs using parsed local paths or strict regex patterns that reject `//`
 - Review all response header manipulations and replace with framework methods
 
 ## Safe Pattern
@@ -29,8 +29,9 @@ public class SafeRedirectController {
     
     @GetMapping("/redirect")
     public String safeRedirect(@RequestParam String url) {
-        // Validate against allowlist
-        if (!url.matches("^/[a-zA-Z0-9/_-]+$")) {
+        // Example allowlist policy: matches local absolute paths that start with
+        // one "/" and reject "//", allowing only letters, digits, "/", "_", and "-".
+        if (!url.matches("^/(?!/)[a-zA-Z0-9/_-]+$")) {
             throw new IllegalArgumentException("Invalid URL");
         }
         return "redirect:" + url; // Spring handles encoding

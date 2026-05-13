@@ -17,7 +17,7 @@ Mass assignment vulnerabilities in C# occur when ASP.NET model binding automatic
 - Create a ViewModel/DTO class with only the properties users should modify
 - Apply `[BindNever]` attribute to sensitive properties if direct entity binding is unavoidable
 - Replace controller action parameters from domain entities to ViewModels
-- Use `[Bind(Include = "Prop1,Prop2")]` on action parameters to whitelist bindable properties
+- Prefer DTOs; if using ASP.NET Core `[Bind]`, use `[Bind("Prop1,Prop2")]` on action parameters to whitelist bindable properties
 - Map ViewModel properties explicitly to domain entities using manual assignment or AutoMapper
 - Always check `ModelState.IsValid` before processing bound data
 

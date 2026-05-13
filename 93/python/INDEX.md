@@ -41,7 +41,7 @@ def sanitize_url(url):
     # Validate URL structure
     try:
         parsed = urlparse(clean_url)
-        if parsed.scheme not in ['http', 'https', '']:
+        if parsed.scheme or parsed.netloc or not clean_url.startswith('/') or clean_url.startswith('//'):
             return None
         return clean_url
     except:

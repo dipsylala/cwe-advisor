@@ -16,7 +16,7 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 
 - Locate - Identify the source (user input entry points like `request.getParameter()`, `@RequestParam`) and sink (SQL execution like `executeQuery()`, `createNativeQuery()`)
 - Trace data flow - Check if string concatenation or `String.format()` is used to build SQL queries
-- Replace concatenation - Convert string-based queries to `PreparedStatement` with `?` placeholders or JPA named parameters (`-paramName`)
+- Replace concatenation - Convert string-based queries to `PreparedStatement` with `?` placeholders or JPA named parameters (`:paramName`)
 - Bind parameters - Use `setString()`, `setInt()` or similar methods to bind user input to placeholders
 - Test - Verify the fix handles special characters and injection attempts correctly
 - Review - Ensure all similar patterns in the codebase are addressed

@@ -8,7 +8,7 @@ Overly permissive CORS occurs when web applications allow requests from any orig
 
 - Restrict allowed origins: Only allow specific trusted origins; never use `*` in production or reflect Origin headers dynamically
 - Limit methods and headers: Permit only required HTTP methods and headers; minimize the attack surface
-- Disable credentials by default: Set `Access-Control-Allow-Credentials: false` unless absolutely necessary; never combine wildcards with credentials
+- Disable credentials by default: omit `Access-Control-Allow-Credentials` unless absolutely necessary; browsers only honor `true`, and it must never be combined with wildcard origins
 - Monitor and audit: Log CORS requests, track unexpected origins, and regularly review policy effectiveness
 
 ## Remediation Steps

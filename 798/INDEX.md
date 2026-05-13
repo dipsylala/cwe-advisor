@@ -6,10 +6,12 @@ Hard-coded credentials occur when authentication secrets (passwords, API keys, e
 
 ## Remediation Steps
 
-- Identify the sink and confirm the data path from untrusted data
-- Apply the primary safe pattern for this CWE
-- Add allowlist validation or encoding where required
-- Verify behavior with normal and boundary cases
+- Locate hard-coded secrets in source, config, tests, scripts, and committed history
+- Remove secrets from code and load them from environment variables, secret managers, or vault-backed configuration
+- Rotate and revoke any credential that was committed or exposed
+- Scrub repository history or invalidate old versions where exposure cannot be removed safely
+- Add secret scanning to CI and pre-commit hooks to prevent reintroduction
+- Restrict runtime secret access with least privilege and audit access
 
 ## Key Principles
 

@@ -9,7 +9,7 @@ Code injection in C# occurs when untrusted input is compiled and executed at run
 - Never pass user input to `CSharpCodeProvider.CompileAssemblyFromSource()`, `CSharpCompilation.Create()`, or `Assembly.Load()` with user-generated code
 - Replace dynamic compilation with predefined delegates, strategy patterns, or configuration-driven dispatch
 - If user-configurable formulas are required, use `NCalc` or `DynamicExpresso` with method and type access locked down to a safe allowlist
-- Restrict `AppDomain` / sandbox environments — they do not reliably prevent code injection on modern .NET runtimes
+- Restrict `AppDomain` / sandbox environments - they do not reliably prevent code injection on modern .NET runtimes
 - Validate all expressions against a strict allowlist of permitted identifiers and operators before evaluation
 
 ## Remediation Steps
@@ -26,7 +26,7 @@ Code injection in C# occurs when untrusted input is compiled and executed at run
 ```csharp
 using System.Collections.Generic;
 
-// SAFE: dispatch table — no dynamic compilation
+// SAFE: dispatch table - no dynamic compilation
 private static readonly Dictionary<string, Func<double, double>> _ops = new()
 {
     ["double"]  = x => x * 2,
@@ -46,5 +46,5 @@ public double ApplyOperation(string opName, double value)
 // var interpreter = new Interpreter(InterpreterOptions.Default);
 // interpreter.SetVariable("x", userValue);  // Only known-safe variables
 // // Do NOT call interpreter.Reference(typeof(System.IO.File)) or similar
-// double result = interpreter.Eval<double>("x * 2");  // Operator only — no method calls
+// double result = interpreter.Eval<double>("x * 2");  // Operator only - no method calls
 ```

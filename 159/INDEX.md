@@ -1,4 +1,4 @@
-# CWE-159. Improper Handling of Invalid Use of Special Elements
+# CWE-159: Improper Handling of Invalid Use of Special Elements
 
 ## LLM Guidance
 

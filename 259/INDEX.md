@@ -1,4 +1,4 @@
-# CWE-259 - Use of Hard-coded Password
+# CWE-259: Use of Hard-coded Password
 
 ## LLM Guidance
 

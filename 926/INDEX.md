@@ -15,7 +15,7 @@ Android Component Export occurs when application components (activities, service
 
 - Review flaw details to identify which component lacks proper export declaration
 - Audit all activities, services, broadcast receivers, and content providers in `AndroidManifest.xml`
-- Identify components with intent filters that require explicit `android -exported` on Android 12+
+- Identify components with intent filters that require explicit `android:exported` on Android 12+
 - Determine which components should be internal-only versus accessible to other applications
-- Set `android -exported="false"` for internal components and `android -exported="true"` only when necessary
+- Set `android:exported="false"` for internal components and `android:exported="true"` only when necessary
 - Add signature-level permissions or implement runtime caller validation for all exported components

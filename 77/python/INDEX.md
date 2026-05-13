@@ -32,7 +32,7 @@ import subprocess
 # SAFE: Argument list with shell=False (default)
 user_file = get_user_input()
 result = subprocess.run(
-    ['ls', '-l', user_file],
+    ['ls', '-l', '--', user_file],
     capture_output=True,
     text=True,
     check=True
@@ -41,5 +41,5 @@ result = subprocess.run(
 # For dynamic arguments, validate first
 allowed_options = {'-l', '-a', '-h'}
 if user_option in allowed_options:
-    subprocess.run(['ls', user_option, user_file])
+    subprocess.run(['ls', user_option, '--', user_file])
 ```

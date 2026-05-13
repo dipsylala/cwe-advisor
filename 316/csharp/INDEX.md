@@ -2,14 +2,14 @@
 
 ## LLM Guidance
 
-Storing sensitive data (passwords, keys, tokens) as cleartext strings in C# memory exposes them to memory dumps, debuggers, and disclosure attacks. Immutable strings persist until garbage collection, creating extended exposure windows. Use `char[]` for passwords with explicit `Array.Clear()` in `finally` blocks, or `SecureString` for Windows-only scenarios.
+Storing sensitive data (passwords, keys, tokens) as cleartext strings in C# memory exposes them to memory dumps, debuggers, and disclosure attacks. Immutable strings persist until garbage collection, creating extended exposure windows. Prefer `char[]` or `byte[]` with explicit clearing, external credential stores, and credential handles; use `SecureString` only for legacy APIs that require it.
 
 ## Key Principles
 
 - Replace `string` with mutable `char[]` or `byte[]` for sensitive data to enable immediate zeroing
 - Clear sensitive arrays explicitly in `finally` blocks using `Array.Clear()`
 - Minimize sensitive data lifetime in memory-clear immediately after use
-- Use `SecureString` for Windows-specific password handling with pinning
+- Use external credential stores or OS credential handles where possible; avoid introducing `SecureString` in new .NET code unless a legacy API requires it
 - Avoid serialization, logging, or concatenation of sensitive data
 
 ## Remediation Steps

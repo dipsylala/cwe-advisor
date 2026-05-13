@@ -8,9 +8,9 @@ Mass assignment in Node.js occurs when request body objects are spread or merged
 
 - Never pass `req.body` directly to `Model.create()`, `model.update()`, or `Object.assign()` targeting a persisted object
 - Destructure or pick only the permitted fields by name from `req.body` before use
-- Define a validation schema (Joi, Zod, express-validator) that strips unknown fields — use `.stripUnknown(true)` or `.strict()`
+- Define a validation schema (Joi, Zod, express-validator) that strips unknown fields - use `.stripUnknown(true)` or `.strict()`
 - Treat fields like `role`, `isAdmin`, `permissions`, `accountBalance`, and `ownerId` as server-only attributes
-- Apply the same restriction on update (PUT/PATCH) as on create — partial updates are equally vulnerable
+- Apply the same restriction on update (PUT/PATCH) as on create - partial updates are equally vulnerable
 
 ## Remediation Steps
 
@@ -24,7 +24,7 @@ Mass assignment in Node.js occurs when request body objects are spread or merged
 ## Safe Pattern
 
 ```javascript
-// Zod — parse strips unknown fields by default
+// Zod - parse strips unknown fields by default
 const { z } = require('zod');
 
 const createUserSchema = z.object({

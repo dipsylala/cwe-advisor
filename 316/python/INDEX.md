@@ -2,11 +2,11 @@
 
 ## LLM Guidance
 
-Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cleartext in Python exposes it to memory dumps, debuggers, and memory disclosure vulnerabilities. Python strings are immutable and persist in memory even after deletion, making secure handling challenging. Use `bytearray` for mutable secrets and explicitly zero them after use.
+Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cleartext in Python exposes it to memory dumps, debuggers, and memory disclosure vulnerabilities. Python strings and many library APIs create immutable copies, so Python cannot reliably guarantee complete memory clearing. Minimize lifetime and copies, use mutable buffers when downstream APIs accept them, and explicitly zero those buffers after use.
 
 ## Key Principles
 
-- Use mutable types (`bytearray`) instead of immutable strings for sensitive data
+- Use mutable types (`bytearray`) instead of immutable strings where the receiving API accepts mutable buffers
 - Minimize the lifetime of secrets in memory-clear immediately after use
 - Avoid operations that create copies of sensitive data (string concatenation, logging)
 - Use secure input methods (`getpass`) and avoid printing/logging credentials
@@ -18,7 +18,7 @@ Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cl
 - Implement explicit byte-by-byte zeroing before deallocation
 - Use context managers or try-finally blocks to ensure cleanup occurs
 - Avoid storing secrets in exception messages or stack traces
-- Use `getpass.getpass()` for password input instead of `input()`
+- Use `getpass.getpass()` instead of `input()`, but account for the temporary immutable string it returns
 - Integrate libraries like `ctypes` with `mlock()` for critical data protection
 
 ## Safe Pattern
@@ -29,8 +29,8 @@ import getpass
 def authenticate():
     password = bytearray(getpass.getpass("Password: "), 'utf-8')
     try:
-        # Use password for authentication
-        result = verify_credentials(bytes(password))
+        # Prefer APIs that accept a mutable buffer or memoryview to avoid extra copies.
+        result = verify_credentials(memoryview(password))
         return result
     finally:
         # Clear sensitive data

@@ -15,7 +15,7 @@ Missing Encryption occurs when sensitive data is transmitted or stored without p
 
 - Identify unencrypted sensitive data by reviewing flaw details (file, line, data type - passwords, PII, tokens, API keys)
 - Trace data flow to determine if exposure is in transit (network) or at rest (storage, database, files)
-- Enforce TLS 1.2+ for all network communications - HTTPS for web traffic, TLS for database connections, secure WebSocket (wss -//)
+- Enforce TLS 1.2+ for all network communications - HTTPS for web traffic, TLS for database connections, secure WebSocket (wss://)
 - Encrypt sensitive data at rest using AES-256 or equivalent when stored in databases, files, or untrusted systems
 - Implement secure key management - use hardware security modules, key vaults, or secrets management services-never hardcode keys
 - Validate encryption coverage - verify no plaintext sensitive data exists in logs, backups, or temporary files

@@ -2,11 +2,11 @@
 
 ## LLM Guidance
 
-LDAP Injection occurs when untrusted user input is concatenated into LDAP queries without proper sanitization, allowing attackers to modify query logic. This can lead to authentication bypass, unauthorized data access, or privilege escalation in applications using LDAP for directory services. The core fix is to use parameterized queries or strict input validation with allowlisting.
+LDAP Injection occurs when untrusted user input is concatenated into LDAP queries without proper sanitization, allowing attackers to modify query logic. This can lead to authentication bypass, unauthorized data access, or privilege escalation in applications using LDAP for directory services. The core fix is to use LDAP filter builders or RFC4515 escaping with strict input validation and allowlisting.
 
 ## Key Principles
 
-- Use libraries that support parameterized LDAP queries or prepared filters
+- Use libraries that support safe LDAP filter builders or prepared filters
 - Validate and sanitize all user inputs with strict allowlists before using in LDAP queries
 - Escape LDAP special characters: `*`, `(`, `)`, `\`, `/`, `NUL` using proper encoding
 - Implement least-privilege access controls on LDAP directory operations
@@ -15,7 +15,7 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 ## Remediation Steps
 
 - Identify all LDAP query construction points that use user input
-- Replace string concatenation with parameterized queries or safe query builders
+- Replace string concatenation with escaped filter values or safe query builders
 - Apply LDAP escaping functions to all user-supplied values
 - Implement input validation with allowlists for username/search patterns
 - Add logging and monitoring for suspicious LDAP query patterns

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-`System.Random` is a seeded PRNG that produces predictable sequences; it must never be used for security-sensitive values. The correct replacement is `System.Security.Cryptography.RandomNumberGenerator` (or its static helper methods available from .NET 6+). `RandomNumberGenerator.GetBytes()`, `RandomNumberGenerator.GetHexString()`, and `RandomNumberGenerator.GetInt32()` source entropy from the OS cryptographic provider.
+`System.Random` is a seeded PRNG that produces predictable sequences; it must never be used for security-sensitive values. The correct replacement is `System.Security.Cryptography.RandomNumberGenerator` (or its static helper methods available from .NET 6+). `RandomNumberGenerator.GetBytes()`, `RandomNumberGenerator.GetHexString()`, and `RandomNumberGenerator.GetInt32()` source entropy from the OS cryptographic provider. UUIDs are identifiers, not cryptographic random values: `Guid.NewGuid()` and `Guid.CreateVersion7()` are acceptable for non-secret identifiers, but not for security tokens, reset links, API keys, nonces, or session IDs.
 
 ## Key Principles
 
@@ -10,11 +10,13 @@
 - Use `RandomNumberGenerator.GetBytes(byte[])` for raw entropy or `Convert.ToBase64String()` / `Convert.ToHexString()` for encoded tokens
 - Never use `new Random(seed)` with a predictable seed (timestamp, `Environment.TickCount`) for security purposes
 - Generate at least 128 bits (16 bytes) for tokens; 256 bits (32 bytes) for keys
-- `Guid.NewGuid()` is not a cryptographically secure random source — do not use it as a security token
+- `Guid.NewGuid()` is not a cryptographically secure random source - do not use it as a security token
+- `Guid.CreateVersion7()` is useful for sortable non-secret identifiers, but it embeds a timestamp and must not be used as a security token
 
 ## Remediation Steps
 
 - Locate `new Random()` or `Random.Shared.Next()` calls in token generation, key derivation, or nonce creation
+- Audit `Guid.NewGuid()` and `Guid.CreateVersion7()` in authentication, reset-token, API-key, nonce, and session-ID code; replace security-sensitive uses with `RandomNumberGenerator`
 - Replace with `RandomNumberGenerator.GetBytes(int count)` (.NET 6+) or `RandomNumberGenerator.Fill(Span<byte>)`
 - Encode the byte array as a token using `Convert.ToBase64String()` or `Convert.ToHexString()`
 - For integer ranges (OTP, PIN), use `RandomNumberGenerator.GetInt32(int toExclusive)` (.NET 6+)
@@ -25,6 +27,10 @@
 
 ```csharp
 using System.Security.Cryptography;
+
+// OK for a non-secret, sortable database identifier.
+// Do not use this value as an authentication token, reset link, API key, nonce, or session ID.
+Guid id = Guid.CreateVersion7();
 
 // 256-bit base64url token (.NET 6+)
 public static string GenerateToken()

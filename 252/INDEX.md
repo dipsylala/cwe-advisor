@@ -1,4 +1,4 @@
-# CWE-252: Unchecked Return Value - LLM Guidance
+# CWE-252: Unchecked Return Value
 
 ## LLM Guidance
 

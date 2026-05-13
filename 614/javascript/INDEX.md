@@ -15,9 +15,9 @@ Sensitive Cookie Without 'Secure' Flag occurs when cookies containing sensitive 
 ## Remediation Steps
 
 - Identify all cookie-setting operations using `res.cookie()`, `res.setHeader('Set-Cookie')`, or session libraries
-- Add `secure - true` flag to every cookie containing sensitive information
-- Enable `httpOnly - true` to prevent XSS-based cookie theft
-- Set `sameSite - 'strict'` or `'lax'` to mitigate CSRF attacks
+- Add `secure: true` flag to every cookie containing sensitive information
+- Enable `httpOnly: true` to prevent XSS-based cookie theft
+- Set `sameSite: 'strict'` or `'lax'` to mitigate CSRF attacks
 - Configure session middleware (express-session) with secure cookie defaults
 - Verify HTTPS is enforced in production (cookies with `secure` won't transmit over HTTP)
 
@@ -25,8 +25,11 @@ Sensitive Cookie Without 'Secure' Flag occurs when cookies containing sensitive 
 
 ```javascript
 // Express.js secure cookie configuration
+app.set('trust proxy', 1); // Needed when TLS terminates at a trusted reverse proxy
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
+  proxy: true,
   cookie: {
     secure: true,        // Only send over HTTPS
     httpOnly: true,      // Prevent JavaScript access

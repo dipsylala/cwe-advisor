@@ -4,7 +4,7 @@
 
 Incorrect function arguments (wrong type, wrong order, wrong count, null when required) cause undefined behavior, security check bypass, buffer overflows, null pointer dereferences, and logic errors, often due to API misuse or type confusion. Call functions with correct argument types, order, and count to prevent memory and state corruption.
 
-## Key Remediation Principles
+## Key Principles
 
 - Enforce strict type checking and argument validation at function boundaries
 - Use API wrappers or interfaces that prevent argument misuse

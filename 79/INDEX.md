@@ -1,4 +1,4 @@
-# CWE-79: Cross-Site Scripting (XSS) - LLM Guidance
+# CWE-79: Cross-Site Scripting (XSS)
 
 ## LLM Guidance
 

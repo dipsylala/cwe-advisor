@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Inadequate Encryption Strength occurs when Python applications use weak cryptographic algorithms (DES, 3DES, RC4), insufficient key sizes (AES-128, RSA-1024), or deprecated ciphers that modern computing can break. The core fix is replacing weak algorithms with strong alternatives: AES-256-GCM for symmetric encryption, RSA-2048+ or Ed25519 for asymmetric operations, and SHA-256+ for hashing. Always use the `cryptography` library with secure defaults rather than implementing custom crypto or using deprecated libraries.
+Inadequate Encryption Strength occurs when Python applications use weak cryptographic algorithms (DES, 3DES, RC4), insufficient key sizes, unauthenticated modes, or deprecated ciphers that modern computing can break. The core fix is replacing weak algorithms with strong alternatives: AES-GCM or ChaCha20-Poly1305 for symmetric encryption, RSA-2048+ or Ed25519 for asymmetric operations, and SHA-256+ for hashing. Always use the `cryptography` library with secure defaults rather than implementing custom crypto or using deprecated libraries.
 
 ## Key Principles
 
@@ -14,7 +14,7 @@ Inadequate Encryption Strength occurs when Python applications use weak cryptogr
 
 ## Remediation Steps
 
-- Replace `PyCrypto` or `pycryptodome` with the actively maintained `cryptography` library
+- Replace deprecated `PyCrypto` with the actively maintained `cryptography` library; PyCryptodome can be acceptable when configured with modern algorithms and modes
 - Audit all encryption code for algorithm selection - replace DES/3DES with AES-256
 - Verify key sizes meet current standards - 256-bit for AES, 2048-bit minimum for RSA
 - Use authenticated encryption modes (GCM, ChaCha20-Poly1305) instead of CBC without HMAC
@@ -31,7 +31,7 @@ import os
 key = Fernet.generate_key()  # Or store securely
 fernet = Fernet(key)
 
-# Encrypt data (uses AES-128-CBC + HMAC-SHA256)
+# Encrypt data with a high-level authenticated recipe (Fernet uses AES-CBC + HMAC)
 plaintext = b"Sensitive data"
 ciphertext = fernet.encrypt(plaintext)
 

@@ -55,12 +55,11 @@ const fs = require('fs').promises;
 await fs.copyFile(source, dest);
 
 // SAFE: HTTP request with fetch
-const response = await fetch(url, { timeout: 10000 });
+const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
 const text = await response.text();
 
 // SAFE: File operations with fs
-const fs = require('fs');
-await fs.promises.unlink(file);  // Delete file
-await fs.promises.mkdir(directory, { recursive: true });  // Create directory
-const content = await fs.promises.readFile(file, 'utf8');  // Read file
+await fs.unlink(file);  // Delete file
+await fs.mkdir(directory, { recursive: true });  // Create directory
+const content = await fs.readFile(file, 'utf8');  // Read file
 ```

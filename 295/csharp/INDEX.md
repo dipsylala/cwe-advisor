@@ -8,9 +8,9 @@ Improper certificate validation in C# occurs when `HttpClientHandler.ServerCerti
 
 - Never set `ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true`
 - Remove `ServicePointManager.ServerCertificateValidationCallback += (s, c, ch, err) => true` entirely
-- For internal CA certificates, validate against the specific CA thumbprint rather than bypassing all checks
-- Use `HttpClient` without a custom handler — the default validates against the Windows/system certificate store
-- `HttpClientHandler.DangerousAcceptAnyServerCertificateValidator` is named "Dangerous" intentionally — never use it in production
+- For internal CA certificates, install the CA into the trust store or validate a custom chain and hostname explicitly
+- Use `HttpClient` without a custom handler - the default validates against the Windows/system certificate store
+- `HttpClientHandler.DangerousAcceptAnyServerCertificateValidator` is named "Dangerous" intentionally - never use it in production
 
 ## Remediation Steps
 
@@ -24,21 +24,28 @@ Improper certificate validation in C# occurs when `HttpClientHandler.ServerCerti
 
 ```csharp
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 
-// SAFE: no custom callback — certificate validation uses system trust store
+// SAFE: no custom callback - certificate validation uses system trust store
 var client = new HttpClient();
 var response = await client.GetAsync("https://api.example.com/data");
 
-// SAFE: custom internal CA — validate thumbprint, don't bypass
+// SAFE: custom internal CA - build a custom chain and do not bypass hostname/chain errors
+X509Certificate2 internalCaCertificate = LoadInternalCaCertificate();
 var handler = new HttpClientHandler();
 handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
 {
     if (errors == System.Net.Security.SslPolicyErrors.None)
         return true;  // Standard validation passed
 
-    // Accept only if it's our known internal CA thumbprint
-    const string internalCaThumbprint = "AABBCCDDEEFF...";  // SHA-1 hex, uppercase no spaces
-    return cert?.Thumbprint?.Equals(internalCaThumbprint, StringComparison.OrdinalIgnoreCase) == true;
+    if (cert is null || errors.HasFlag(System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch))
+        return false;
+
+    using var customChain = new X509Chain();
+    customChain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
+    customChain.ChainPolicy.CustomTrustStore.Add(internalCaCertificate);
+    customChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+    return customChain.Build(new X509Certificate2(cert));
 };
 var clientWithInternalCA = new HttpClient(handler);
 ```

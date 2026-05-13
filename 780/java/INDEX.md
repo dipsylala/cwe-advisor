@@ -23,7 +23,7 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 
 ```java
 import javax.crypto.Cipher;
-import java.security.spec.OAEPParameterSpec;
+import javax.crypto.spec.OAEPParameterSpec;
 import java.security.spec.MGF1ParameterSpec;
 import javax.crypto.spec.PSource;
 

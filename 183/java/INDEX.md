@@ -38,7 +38,8 @@ public boolean validateUsername(String username) {
 public boolean validateUrl(String urlString) {
     try {
         URI uri = URI.create(urlString);
-        return "https".equals(uri.getScheme());
+        return "https".equals(uri.getScheme())
+            && Set.of("example.com", "api.example.com").contains(uri.getHost());
     } catch (IllegalArgumentException e) {
         return false;
     }

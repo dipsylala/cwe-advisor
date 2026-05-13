@@ -9,14 +9,14 @@ HTTP Response Splitting occurs when attackers inject CRLF (`\r\n`) characters in
 - Use ASP.NET Core framework methods (`Redirect()`, `RedirectToAction()`, `Response.Cookies.Append()`) that automatically encode/sanitize values
 - Never manually concatenate user input into `Response.Headers` or construct raw HTTP responses
 - Reject or strip CRLF and Unicode line terminators from any user input destined for headers: `\r` (U+000D), `\n` (U+000A), U+0085 (NEL), U+2028 (LINE SEPARATOR), U+2029 (PARAGRAPH SEPARATOR)
-- Use `Uri.IsWellFormedUriString()` to validate URLs before redirects
+- Use `Url.IsLocalUrl()` or explicit allowed-origin/path allowlists before redirects
 - Enable response header validation in web.config or through middleware
 
 ## Remediation Steps
 
 - Replace manual `Response.AddHeader()` or `Response.Headers.Add()` calls with framework methods
 - Use `Redirect()` or `RedirectToAction()` instead of setting `Location` header manually
-- Validate redirect URLs with `Uri.TryCreate()` and whitelist allowed domains
+- Validate redirect URLs with `Url.IsLocalUrl()` for local redirects or an explicit allowed-origin allowlist for external redirects
 - Strip CRLF and Unicode line terminators: `input.Replace("\r", "").Replace("\n", "").Replace("\u0085", "").Replace("\u2028", "").Replace("\u2029", "")`; also strip percent-encoded variants `%0d`, `%0a`
 - Set `cookieOptions.HttpOnly = true` and use `Response.Cookies.Append()` for cookies
 - Enable ASP.NET Core's built-in header validation (enabled by default in Core 2.1+)

@@ -1,4 +1,4 @@
-# CWE-297 - Improper Validation of Certificate with Host Mismatch
+# CWE-297: Improper Validation of Certificate with Host Mismatch
 
 ## LLM Guidance
 

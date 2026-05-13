@@ -1,4 +1,4 @@
-# CWE-331 - Insufficient Entropy
+# CWE-331: Insufficient Entropy
 
 ## LLM Guidance
 

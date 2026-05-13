@@ -18,5 +18,5 @@ Weak or broken cryptographic algorithms fail to protect data confidentiality, in
 - Determine the cryptographic purpose - encryption, hashing, password hashing, digital signatures, or TLS configuration
 - Replace weak algorithms with approved alternatives - AES-256-GCM for encryption, SHA-256/SHA-3 for hashing, bcrypt/Argon2 for passwords
 - Update TLS/SSL configurations to disable outdated protocols (SSL, TLS 1.0/1.1) and weak cipher suites
-- Use vetted cryptographic libraries (NaCl, libsodium, OpenSSL 1.1+) rather than implementing custom cryptography
+- Use vetted, currently supported cryptographic libraries (NaCl, libsodium, OpenSSL 3.x/4.x or vendor-supported builds) rather than implementing custom cryptography
 - Test thoroughly to ensure the replacement algorithm functions correctly without breaking existing functionality

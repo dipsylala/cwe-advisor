@@ -1,4 +1,4 @@
-# CWE-328 - Use of Weak Hash
+# CWE-328: Use of Weak Hash
 
 ## LLM Guidance
 
@@ -7,7 +7,7 @@ Weak cryptographic hashes (MD5, SHA-1) are broken and vulnerable to collision at
 ## Key Principles
 
 - Use purpose-appropriate hashing - bcrypt/Argon2 for passwords, SHA-256+ for integrity
-- Never use fast hashes (MD5, SHA-1, plain SHA-256) for password storage or security-critical operations
+- Never use fast hashes (MD5, SHA-1, plain SHA-256) for password storage; use purpose-specific hashes for other security operations
 - Apply key derivation functions with sufficient iteration counts (bcrypt cost 12+, PBKDF2 600k+ iterations)
 - Upgrade legacy systems by rehashing on user login without forcing password resets
 - Use SHA-256 or SHA-3 for file integrity, digital signatures, and non-password use cases

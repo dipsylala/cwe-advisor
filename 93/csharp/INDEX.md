@@ -9,14 +9,14 @@ CRLF Injection occurs when attackers inject `\r\n` characters to manipulate HTTP
 - Never use raw user input in HTTP headers or log messages
 - Leverage ASP.NET Core's automatic header validation (rejects `\r\n` by default)
 - Sanitize input by removing or encoding `\r`, `\n`, and other control characters
-- Use structured logging libraries that handle escaping automatically
+- Use structured JSON logging, or explicitly encode CR/LF and other control characters for plain-text logs
 - Validate redirect URLs and Location headers to prevent header injection
 
 ## Remediation Steps
 
 - Replace or remove `\r` and `\n` characters from user input before header usage
 - Use `Response.Headers.Append()` in ASP.NET Core which validates values
-- For logging, use structured logging (e.g., Serilog, NLog) instead of string concatenation
+- For logging, use structured JSON output or encode control characters before writing to plain-text logs
 - Validate and sanitize redirect URLs with `Uri.TryCreate()` and allowlists
 - For legacy code, use `Regex.Replace(input, @"[\r\n]", "")` to strip newlines
 - Test with payloads containing `%0d%0a` to verify protection
@@ -36,6 +36,7 @@ public IActionResult SetCustomHeader(string userInput)
     return Ok();
 }
 
-// Safe logging with structured approach
-_logger.LogInformation("User action: {UserInput}", userInput); // Library escapes automatically
+// Safe logging with explicit control-character encoding for plain-text sinks
+var safeForLog = Regex.Replace(userInput, @"[\r\n\t]", " ");
+_logger.LogInformation("User action: {UserInput}", safeForLog);
 ```

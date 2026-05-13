@@ -6,7 +6,7 @@ Insecure deserialization in .NET occurs when untrusted data is deserialized usin
 
 ## Key Principles
 
-- Replace `BinaryFormatter`, `NetDataContractSerializer`, and `ObjectStateFormatter` with `System.Text.Json` or `DataContractSerializer` — these have no safe configuration
+- Replace `BinaryFormatter`, `NetDataContractSerializer`, and `ObjectStateFormatter` with `System.Text.Json` or `DataContractSerializer` - these have no safe configuration
 - Never use `Newtonsoft.Json` with `TypeNameHandling` set to `All`, `Objects`, or `Auto` on untrusted input; use `TypeNameHandling.None` (the default)
 - Allowlist types explicitly: if polymorphic deserialization is unavoidable with Newtonsoft.Json, pair `TypeNameHandling` with a `SerializationBinder` that restricts to known types
 - Apply input validation after deserialization when using safe serializers like `System.Text.Json`
@@ -22,11 +22,11 @@ Insecure deserialization in .NET occurs when untrusted data is deserialized usin
 ## Safe Pattern
 
 ```csharp
-// SAFE: System.Text.Json — no type resolution by default (.NET Core 3.0+)
+// SAFE: System.Text.Json - no type resolution by default (.NET Core 3.0+)
 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 UserData user = JsonSerializer.Deserialize<UserData>(jsonInput, options);
 
-// SAFE: Newtonsoft.Json — TypeNameHandling.None (the default; state it explicitly)
+// SAFE: Newtonsoft.Json - TypeNameHandling.None (the default; state it explicitly)
 var settings = new JsonSerializerSettings
 {
     TypeNameHandling = TypeNameHandling.None

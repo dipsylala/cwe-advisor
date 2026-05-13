@@ -19,7 +19,7 @@ Open redirect vulnerabilities in Java web applications occur when user-controlle
 - For necessary external redirects, validate against an allowlist of trusted domains
 - Use `URI` class to parse and validate URL components (scheme, host, path)
 - Implement a centralized redirect validator for consistent enforcement
-- Add unit tests verifying that malicious URLs (`//evil.com`, `https -//attacker.com`) are rejected
+- Add unit tests verifying that malicious URLs (`//evil.com`, `https://attacker.com`) are rejected
 
 ## Safe Pattern
 

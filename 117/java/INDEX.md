@@ -33,8 +33,8 @@ public class SecureLogging {
     public void logUserAction(String username, String action) {
         // Use parameterized logging with JSON encoder configured
         logger.info("User action performed: username={}, action={}", username, action);
-        // JSON output: {"message":"User action performed","username":"admin","action":"login"}
-        // Newlines in username/action are automatically encoded as \n
+        // Configure logstash-logback-encoder or Log4j2 JsonLayout so fields are emitted as JSON.
+        // Without JSON output, encode CR/LF and control characters before logging.
     }
 }
 ```

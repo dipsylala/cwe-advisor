@@ -41,11 +41,12 @@ function processFile(toolName, userFile) {
   const executablePath = ALLOWED_TOOLS[toolName];
   if (!executablePath) throw new Error('Invalid tool');
   
-  // Validate filename against pattern
-  if (!/^[a-zA-Z0-9_-]+\.(jpg|png)$/.test(userFile)) throw new Error('Invalid file');
+  // Example allowlist policy: matches jpg/png filenames that do not start with
+  // "-", allowing only letters, digits, "_", and "-" before the extension.
+  if (!/^(?!-)[a-zA-Z0-9_-]+\.(jpg|png)$/.test(userFile)) throw new Error('Invalid file');
   
   // Use execFile with argument array - no shell interpretation
-  execFile(executablePath, ['-resize', '800x600', userFile], { timeout: 5000 }, (err, stdout) => {
+  execFile(executablePath, ['-resize', '800x600', '--', userFile], { timeout: 5000 }, (err, stdout) => {
     if (err) console.error('Process failed:', err);
   });
 }

@@ -9,16 +9,16 @@ HTTP Response Splitting in PHP occurs when user-supplied values are passed to `h
 - Strip `\r`, `\n`, and their percent-encoded forms (`%0a`, `%0d`) from all user input before passing it to `header()`
 - Also strip Unicode line terminators: U+0085, U+2028, U+2029
 - Never use `header('Location: ' . $userInput)` without validating the URL against an allowlist of permitted destinations
-- Prefer `wp_redirect()` / framework redirect helpers that perform URL validation over raw `header()` calls
+- Prefer `wp_safe_redirect()` / framework redirect helpers with host allowlisting over raw `header()` calls
 - Use `setcookie()` instead of `header('Set-Cookie: ...')` to avoid manual cookie header construction
 
 ## Remediation Steps
 
 - Locate `header('Location: ' . $var)` patterns where `$var` derives from user input
-- Validate redirect URLs — confirm they match a relative path pattern or an allowed origin allowlist
+- Validate redirect URLs - confirm they match a relative path pattern or an allowed origin allowlist
 - Strip CRLF characters and percent-encoded variants before any `header()` call: remove `\r`, `\n`, `%0a`, `%0d`, and Unicode line terminators
 - Replace manual `header('Set-Cookie: ...')` construction with `setcookie()` which handles encoding automatically
-- For `Content-Disposition`, sanitize the filename component with `basename()` and strip CRLF
+- For `Content-Disposition`, use a framework header builder or RFC 5987 `filename*` encoding instead of interpolating raw filenames
 - Test with `%0d%0aX-Injected: evil` appended to redirect parameters
 
 ## Safe Pattern
@@ -40,7 +40,7 @@ if (!in_array($next, $allowedPaths, true)) {
 header('Location: ' . $next);
 exit;
 
-// Safe cookie — use setcookie() not header()
+// Safe cookie - use setcookie() not header()
 setcookie('pref', sanitizeHeaderValue($_GET['theme'] ?? 'light'), [
     'httponly' => true,
     'samesite' => 'Strict',
@@ -48,6 +48,6 @@ setcookie('pref', sanitizeHeaderValue($_GET['theme'] ?? 'light'), [
 ]);
 
 // Safe Content-Disposition for downloads
-$filename = sanitizeHeaderValue(basename($_GET['file'] ?? 'download'));
-header('Content-Disposition: attachment; filename="' . $filename . '"');
+$filename = rawurlencode(basename($_GET['file'] ?? 'download'));
+header("Content-Disposition: attachment; filename*=UTF-8''" . $filename);
 ```

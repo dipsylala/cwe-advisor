@@ -1,4 +1,4 @@
-# CWE-326 - Inadequate Encryption Strength - C\#
+# CWE-326: Inadequate Encryption Strength - C#
 
 ## LLM Guidance
 

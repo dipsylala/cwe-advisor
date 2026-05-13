@@ -7,8 +7,8 @@ Code injection in PHP most commonly occurs via `eval()`, the `preg_replace()` `/
 ## Key Principles
 
 - Remove all `eval()` calls; there is no sanitization that makes `eval($userInput)` safe
-- Replace `assert($stringExpression)` with direct boolean assertions — `assert()` with a string argument behaves like `eval()` in PHP 7 and earlier
-- Never use `include`/`require` with user-controlled paths — use an allowlist of permitted filenames
+- Replace `assert($stringExpression)` with direct boolean assertions - `assert()` with a string argument behaves like `eval()` in PHP 7 and earlier
+- Never use `include`/`require` with user-controlled paths - use an allowlist of permitted filenames
 - Replace dynamic dispatch patterns with `match` expressions or lookup arrays of callable functions
 - Disable `allow_url_include` and `allow_url_fopen` in `php.ini` to block remote file inclusion
 

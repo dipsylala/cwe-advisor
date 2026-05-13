@@ -10,7 +10,7 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Block private, reserved, and loopback IP ranges using PHP's filter functions
 - Disable URL redirects or validate redirect destinations
 - Restrict protocols to HTTPS only, never allow file://, gopher://, or other schemes
-- Implement DNS rebinding protection by re-resolving hostnames after connection
+- Implement DNS rebinding protection by validating all A/AAAA records before connecting and enforcing egress controls
 
 ## Remediation Steps
 
@@ -30,9 +30,15 @@ function safeFetchUrl($url, array $allowedHosts) {
         throw new Exception('Invalid URL');
     }
     
-    $ip = gethostbyname($parsed['host']);
-    if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-        throw new Exception('Private IP not allowed');
+    $records = dns_get_record($parsed['host'], DNS_A + DNS_AAAA);
+    if (!$records) {
+        throw new Exception('Host did not resolve');
+    }
+    foreach ($records as $record) {
+        $ip = $record['ip'] ?? $record['ipv6'] ?? null;
+        if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            throw new Exception('Private IP not allowed');
+        }
     }
     
     $ch = curl_init($url);

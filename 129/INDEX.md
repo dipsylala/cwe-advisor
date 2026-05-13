@@ -8,7 +8,7 @@ Improper validation of array index occurs when user-controlled or untrusted data
 
 - Validate all array indices before use, checking both negative and overflowed values
 - Always verify both lower bound (>= 0) and upper bound (< array.length)
-- Use unsigned types for indices to prevent negative value exploits
+- Validate signed input before any conversion to unsigned index types
 - Reject invalid indices immediately rather than attempting correction
 - Trace data flow from untrusted sources to array access points
 
@@ -18,5 +18,5 @@ Improper validation of array index occurs when user-controlled or untrusted data
 - Locate the array access and identify the index source (user input, external file, database, network request)
 - Trace the data flow from source to array access to understand the complete path
 - Implement bounds checking - ensure `index >= 0 && index < array.length` before every access
-- Use unsigned types (`size_t` in C/C++, `unsigned int`) for indices to prevent negative values
+- In C/C++, validate `index >= 0 && index < length` before converting to `size_t` or other unsigned index types
 - Reject invalid indices with appropriate error handling rather than clamping or wrapping

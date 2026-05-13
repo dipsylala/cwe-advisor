@@ -19,7 +19,7 @@ Insecure deserialization occurs when untrusted data is used to create objects, p
 - Replace `ObjectInputStream` with JSON parsers like Jackson or Gson for data transfer
 - If Java serialization is unavoidable, implement `ObjectInputFilter` (Java 9+) with an explicit per-class allowlist; use `ValidatingObjectInputStream` (Apache Commons IO) for pre-Java-9 environments
 - Validate and sanitize all input before deserialization
-- Replace `XMLDecoder` and `XStream < v1.4.17` immediately — these have no safe configuration
+- Replace `XMLDecoder` and `XStream < v1.4.17` immediately - these have no safe configuration
 - Update dependencies regularly to patch known deserialization gadgets
 - Monitor and log all deserialization activity for anomaly detection
 
@@ -40,7 +40,7 @@ ois.setObjectInputFilter(filterInfo -> {
 });
 Object obj = ois.readObject();
 
-// SAFE: JSON with Jackson (preferred — no serialization callbacks)
+// SAFE: JSON with Jackson (preferred - no serialization callbacks)
 ObjectMapper mapper = new ObjectMapper();
 User user = mapper.readValue(jsonData, User.class);
 ```

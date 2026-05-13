@@ -14,9 +14,9 @@ In Spring Security applications, improper authorization occurs when endpoints or
 
 ## Remediation Steps
 
-- Enable method security — add `@EnableMethodSecurity` to a `@Configuration` class
+- Enable method security - add `@EnableMethodSecurity` to a `@Configuration` class
 - Apply `@PreAuthorize("hasRole('ADMIN')")` (or `hasAuthority`) to service methods performing privileged operations
-- Configure HTTP rules — in `SecurityFilterChain`, call `.requestMatchers("/admin/**").hasRole("ADMIN")` before the catch-all `.anyRequest().authenticated()`
+- Configure HTTP rules - in `SecurityFilterChain`, call `.requestMatchers("/admin/**").hasRole("ADMIN")` before the catch-all `.anyRequest().authenticated()`
 - Avoid `permitAll()` on sensitive paths; audit every `permitAll()` and `anonymous()` rule
 - Use `@PostAuthorize` or query-level filtering (`@PostFilter`) to enforce object-level authorization where needed
 - Verify with integration tests that unauthenticated and lower-privileged requests receive 401/403

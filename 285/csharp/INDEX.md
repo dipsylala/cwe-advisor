@@ -33,8 +33,13 @@ public class UserController : ControllerBase
     [HttpGet("public")]
     public IActionResult GetPublicInfo() => Ok("Public data");
     
-    [HttpGet("profile/{id}")]  // Requires authentication
-    public IActionResult GetProfile(int id) => Ok(_userService.GetUser(id));
+    [HttpGet("profile/{id}")]  // Requires authentication and resource authorization
+    public IActionResult GetProfile(int id)
+    {
+        if (!_authorizationService.CanViewUser(User, id))
+            return Forbid();
+        return Ok(_userService.GetUser(id));
+    }
     
     [Authorize(Roles = "Admin")]  // Requires admin role
     [HttpDelete("{id}")]

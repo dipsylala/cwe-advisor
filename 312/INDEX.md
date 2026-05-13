@@ -1,4 +1,4 @@
-# CWE-312 - Cleartext Storage of Sensitive Information
+# CWE-312: Cleartext Storage of Sensitive Information
 
 ## LLM Guidance
 

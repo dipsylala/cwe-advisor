@@ -15,7 +15,7 @@ HTTP Response Splitting in Python occurs when user-supplied strings are placed i
 ## Remediation Steps
 
 - Replace manual `response.headers['Location'] = user_input` with `redirect(validated_url)` (Flask/Django)
-- Validate redirect URLs — confirm they are relative paths or belong to an allowed origin using `urllib.parse`
+- Validate redirect URLs - confirm they are relative paths or belong to an allowed origin using `urllib.parse`
 - Strip CRLF and Unicode line terminators before any `response.headers[...] = user_input` assignment; also strip percent-encoded `%0d` and `%0a`
 - For `Content-Disposition` headers (file downloads), use `werkzeug.utils.secure_filename()` and encode the filename
 - In Django, avoid `HttpResponse` header assignment with user data; use typed response classes or `response.set_cookie()` for cookies
@@ -27,16 +27,19 @@ HTTP Response Splitting in Python occurs when user-supplied strings are placed i
 import re
 from urllib.parse import urlparse
 from flask import Flask, redirect, request, abort, make_response
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-ALLOWED_REDIRECT_PATTERN = re.compile(r'^/[a-zA-Z0-9/_\-]*$')
+# Example allowlist policy: matches local absolute paths that start with
+# one "/" and reject "//", allowing only letters, digits, "/", "_", and "-".
+ALLOWED_REDIRECT_PATTERN = re.compile(r'^/(?!/)[a-zA-Z0-9/_\-]*$')
 CRLF_PATTERN = re.compile(r'[\r\n\u0085\u2028\u2029]|%0[aAdD]')
 
 def sanitize_header_value(value: str) -> str:
     return CRLF_PATTERN.sub('', value)
 
-# Safe redirect — validate before redirecting
+# Safe redirect - validate before redirecting
 @app.route('/redirect')
 def safe_redirect():
     url = request.args.get('next', '/')
@@ -44,10 +47,10 @@ def safe_redirect():
         abort(400)
     return redirect(url)
 
-# Safe custom header — strip CRLF first
+# Safe custom header - strip CRLF first
 @app.route('/download')
 def download():
-    filename = sanitize_header_value(request.args.get('filename', 'file.txt'))
+    filename = secure_filename(sanitize_header_value(request.args.get('filename', 'file.txt')))
     response = make_response('file contents')
     response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response

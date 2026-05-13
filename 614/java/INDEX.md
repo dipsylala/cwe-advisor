@@ -24,12 +24,12 @@ Sensitive cookies in Java web applications transmitted without the `secure` attr
 ## Safe Pattern
 
 ```java
-// Servlet API
-Cookie sessionCookie = new Cookie("JSESSIONID", sessionId);
+// Servlet container-managed session cookie
+ServletContext context = request.getServletContext();
+SessionCookieConfig sessionCookie = context.getSessionCookieConfig();
 sessionCookie.setSecure(true);
 sessionCookie.setHttpOnly(true);
 sessionCookie.setPath("/");
-response.addCookie(sessionCookie);
 
 // Spring Framework
 ResponseCookie cookie = ResponseCookie.from("authToken", token)

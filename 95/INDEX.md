@@ -1,4 +1,4 @@
-# CWE-95: Eval Injection - LLM Guidance
+# CWE-95: Eval Injection
 
 ## LLM Guidance
 

@@ -26,8 +26,12 @@ CWE-201 occurs when JavaScript/Node.js applications expose sensitive data (passw
 ```javascript
 // Express error handler - sanitize errors before sending
 app.use((err, req, res, next) => {
-  // Log full error server-side
-  console.error(err);
+  // Log allowlisted fields server-side; do not log raw error/request objects
+  logger.error({
+    message: err.message,
+    requestId: req.id,
+    route: req.originalUrl,
+  });
   
   // Send generic message to client
   res.status(err.status || 500).json({

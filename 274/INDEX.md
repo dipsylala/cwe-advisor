@@ -1,4 +1,4 @@
-# CWE-274 - Improper Handling of Insufficient Privileges
+# CWE-274: Improper Handling of Insufficient Privileges
 
 ## LLM Guidance
 

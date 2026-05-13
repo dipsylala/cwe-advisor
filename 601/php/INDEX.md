@@ -34,8 +34,10 @@ function safeRedirect($userUrl, $allowedDomains = ['example.com']) {
         exit;
     }
     
-    // For absolute URLs, validate against allowlist
-    if (isset($parsed['host']) && in_array($parsed['host'], $allowedDomains, true)) {
+    // For absolute URLs, validate scheme and host against allowlist
+    if (isset($parsed['host'], $parsed['scheme']) &&
+        in_array($parsed['scheme'], ['https', 'http'], true) &&
+        in_array($parsed['host'], $allowedDomains, true)) {
         header("Location: " . $userUrl);
         exit;
     }

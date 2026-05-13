@@ -16,6 +16,6 @@ Sensitive cookies (session IDs, authentication tokens) transmitted without the `
 - Review flaw details to identify all cookies lacking the `Secure` flag
 - Locate cookie-setting code in authentication and session management modules (e.g., `set_cookie()`, `res.cookie()`)
 - Set `Secure` flag on all sensitive cookies - `response.set_cookie('sessionid', value, secure=True)`
-- Use framework-specific settings (Flask - `secure=True`, Express - `secure - true`)
+- Use framework-specific settings (Flask - `secure=True`, Express - `secure: true`)
 - Verify HTTPS is enforced site-wide; the `Secure` flag requires HTTPS to function
 - Test in production-like environment to confirm cookies are not sent over HTTP

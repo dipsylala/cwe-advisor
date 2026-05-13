@@ -7,7 +7,7 @@ External control of file names or paths occurs when untrusted input (HTTP reques
 ## Key Principles
 
 - Validate all file names/paths against an allowlist of permitted values or patterns
-- Decode and Unicode-normalise input before filtering: use `URLDecoder.decode()` and `Normalizer.normalize(input, Form.NFC)` — overlong UTF-8 sequences and Unicode full-width separators bypass checks on raw strings
+- Decode and Unicode-normalise input before filtering: use `URLDecoder.decode()` and `Normalizer.normalize(input, Form.NFC)` - overlong UTF-8 sequences and Unicode full-width separators bypass checks on raw strings
 - Use canonical paths to resolve symbolic links and relative references (`.`, `..`)
 - Restrict file operations to a defined base directory using path normalization
 - Never concatenate user input directly into file paths

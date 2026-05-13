@@ -6,7 +6,7 @@ Code injection occurs when untrusted input flows into code execution functions l
 
 ## Key Principles
 
-- Never pass user input to code evaluation functions (`eval`, `Function`, `vm` modules)
+- Never pass user input to code evaluation functions (`eval`, `Function`, `vm` modules); Node's `vm` module is not a security boundary
 - Use safe alternatives: JSON.parse() for data, allowlists for dynamic operations
 - Sanitize template engine inputs and use auto-escaping modes
 - Apply principle of least privilege to execution contexts
@@ -18,7 +18,7 @@ Code injection occurs when untrusted input flows into code execution functions l
 - Convert `setTimeout(string)` to `setTimeout(function)` with callbacks
 - Use allowlists for dynamic property access instead of bracket notation with user input
 - Configure template engines (EJS, Pug, Handlebars) with auto-escaping enabled
-- If `vm` module is required, use isolated contexts with frozen globals
+- If untrusted code execution is unavoidable, isolate it out of process or in a locked-down container with resource limits
 - Apply input validation at entry points before any processing
 
 ## Safe Pattern

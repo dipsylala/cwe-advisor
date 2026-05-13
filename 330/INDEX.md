@@ -1,4 +1,4 @@
-# CWE-330 - Use of Insufficiently Random Values
+# CWE-330: Use of Insufficiently Random Values
 
 ## LLM Guidance
 

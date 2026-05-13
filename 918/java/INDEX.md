@@ -9,7 +9,7 @@ SSRF occurs when attackers manipulate server-side requests to access internal re
 ## Key Principles
 
 - Validate all URLs against allowlists of permitted domains/IPs before making requests
-- Block private IP ranges (10.x, 172.16-31.x, 192.168.x, 127.x, 169.254.x) using `InetAddress` checks
+- Block private, loopback, link-local, multicast, and cloud metadata address ranges using `InetAddress` checks
 - Restrict protocols to HTTPS only to prevent file:// or jar:// exploits
 - Implement DNS resolution checks to detect rebinding attacks
 - Use network-level protections and egress filtering
@@ -18,7 +18,7 @@ SSRF occurs when attackers manipulate server-side requests to access internal re
 
 - Create an allowlist of permitted domains/hosts for outbound requests
 - Parse and validate URLs before making requests, checking scheme and host
-- Resolve hostnames and check if resolved IPs are in blocked ranges (RFC 1918, loopback, link-local)
+- Resolve all host A/AAAA records and check if any resolved IP is in a blocked range
 - Reject URLs targeting private IPs, localhost, cloud metadata endpoints (169.254.169.254)
 - Configure HttpClient with strict redirect and timeout policies (disable redirects if possible)
 - Log all outbound requests for monitoring and incident response
@@ -36,11 +36,19 @@ public String fetchUrl(String urlString) throws Exception {
     if (!"https".equals(url.getProtocol())) {
         throw new SecurityException("Only HTTPS allowed");
     }
-    InetAddress addr = InetAddress.getByName(url.getHost());
-    if (addr.isLoopbackAddress() || addr.isLinkLocalAddress() || addr.isSiteLocalAddress()) {
-        throw new SecurityException("Private IP blocked");
+    for (InetAddress addr : InetAddress.getAllByName(url.getHost())) {
+        if (addr.isLoopbackAddress() || addr.isLinkLocalAddress() ||
+            addr.isSiteLocalAddress() || addr.isAnyLocalAddress() ||
+            addr.isMulticastAddress()) {
+            throw new SecurityException("Private IP blocked");
+        }
     }
-    return HttpClient.newHttpClient().send(HttpRequest.newBuilder(url.toURI()).build(), 
+
+    HttpClient client = HttpClient.newBuilder()
+        .followRedirects(HttpClient.Redirect.NEVER)
+        .build();
+    // Pair DNS validation with egress firewall rules to prevent second-resolution bypasses.
+    return client.send(HttpRequest.newBuilder(url.toURI()).build(), 
            HttpResponse.BodyHandlers.ofString()).body();
 }
 ```

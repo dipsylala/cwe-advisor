@@ -14,9 +14,9 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 
 ## Remediation Steps
 
-- Parse and validate the URL scheme - reject anything other than `https -//`
-- Extract the hostname and resolve it to an IP address
-- Check the resolved IP against blocked ranges using `ipaddress.ip_address()` and `is_private`/`is_loopback`/`is_link_local`
+- Parse and validate the URL scheme - reject anything other than `https://`
+- Extract the hostname and resolve all A/AAAA records
+- Check every resolved IP against blocked ranges using `ipaddress.ip_address()` and `is_global`
 - Verify the hostname matches an allowlist of permitted domains
 - Make the request with redirects disabled (`allow_redirects=False`)
 - Set short timeouts to prevent resource exhaustion
@@ -37,10 +37,12 @@ def safe_request(url):
     if parsed.hostname not in ALLOWED_DOMAINS:
         raise ValueError("Domain not allowed")
     
-    ip = socket.gethostbyname(parsed.hostname)
-    ip_obj = ipaddress.ip_address(ip)
-    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local:
-        raise ValueError("Private IP blocked")
+    addresses = socket.getaddrinfo(parsed.hostname, 443, type=socket.SOCK_STREAM)
+    for _, _, _, _, sockaddr in addresses:
+        ip_obj = ipaddress.ip_address(sockaddr[0])
+        if not ip_obj.is_global:
+            raise ValueError("Private IP blocked")
     
+    # Pair DNS validation with egress firewall rules to prevent second-resolution bypasses.
     return requests.get(url, allow_redirects=False, timeout=5)
 ```

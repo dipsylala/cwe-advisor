@@ -7,7 +7,7 @@ Java's `java.util.Random` and `Math.random()` are predictable and unsuitable for
 ## Key Principles
 
 - Replace all `java.util.Random` and `Math.random()` with `SecureRandom` in security-sensitive contexts
-- Use strong algorithm providers (e.g., "NativePRNGNonBlocking", "SHA1PRNG") when available
+- Use the default `new SecureRandom()`, `SecureRandom.getInstanceStrong()` where blocking is acceptable, or `DRBG` on Java 9+ when a specific approved DRBG is required
 - Initialize `SecureRandom` once and reuse the instance to avoid performance overhead
 - Never seed `SecureRandom` with predictable values (timestamps, constants)
 - Ensure sufficient entropy by relying on OS-level random sources

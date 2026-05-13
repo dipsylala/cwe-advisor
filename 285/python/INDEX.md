@@ -14,7 +14,7 @@ In Python web frameworks, improper authorization occurs when views or API endpoi
 
 ## Remediation Steps
 
-- Identify views missing authorization decorators or `permission_classes` — any CBV or FBV that performs privileged operations
+- Identify views missing authorization decorators or `permission_classes` - any CBV or FBV that performs privileged operations
 - Add `@permission_required('app.change_report')` to function-based views or set `permission_classes = [IsAdminUser]` on DRF ViewSets
 - For Django class-based views, use `PermissionRequiredMixin` with `permission_required` attribute
 - Scope querysets to the authenticated user: `queryset = Order.objects.filter(user=request.user)` to prevent IDOR

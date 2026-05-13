@@ -17,7 +17,7 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Replace all `@Html.Raw(userInput)` with `@userInput` to enable automatic encoding
 - For JavaScript contexts, use `@System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(value)`
 - Implement CSP headers via middleware - `context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'")`
-- Use `[ValidateInput(true)]` on controllers and validate with allowlists for expected input formats
+- For legacy ASP.NET MVC, keep request validation enabled; for ASP.NET Core, rely on Razor/context encoders and validate expected input formats with allowlists
 - For rich text editors, sanitize HTML with `Ganss.Xss.HtmlSanitizer` before storage
 - Audit existing code for `InnerHtml`, `Write()`, and string concatenation in JavaScript
 

@@ -6,7 +6,7 @@ PHP's loose equality operator (`==`) performs type juggling before comparison, c
 
 ## Key Principles
 
-- Use `===` for all security-sensitive comparisons — it checks both value and type without coercion
+- Use `===` for all security-sensitive comparisons - it checks both value and type without coercion
 - Hash comparison for passwords must use `password_verify()`, never `==` or `===` directly on hashes
 - Use `hash_equals()` for comparing MAC tags, tokens, and other secrets to prevent timing attacks
 - Never compare user-supplied values with `==` against numeric-looking strings, booleans, or `null`
@@ -43,7 +43,7 @@ function validateToken(string $submittedToken, string $expectedToken): bool {
 }
 
 // UNSAFE examples (do not use):
-// $role == "admin"         — type juggling risk
-// $token == $expectedToken — timing attack risk, and type juggling risk
-// md5($password) == $hash  — both weak hash and comparison risk
+// $role == "admin"         - type juggling risk
+// $token == $expectedToken - timing attack risk, and type juggling risk
+// md5($password) == $hash  - both weak hash and comparison risk
 ```

@@ -1,4 +1,4 @@
-# CWE-117: Log Injection - LLM Guidance
+# CWE-117: Log Injection
 
 ## LLM Guidance
 
@@ -19,4 +19,4 @@ Log Injection occurs when untrusted user input is written to logs without proper
 - Trace to the sink by finding the logging statement (`logger.info()`, `log.warn()`, `console.log()`, etc.)
 - Check the data flow through each frame in the data path for missing encoding or validation
 - Implement structured logging by configuring your logger to emit JSON/ECS format at the sink
-- Use parameterized logging instead of string concatenation to ensure automatic encoding of user input
+- Use structured JSON/ECS logging, or explicitly encode CR/LF and other control characters before writing untrusted data to plain-text logs

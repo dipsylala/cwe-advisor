@@ -18,7 +18,7 @@ Python XML parsing is risky for untrusted input because some parsers allow DTDs,
 
 - Install `defusedxml` - `pip install defusedxml`
 - Replace imports - `from defusedxml.ElementTree import parse` instead of `from xml.etree.ElementTree import parse`
-- For `lxml`, use `defusedxml.lxml` wrapper or configure parser with `resolve_entities=False`
+- For `lxml`, configure the parser directly with `resolve_entities=False`, `no_network=True`, and `load_dtd=False`
 - If `defusedxml` cannot be used, explicitly disable dangerous features - set `forbid_dtd=True`, `forbid_entities=True`, `forbid_external=True`
 - Review all XML parsing code paths for unsafe configurations
 - Add security tests with XXE payloads to validate protections
@@ -34,10 +34,4 @@ def parse_xml_safely(xml_file):
     root = tree.getroot()
     return root
 
-# Or configure ElementTree manually
-from xml.etree.ElementTree import XMLParser, parse
-parser = XMLParser()
-parser.entity = {}  # Disable entities
-parser.parser.SetParamEntityParsing(0)  # Disable external entities
-tree = parse(xml_file, parser=parser)
 ```

@@ -8,7 +8,7 @@ Insecure temporary file creation occurs when applications create files with pred
 
 - Use `Files.createTempFile()` or `File.createTempFile()` instead of manual path construction
 - Set permissions to owner-only (600) using `PosixFilePermissions` before writing sensitive data
-- Ensure automatic cleanup with try-finally blocks or `deleteOnExit()`
+- Ensure deterministic cleanup with try-finally blocks or try-with-resources
 - Never create temp files with predictable or hardcoded names
 
 ## Remediation Steps

@@ -7,14 +7,14 @@ In Express applications, improper authorization occurs when route handlers perfo
 ## Key Principles
 
 - Attach authorization middleware to routes rather than checking permissions inline inside handlers
-- Check both authentication (identity) and authorization (permission) separately — a valid JWT is not sufficient
+- Check both authentication (identity) and authorization (permission) separately - a valid JWT is not sufficient
 - Never derive role or permission from the request body or query string; read it from the verified token or session
 - Apply a default-deny approach: unauthenticated or insufficiently privileged requests must be rejected before any business logic runs
-- Cover all HTTP verbs — GET endpoints that expose sensitive data need the same authorization checks as POST/DELETE
+- Cover all HTTP verbs - GET endpoints that expose sensitive data need the same authorization checks as POST/DELETE
 
 ## Remediation Steps
 
-- Identify unprotected routes — look for `router.get/post/put/delete` handlers that perform privileged operations without authorization middleware
+- Identify unprotected routes - look for `router.get/post/put/delete` handlers that perform privileged operations without authorization middleware
 - Create role-check middleware functions that verify `req.user.role` or `req.user.permissions` from the decoded token/session
 - Apply the middleware directly on the route or router group: `router.delete('/users/:id', requireRole('admin'), deleteUser)`
 - For object-level authorization (IDOR), verify the resource owner matches `req.user.id` inside the handler after retrieval
@@ -33,7 +33,7 @@ function requireRole(...roles) {
   };
 }
 
-// Route definitions — authorization applied per route
+// Route definitions - authorization applied per route
 router.get('/reports', requireRole('manager', 'admin'), getReports);
 router.delete('/users/:id', requireRole('admin'), deleteUser);
 

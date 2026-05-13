@@ -2,19 +2,19 @@
 
 ## LLM Guidance
 
-In .NET, `RSACryptoServiceProvider` defaults to PKCS#1 v1.5 padding when `fOAEP = false` is passed to `Encrypt()` / `Decrypt()`. PKCS#1 v1.5 is vulnerable to padding oracle and chosen-ciphertext attacks (Bleichenbacher's attack). The fix is to use OAEP padding by passing `fOAEP = true`, or to use the modern `RSA.Create()` API with `RSAEncryptionPadding.OaepSHA256`.
+In .NET, `RSACryptoServiceProvider` defaults to PKCS#1 v1.5 padding when `fOAEP = false` is passed to `Encrypt()` / `Decrypt()`. PKCS#1 v1.5 is vulnerable to padding oracle and chosen-ciphertext attacks (Bleichenbacher's attack). Passing `fOAEP = true` is a legacy minimum improvement but uses OAEP-SHA1; new code should use `RSA.Create()` with `RSAEncryptionPadding.OaepSHA256`.
 
 ## Key Principles
 
-- Pass `fOAEP: true` to `RSACryptoServiceProvider.Encrypt()` and `Decrypt()`, or switch to `RSA.Create()` with explicit OAEP padding
-- Use `RSAEncryptionPadding.OaepSHA256` (or `OaepSHA384`, `OaepSHA512`) — not `OaepSHA1` which uses a deprecated hash
+- Prefer `RSA.Create()` with explicit OAEP-SHA256 padding; use `fOAEP: true` only as a legacy minimum improvement
+- Use `RSAEncryptionPadding.OaepSHA256` (or `OaepSHA384`, `OaepSHA512`) - not `OaepSHA1` which uses a deprecated hash
 - For data larger than the key size minus OAEP overhead (~190 bytes for 2048-bit), use hybrid encryption: encrypt a random AES-256 key with RSA-OAEP, encrypt data with AES-GCM
 - Prefer `RSA.Create()` (CNG-backed) over `RSACryptoServiceProvider` (CAPI) for new code
 - Minimum key size: 2048 bits; prefer 4096 bits for long-lived keys
 
 ## Remediation Steps
 
-- Find `rsa.Encrypt(data, false)` calls — the `false` argument means PKCS#1 v1.5; change to `true` for OAEP
+- Find `rsa.Encrypt(data, false)` calls - the `false` argument means PKCS#1 v1.5; migrate to `RSA.Create()` with OAEP-SHA256 where possible
 - Migrate from `RSACryptoServiceProvider` to `RSA.Create()` and call `rsa.Encrypt(data, RSAEncryptionPadding.OaepSHA256)`
 - Update corresponding `Decrypt()` calls to use the same padding parameter
 - For hybrid encryption, generate a fresh `Aes.Create()` key, encrypt the plaintext with AES-GCM, then encrypt the AES key with RSA-OAEP

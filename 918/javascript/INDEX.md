@@ -4,12 +4,12 @@
 
 SSRF in Node.js occurs when applications fetch remote resources using user-supplied URLs without validation, enabling attackers to access internal services, cloud metadata endpoints, and bypass firewalls.
 
-**Primary Defence:** Validate URLs against an allowlist of permitted domains before making any HTTP requests.
+**Primary Defence:** Validate URLs against an allowlist of permitted domains, resolve all A/AAAA records before connecting, block private/reserved address ranges, disable redirects, and enforce network egress controls.
 
 ## Key Principles
 
 - Allowlist domains: Only permit requests to explicitly approved domains/hosts
-- Block private networks: Reject private IP ranges (10.x, 172.16-31.x, 192.168.x, 127.x, localhost)
+- Block private networks: Reject private, loopback, link-local, metadata, and reserved IPv4/IPv6 ranges
 - Disable redirects: Prevent attackers from bypassing validation via HTTP redirects
 - Parse and validate: Use `URL` constructor to parse and validate scheme, hostname, and port
 
@@ -25,7 +25,18 @@ SSRF in Node.js occurs when applications fetch remote resources using user-suppl
 ## Safe Pattern
 
 ```javascript
+const dns = require('dns').promises;
+const ipaddr = require('ipaddr.js');
+
 const ALLOWED_HOSTS = ['api.trusted-service.com', 'cdn.example.com'];
+
+function isGlobalAddress(address) {
+  const parsed = ipaddr.parse(address);
+  const normalized = parsed.kind() === 'ipv6' && parsed.isIPv4MappedAddress()
+    ? parsed.toIPv4Address()
+    : parsed;
+  return normalized.range() === 'unicast';
+}
 
 async function safeFetch(userUrl) {
   const url = new URL(userUrl); // Throws on invalid URL
@@ -37,7 +48,13 @@ async function safeFetch(userUrl) {
   if (url.protocol !== 'https:') {
     throw new Error('Only HTTPS allowed');
   }
+
+  const records = await dns.lookup(url.hostname, { all: true });
+  if (records.length === 0 || records.some((record) => !isGlobalAddress(record.address))) {
+    throw new Error('Blocked address range');
+  }
   
+  // Pair DNS validation with egress firewall rules to prevent second-resolution bypasses.
   return fetch(url.href, { redirect: 'manual' });
 }
 ```

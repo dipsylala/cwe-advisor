@@ -1,4 +1,4 @@
-# CWE-454 - External Initialization of Trusted Variables or Data Stores
+# CWE-454: External Initialization of Trusted Variables or Data Stores
 
 ## LLM Guidance
 

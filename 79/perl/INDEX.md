@@ -16,7 +16,7 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 
 - Identify all locations where user input is rendered in HTML output
 - Replace direct variable interpolation with HTML encoding functions
-- Use `HTML - -Entities - -encode_entities($user_input)` for HTML body/attribute contexts
+- Use `HTML::Entities::encode_entities($user_input)` for HTML body/attribute contexts
 - Enable auto-escaping in template engines (Template Toolkit's HTML filter)
 - Implement Content-Security-Policy headers to block inline scripts
 - Test with XSS payloads like `<script>alert(1)</script>` to verify fixes

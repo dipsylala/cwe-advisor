@@ -4,12 +4,12 @@
 
 PHP's XML parsers can process external entities by default, leading to file disclosure, SSRF attacks, and denial of service. Proper configuration is essential to prevent XXE vulnerabilities.
 
-**Primary Defence:** Call `libxml_disable_entity_loader(true)` before parsing XML (PHP < 8.0), or set `LIBXML_NOENT` to false and avoid `LIBXML_DTDLOAD` for all XML functions.
+**Primary Defence:** Call `libxml_disable_entity_loader(true)` before parsing XML (PHP < 8.0), omit `LIBXML_NOENT`, avoid `LIBXML_DTDLOAD` for untrusted XML, and use `LIBXML_NONET` as defense in depth.
 
 ## Key Principles
 
 - Disable external entity loading globally before any XML parsing operations
-- Use parser options that explicitly prevent entity expansion and DTD loading
+- Omit parser flags that expand entities or load DTDs
 - Validate and sanitize XML input to reject documents containing entity declarations
 - Prefer JSON over XML when possible to eliminate XXE risk entirely
 - Keep PHP updated (8.0+ has safer defaults with entity loader disabled by default)
@@ -17,7 +17,7 @@ PHP's XML parsers can process external entities by default, leading to file disc
 ## Remediation Steps
 
 - Call `libxml_disable_entity_loader(true)` at application initialization for PHP < 8.0
-- Remove `LIBXML_NOENT` flag from all `simplexml_load_*`, `DOMDocument - -load*`, and `XMLReader` calls
+- Remove `LIBXML_NOENT` flag from all `simplexml_load_*`, `DOMDocument::load*`, and `XMLReader` calls
 - Explicitly pass `LIBXML_NONET` to prevent network access during parsing
 - Never use `LIBXML_DTDLOAD` unless absolutely required with trusted input only
 - Test with payloads containing `<!ENTITY>` declarations to verify protection

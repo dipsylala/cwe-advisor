@@ -17,7 +17,7 @@ CWE-95 occurs when untrusted input from HTTP requests, APIs, files, or external 
 - Identify all uses of `eval()`, `exec()`, `compile()`, and dynamic imports in the codebase
 - Replace with safe alternatives - function dictionaries, `ast.literal_eval()`, or JSON parsing
 - If dynamic execution is unavoidable, implement strict input validation with character and length limits
-- Use sandboxing or restricted execution environments with minimal permissions
+- Run unavoidable dynamic execution in a separate locked-down process/container with minimal permissions and resource limits; do not rely on in-process Python sandboxing
 - Apply input whitelisting to allow only specific, predefined values or patterns
 - Review and audit all external data sources feeding into the application
 
