@@ -108,7 +108,8 @@ If no tooling or results are available, trace the flow by hand:
 2. **Trace backwards** — follow the data through function calls, assignments, and transformations back towards the entry point. Note every place the value could have been validated or sanitised but wasn't.
 3. **Identify the source** — where does the untrusted input originally enter the application (HTTP request, file, environment variable, IPC, etc.)?
 4. **Find the best fix point** — the nearest upstream location where validation is both feasible and reliable. This is usually the first trust boundary the data crosses, not the sink itself.
-5. **Forward pass for other sinks** — from that fix point, briefly check whether the same input flows to any other dangerous operations that would also need covering.
+5. **Break taint after allowlist validation** — when a fix validates untrusted input against an allowlist, treat the validation as a transformation, not only a gate. Do not keep passing the original tainted value downstream after a successful check; select the matching canonical value from the allowlist or a server-controlled map, assign it to a fresh variable, and use that trusted value for later sinks.
+6. **Forward pass for other sinks** — from that fix point, briefly check whether the same input flows to any other dangerous operations that would also need covering.
 
 Either way, the goal is the same: determine where to apply the fix and whether a single change is sufficient.
 
@@ -138,6 +139,8 @@ Only proceed once they confirm. Then:
 2. Show the **vulnerable** code with a comment marking the problem.
 3. Show the **fixed** code using the safe pattern from the guidance, applied at the point identified in Step 5.
 4. Briefly explain what changed and why it eliminates the weakness. If both a library upgrade and a code change are required, clarify which part each fix addresses — the library upgrade may close the CVE but the code-level safe pattern is still needed to enforce correct usage.
+
+If the fix uses an allowlist, the fixed code must use the value selected from the allowlist downstream. Avoid patterns that check `allowed.Contains(input)` or `allowed.includes(input)` and then pass `input` to the sink; prefer lookup or map patterns that return a canonical allowed value and pass that trusted value onward.
 
 Always prefer the language-specific safe pattern over the general one when both are available.
 
