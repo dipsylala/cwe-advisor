@@ -53,20 +53,22 @@ If no language subfolder exists, rely solely on the general guidance from Step 2
 
 After loading the guidance, check whether the loaded guidance (Steps 2–3) references any specific third-party library by name (e.g. SnakeYAML, Jackson, Log4j, OpenSSL, Newtonsoft.Json). If it does, **you must offer** to run an SCA scan or read existing SCA results for that library before proceeding.
 
-**Ask:** *"The guidance references [library name]. Would you like me to check whether the version in use is safe — either by running an SCA scan or reading any existing SCA results?"*
+**Ask:** *"The guidance references [library name]. Would you like me to check whether the version in use is safe - either by running an SCA scan or reading any existing SCA results?"*
+
+**When to skip this step:** If the developer indicates they have already verified the dependency version, or if the guidance mentions a library as a general example (not a specific recommendation for their stack), you can skip the detailed SCA check.
 
 If the guidance does not name a specific library, skip the rest of this step and proceed to Step 5.
 
 If the developer agrees:
 
-**Option A — Use an available SCA skill (preferred)**
+**Option A - Use an available SCA skill (preferred)**
 
 Check whether any SCA or dependency-analysis skill is available in the current environment (e.g. a Snyk, OWASP Dependency-Check, Veracode, Trivy, or similar tool integration). If one is available, invoke it to retrieve dependency findings relevant to the libraries mentioned in the guidance loaded in Steps 2–3. Extract:
 - Library name and version currently in use
 - Whether the version is flagged as vulnerable (CVE or advisory)
 - The minimum safe version recommended by the tool
 
-**Option B — Read manifest files (fallback)**
+**Option B - Read manifest files (fallback)**
 
 If no SCA skill is available, search the workspace for dependency manifests and read the relevant library versions:
 
@@ -85,13 +87,14 @@ Extract the declared version of any library referenced in the guidance. If multi
 
 1. Note which libraries are relevant to the finding.
 2. If a vulnerable version is detected, record the vulnerable version and the safe upgrade target. Carry this into Step 6 so the fix includes both the library upgrade and the code-level remediation.
-3. If the version cannot be determined (no manifest found, no SCA output), flag this and recommend the developer verify it manually.
+3. If a library upgrade is required but the developer indicates it is blocked by broader dependency constraints, acknowledge this directly. Note that a code-level workaround might be possible (or might not, depending on the vulnerability), so the developer can plan escalation early.
+4. If the version cannot be determined (no manifest found, no SCA output), flag this and recommend the developer verify it manually.
 
 ### Step 5: Trace the Data Flow
 
 Before proposing a fix, trace the data flow from source to sink. Use the best available method:
 
-**Option A — Use available tooling (preferred)**
+**Option A - Use available tooling (preferred)**
 
 If any of the following are available, use them first:
 - A SAST/DAST report that includes a call path or taint trace for the finding
@@ -100,15 +103,15 @@ If any of the following are available, use them first:
 
 Extract the source, sink, and any intermediate steps directly from that output. Skip to Step 6 once you have a clear picture.
 
-**Option B — Manual trace (fallback)**
+**Option B - Manual trace (fallback)**
 
 If no tooling or results are available, trace the flow by hand:
 
-1. **Start at the sink** — locate the exact operation the scanner flagged (e.g. SQL query, shell exec, file write). This is your fixed reference point.
-2. **Trace backwards** — follow the data through function calls, assignments, and transformations back towards the entry point. Note every place the value could have been validated or sanitised but wasn't.
-3. **Identify the source** — where does the untrusted input originally enter the application (HTTP request, file, environment variable, IPC, etc.)?
-4. **Find the best fix point** — the nearest upstream location where validation is both feasible and reliable. This is usually the first trust boundary the data crosses, not the sink itself.
-5. **Forward pass for other sinks** — from that fix point, briefly check whether the same input flows to any other dangerous operations that would also need covering.
+1. **Start at the sink** - locate the exact operation the scanner flagged (e.g. SQL query, shell exec, file write). This is your fixed reference point.
+2. **Trace backwards** - follow the data through function calls, assignments, and transformations back towards the entry point. Note every place the value could have been validated or sanitised but wasn't.
+3. **Identify the source** - where does the untrusted input originally enter the application (HTTP request, file, environment variable, IPC, etc.)?
+4. **Find the best fix point** - the nearest upstream location where validation is both feasible and reliable. This is usually the first trust boundary the data crosses, not the sink itself.
+5. **Forward pass for other sinks** - from that fix point, briefly check whether the same input flows to any other dangerous operations that would also need covering.
 
 Either way, the goal is the same: determine where to apply the fix and whether a single change is sufficient.
 
@@ -119,10 +122,10 @@ Either way, the goal is the same: determine where to apply the fix and whether a
 Security findings often arrive as unexpected mandatory blockers. Developers may feel defensive, sceptical about exploitability, or daunted by the migration effort involved. When presenting findings and fixes:
 
 - **Lead with the path forward**, not the severity. The developer knows it must be addressed; focus on how.
-- **Acknowledge migration cost** — replacing a serializer, refactoring an auth flow, or switching a crypto primitive is real work. Say so plainly rather than making it sound trivial.
-- **Use calm, precise language** — avoid alarm phrasing like "DANGEROUS" or "critical vulnerability". Prefer: "this pattern is unsafe because X, and the fix is Y."
-- **Validate pushback on exploitability** — if a developer argues their context reduces risk ("this is internal-only"), acknowledge the point before explaining why the safe pattern is still the right path regardless.
-- **Don't assign blame** — frame findings as patterns to update, not mistakes to own.
+- **Acknowledge migration cost** - replacing a serializer, refactoring an auth flow, or switching a crypto primitive is real work. Say so plainly rather than making it sound trivial.
+- **Use calm, precise language** - avoid alarm phrasing like "DANGEROUS" or "critical vulnerability". Prefer: "this pattern is unsafe because X, and the fix is Y."
+- **Validate pushback on exploitability** - if a developer argues their context reduces risk ("this is internal-only"), acknowledge the point before explaining why the safe pattern is still the right path regardless.
+- **Don't assign blame** - frame findings as patterns to update, not mistakes to own.
 
 The goal is a developer who understands the problem and feels equipped to fix it, not one who is alarmed or defensive.
 
@@ -137,12 +140,19 @@ Only proceed once they confirm. Then:
    - Show the exact change needed in the manifest file (e.g. updated version string in `pom.xml` or `package.json`).
 2. Show the **vulnerable** code with a comment marking the problem.
 3. Show the **fixed** code using the safe pattern from the guidance, applied at the point identified in Step 5.
-4. Briefly explain what changed and why it eliminates the weakness. If both a library upgrade and a code change are required, clarify which part each fix addresses — the library upgrade may close the CVE but the code-level safe pattern is still needed to enforce correct usage.
+   - When applying the fix, match the existing codebase's indentation, naming conventions, import organization, and formatting - unless the style itself introduces a security issue.
+4. Briefly explain what changed and why it eliminates the weakness. If both a library upgrade and a code change are required, clarify which part each fix addresses - the library upgrade may close the CVE but the code-level safe pattern is still needed to enforce correct usage.
 
 Always prefer the language-specific safe pattern over the general one when both are available.
 
+#### After the Fix
+
+After the fix is applied, suggest the developer:
+1. Re-run their scanner to verify the finding is closed.
+2. If possible, test the fixed code locally (unit tests, integration tests, or manual testing) to confirm it works as intended and does not introduce regressions.
+
 ## Notes
 
-- Never guess a fix — always base it on the loaded guidance.
+- Never guess a fix - always base it on the loaded guidance.
 - If the user's code spans multiple languages, handle each language separately.
 - After applying the fix, suggest the developer re-run their scanner and SCA tool to verify.
