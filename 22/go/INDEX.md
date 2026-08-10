@@ -12,6 +12,7 @@ Path Traversal in Go usually appears when request or config data reaches `os.Ope
 - Resolve symlinks with `filepath.EvalSymlinks` before opening when the directory may contain attacker-influenced links, or reject non-regular files with `os.Lstat`/`Mode().IsRegular()`
 - Prefer indirect references: map a user-supplied ID to a safe path through a Go `map` or database lookup instead of deriving any path from raw input
 - Where available, use Go 1.24+ `os.Root`/`os.OpenInRoot` for file access rooted at a directory, which resists traversal even through symlinks
+- Archive extraction (Zip Slip): treat `archive/zip` and `archive/tar` entry `Name` fields as untrusted - join with `filepath.Join`, clean, and apply the same base-directory containment check as any other path (or reject with Go 1.20+ `filepath.IsLocal`) before creating the file; reject entries with `..` or absolute paths
 
 ## Remediation Steps
 

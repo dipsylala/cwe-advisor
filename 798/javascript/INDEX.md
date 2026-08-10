@@ -11,6 +11,7 @@ Hard-coded credentials in JavaScript/Node.js occur when sensitive values (passwo
 - Rotate credentials immediately when hardcoded secrets are discovered in code or git history
 - Implement secret scanning in CI/CD pipelines to prevent accidental credential commits
 - Apply principle of least privilege to all API keys and service credentials
+- Environment variables are a practical fallback but not risk-free - they can leak through process inspection (`/proc/<pid>/environ`), crash reports, or cloud metadata endpoints, so prefer a secrets manager in production
 
 ## Remediation Steps
 
@@ -27,15 +28,24 @@ Hard-coded credentials in JavaScript/Node.js occur when sensitive values (passwo
 // Load environment variables
 require('dotenv').config();
 
+// SAFE: fail fast if a required secret is missing
+function requireEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
 // Database connection using environment variables
 const dbConfig = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  host: requireEnv('DB_HOST'),
+  user: requireEnv('DB_USER'),
+  password: requireEnv('DB_PASSWORD'),
+  database: requireEnv('DB_NAME')
 };
 
 // API and JWT secrets from environment
-const apiKey = process.env.API_KEY;
-const jwtSecret = process.env.JWT_SECRET;
+const apiKey = requireEnv('API_KEY');
+const jwtSecret = requireEnv('JWT_SECRET');
 ```

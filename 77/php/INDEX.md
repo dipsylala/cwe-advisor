@@ -2,50 +2,45 @@
 
 ## LLM Guidance
 
-Command injection in PHP occurs when applications construct system commands using untrusted input through functions like `system()`, `exec()`, `shell_exec()`, or backticks.
-
-**Primary Defence:** Use PHP native functions (file_get_contents, unlink, copy, etc.) instead of executing system commands to eliminate the vulnerability entirely. If process execution is absolutely unavoidable, use argument arrays with strict allowlists and avoid the shell.
+In PHP, CWE-77 commonly appears in applications that implement their own command interpreter - an admin console, chat-bot command syntax, or macro/scripting mini-language - where user input selects or builds a command that a bespoke parser then executes via dynamic dispatch (`call_user_func`, variable functions, or a lookup by string). This is distinct from CWE-78 (`shell_exec`/`exec`/`proc_open` OS execution), covered separately. The primary defence is to allowlist known command verbs and parse arguments with a structured parser instead of routing raw input into dynamic dispatch.
 
 ## Key Principles
 
-- **BEST:** Use PHP native functions (file_get_contents, unlink, copy, curl_exec) instead of system commands to eliminate command injection risk
-- **If commands unavoidable:** Use argument arrays through `proc_open()` or a process library, validate operands, and pass `--` before user-controlled operands where the executable supports it
-- Implement strict allowlist validation for any parameters that determine command behavior as defence-in-depth
-- Never use dynamic command construction through string concatenation or interpolation
-- Enforce least privilege by running PHP processes with minimal system permissions
-- Avoid shell execution functions (`system()`, `exec()`, `shell_exec()`, backticks, `passthru()`) entirely
+- **Primary defence:** map each recognised command verb to a specific, hardcoded handler via an explicit allowlist array, never via `call_user_func($userInput)` or variable-function/variable-variable dispatch on untrusted input
+- Never let untrusted input choose which function or method is invoked directly; only the allowlist lookup result should reach the dispatch call
+- Parse arguments with a structured approach (a defined grammar, or `explode()`/regex against an expected shape) rather than passing the raw remainder of the input string into the handler
+- Reject any input that does not match a known command verb exactly; do not attempt partial matches or fallthrough execution
+- Apply defence-in-depth: run the interpreter's handlers with the minimum permissions they need, and log unrecognised or rejected commands
+- Keep this bespoke-interpreter case separate from OS command execution (CWE-78) and argument/flag injection into an external process (CWE-88); no shell or external process is involved here
 
 ## Remediation Steps
 
-- Audit code for all instances of `system()`, `exec()`, `shell_exec()`, backticks, `passthru()`, `proc_open()`, and `popen()`
-- **Replace shell commands with PHP native functions** (file_get_contents, unlink, copy) to eliminate vulnerability
-- If process execution is unavoidable, use argument arrays, avoid shell parsing, validate operands, and add `--` before user-controlled operands where supported
-- Implement allowlist validation for any parameters that determine command behavior as additional defence
-- Remove or restrict user control over command structure, file paths, and executable names
-- Configure PHP with `disable_functions` in php.ini to block dangerous functions in production
+- Locate - find custom command-parsing code (an admin console, chat command handler, macro interpreter) that takes user input and dispatches it to a function or action
+- Trace data flow - identify how the command verb and its arguments are extracted from the untrusted input and where dispatch occurs
+- Identify the unsafe pattern - dynamic dispatch on a value derived from user input (`call_user_func($cmd)`, `$cmd()`, `$$cmd`)
+- Replace with the safe pattern - look up the verb in a fixed allowlist array mapping known strings to specific handler functions
+- Break taint after allowlist validation - pass the allowlist-selected handler reference to the dispatch call, not the original input string
+- Parse arguments structurally - validate each argument's type/format before passing it to the handler
+- Test - submit unknown verbs, verbs with unexpected casing or whitespace, and attempts to reference internal function names directly, and confirm only allowlisted handlers ever execute
 
 ## Safe Pattern
 
 ```php
-// UNSAFE: Direct user input in command
-$file = $_GET['file'];
-$output = shell_exec("cat $file");
+<?php
+// SAFE: allowlist maps known verbs to specific handlers; no dynamic dispatch on raw input
+$commands = [
+    'status'  => 'handleStatus',
+    'restart' => 'handleRestart',
+    'help'    => 'handleHelp',
+];
 
-// SAFE: Use PHP built-in instead
-$file = $_GET['file'];
-$allowedFiles = ['report.txt', 'data.csv'];
-if (in_array($file, $allowedFiles, true)) {
-    $output = file_get_contents($file);
+$input = trim($_POST['command'] ?? '');
+[$verb, $rest] = array_pad(explode(' ', $input, 2), 2, '');
+
+if (!array_key_exists($verb, $commands)) {
+    throw new InvalidArgumentException('Unknown command');
 }
 
-// SAFE: If process execution is unavoidable, validate and avoid shell parsing
-$file = $_GET['file'];
-if (!in_array($file, $allowedFiles, true)) {
-    throw new InvalidArgumentException('Invalid file');
-}
-$process = proc_open(
-    ['grep', 'search_term', '--', $file],
-    [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']],
-    $pipes
-);
+$handler = $commands[$verb]; // allowlist-selected value, not $verb itself
+$handler($rest);             // arguments still validated inside each handler
 ```

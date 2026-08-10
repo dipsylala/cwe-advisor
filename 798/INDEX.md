@@ -19,3 +19,4 @@ Hard-coded credentials occur when authentication secrets (passwords, API keys, e
 2. Load secrets from environment variables or a secrets manager.
 3. Rotate and revoke exposed credentials.
 4. Restrict secret access by least privilege.
+5. Treat environment variables as a fallback, not a risk-free store - they can still leak via process inspection, debug dumps, or cloud metadata endpoints.

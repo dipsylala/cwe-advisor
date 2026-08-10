@@ -13,6 +13,8 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Use ORMs (Laravel Eloquent, Doctrine) that handle parameterization automatically
 - Apply input validation as a secondary defence layer, but never as the primary protection
 - Reject escape functions (mysql_real_escape_string) as the sole defence mechanism
+- Bind `LIKE` wildcard values as a parameter too - concatenating `"%$search%"` into an otherwise-prepared query still injects the wildcard portion
+- Treat `PDO::quote()` as manual escaping, not parameterization - it builds a string for you to concatenate and is easy to misuse; prefer bound parameters
 
 ## Remediation Steps
 

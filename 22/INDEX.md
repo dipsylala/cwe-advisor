@@ -11,6 +11,7 @@ Path Traversal occurs when applications use user-supplied input to construct fil
 - Normalise Unicode before validation: Full-width and other Unicode equivalents of `/`, `\`, and `.` (e.g. U+FF0F FULLWIDTH SOLIDUS, U+2215 DIVISION SLASH) can survive naive character checks; apply Unicode NFC normalisation before validation
 - Canonicalize before validation: Resolve symlinks and relative paths (`.`, `..`) to absolute form before security checks
 - Enforce allowlist containment: Verify canonicalized paths stay within permitted root directories
+- Treat archive extraction as a distinct sink: Zip/tar/etc. entry names are untrusted input - canonicalize each entry's computed target path and verify it stays within the extraction base directory before writing (Zip Slip), exactly like any other path-traversal sink
 - Use indirect references: Map user input to internal IDs, then lookup actual paths from a secure database or allowlist
 - Validate after canonicalization: String filtering alone fails; validate the resolved absolute path
 

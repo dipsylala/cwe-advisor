@@ -2,44 +2,40 @@
 
 ## LLM Guidance
 
-Command injection in Python occurs when applications construct system commands using untrusted input, allowing attackers to inject malicious commands through shell metacharacters.
-
-**Primary Defence:** Use Python native libraries (pathlib, requests, shutil, etc.) instead of executing system commands to eliminate the vulnerability entirely. If system commands are unavoidable, use `subprocess.run()` with argument lists and `shell=False`.
+In Python, CWE-77 commonly appears where an application talks to a Redis (or similar) server by hand-building the wire protocol command instead of using redis-py's parameterized API. This is distinct from CWE-78 (`subprocess`/`os.system` OS execution), covered separately. The primary defence is to use redis-py's client methods, which pass each argument to the server as a separately framed value so embedded delimiters cannot be read as a new command.
 
 ## Key Principles
 
-- **BEST:** Use Python native libraries (pathlib for files, requests for HTTP, shutil for file operations) instead of system commands
-- **If commands unavoidable:** Use `subprocess.run()` with argument lists and `shell=False` (never `shell=True`)
-- Avoid legacy functions like `os.system()`, `os.popen()`, and `commands` module entirely
-- Validate and sanitize all user input against strict allowlists as defence-in-depth
-- Implement least privilege principles for command execution contexts
+- **Primary defence:** use `redis.Redis` client methods (`.set()`, `.hset()`, etc.) or `.execute_command(*args)` with each value as its own argument, never a concatenated command string
+- Never hand-build a raw Redis command by opening a `socket` and writing text like `f"SET {key} {value}\r\n"`; the plain-text inline protocol reads an embedded CRLF as the end of one command and the start of another
+- redis-py's client encodes each argument as a RESP bulk string with an explicit length prefix, so a value containing CRLF, spaces, or command names cannot split into a separate command when passed through `execute_command` or a typed method
+- Apply the same rule to other protocol clients (Memcached via `pymemcache`, SMTP via `smtplib`): prefer the maintained client's structured send/command methods over building the wire text by hand
+- Validate and bound key/value length and character set as defence-in-depth, even though the client library already prevents delimiter injection
+- Connect with least-privilege Redis ACL credentials (read-only where possible) so an injected command has limited effect if this control is ever bypassed
 
 ## Remediation Steps
 
-- **Replace system commands with Python native libraries** (pathlib, requests, shutil) to eliminate vulnerability
-- If commands are unavoidable, replace `shell=True` with `shell=False` and convert command strings to argument lists
-- Refactor `os.system()` calls to `subprocess.run()` with list arguments
-- Implement input validation using allowlists for all user-controlled parameters as additional defence
-- Use `shlex.quote()` only as a last resort when shell invocation is absolutely unavoidable
-- Audit all subprocess and os module usage for untrusted input flow
-- Add security testing to verify commands cannot be manipulated
+- Locate - find code that opens a raw `socket` connection to a Redis/Memcached port, or that builds a command string via f-strings/`%`/`.format()` before sending it
+- Trace data flow - confirm which parts of the built command string originate from untrusted input (keys, values, identifiers)
+- Replace with the safe pattern - swap the raw socket/string-building code for `redis.Redis` (redis-py) and its typed methods or `execute_command(*args)`
+- Bind arguments - pass each untrusted value as its own argument rather than folding it into a pre-built string
+- Add validation - constrain key/value length and character set as defence-in-depth
+- Harden configuration - use a dedicated, least-privilege Redis ACL user for the application connection
+- Test - send values containing `\r\n`, spaces, and Redis command names (for example `\r\nFLUSHALL\r\n`) and confirm they are stored as literal data rather than executed as separate commands
 
 ## Safe Pattern
 
 ```python
-import subprocess
+import redis
 
-# SAFE: Argument list with shell=False (default)
-user_file = get_user_input()
-result = subprocess.run(
-    ['ls', '-l', '--', user_file],
-    capture_output=True,
-    text=True,
-    check=True
-)
+# SAFE: arguments passed separately - RESP framing prevents delimiter injection
+client = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-# For dynamic arguments, validate first
-allowed_options = {'-l', '-a', '-h'}
-if user_option in allowed_options:
-    subprocess.run(['ls', user_option, '--', user_file])
+key = f"session:{session_id}"   # session_id still validated upstream
+value = user_supplied_value     # may contain \r\n, spaces, etc.
+
+client.set(key, value)
+
+# Equivalent for commands without a typed method:
+client.execute_command("SET", key, value)
 ```

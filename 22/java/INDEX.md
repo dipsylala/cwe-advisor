@@ -14,6 +14,7 @@ Path Traversal occurs when user input constructs file paths without validation, 
 - Reject paths containing traversal sequences (`../`, `..\\`) or null bytes
 - Use allowlists for permitted file extensions and directories
 - Avoid constructing paths from untrusted input when possible
+- Archive extraction (Zip Slip): treat `ZipEntry.getName()` from `java.util.zip.ZipInputStream` (or Apache Commons Compress) as untrusted - resolve it against the destination directory and verify containment with `Path.startsWith()` after `toRealPath()`/normalization, the same pattern used above, before extracting
 
 ## Remediation Steps
 

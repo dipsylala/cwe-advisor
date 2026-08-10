@@ -13,6 +13,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Never concatenate user input into command strings
 - Never use shell: true - it enables shell injection
 - Only use child_process as a last resort with argument arrays and shell: false
+- An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Remediation Steps
 

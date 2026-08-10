@@ -12,6 +12,7 @@ Path Traversal occurs when user-supplied input constructs file paths without val
 - Canonicalize paths with `Path.GetFullPath()` before validation
 - Always verify resolved paths start with the intended base directory
 - Prefer indirect references (database IDs mapped to filenames)
+- Archive extraction (Zip Slip): treat `ZipArchiveEntry.FullName` as untrusted - combine it with the destination directory, canonicalize with `Path.GetFullPath()`, and verify the result starts with the destination directory (with a trailing separator) before extracting; `ZipFile.ExtractToDirectory()` validates this internally in modern .NET (Core 2.1+), but manual per-entry extraction loops do not
 
 ## Remediation Steps
 
@@ -35,10 +36,15 @@ public string GetSafeFilePath(string userInput, string baseDirectory)
     string fileName = Path.GetFileName(decoded);
     
     // Combine with base directory and canonicalize
-    string fullPath = Path.GetFullPath(Path.Combine(baseDirectory, fileName));
+    string fullBase = Path.GetFullPath(baseDirectory);
+    string fullPath = Path.GetFullPath(Path.Combine(fullBase, fileName));
     
-    // Verify path stays within base directory
-    if (!fullPath.StartsWith(Path.GetFullPath(baseDirectory), StringComparison.OrdinalIgnoreCase))
+    // Verify path stays within base directory using a relative-path check,
+    // not a raw string prefix - a prefix check without a trailing separator
+    // would incorrectly accept a sibling directory (e.g. "baseDir-evil")
+    string relative = Path.GetRelativePath(fullBase, fullPath);
+    bool escapesBase = relative == ".." || relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+    if (escapesBase || Path.IsPathRooted(relative))
         throw new UnauthorizedAccessException("Invalid path");
     
     return fullPath;

@@ -16,7 +16,7 @@ CSRF occurs when state-changing endpoints don't validate that requests originate
 
 - Add `django.middleware.csrf.CsrfViewMiddleware` to Django `MIDDLEWARE` settings
 - Include `{% csrf_token %}` in all Django forms or initialize `CSRFProtect(app)` in Flask
-- Configure secure cookies - `SESSION_COOKIE_SAMESITE='Strict'`, `CSRF_COOKIE_SECURE=True`
+- Configure secure cookies - `SESSION_COOKIE_SAMESITE='Strict'`, `CSRF_COOKIE_SAMESITE='Strict'`, `CSRF_COOKIE_SECURE=True` - Django tracks the session and CSRF cookies' SameSite settings independently, so setting one does not set the other
 - For AJAX - read CSRF token from cookie and send in `X-CSRFToken` header
 - Remove any `@csrf_exempt` decorators from state-changing endpoints
 - Verify all POST/PUT/PATCH/DELETE routes validate tokens automatically
@@ -29,6 +29,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',  # Enable CSRF
 ]
 SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_SAMESITE = 'Strict'  # independent of SESSION_COOKIE_SAMESITE - set both
 CSRF_COOKIE_SECURE = True
 
 # views.py

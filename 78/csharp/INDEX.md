@@ -13,6 +13,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Use System.IO.Compression for archive operations instead of zip commands
 - Never concatenate user input into command strings
 - Only use ProcessStartInfo as a last resort with ArgumentList and UseShellExecute = false
+- ArgumentList prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Remediation Steps
 

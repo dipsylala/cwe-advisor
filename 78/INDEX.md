@@ -10,6 +10,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Never concatenate user input into command strings
 - Avoid shell interpreters (sh, bash, cmd.exe) completely
 - Use parameterized APIs only as a last resort when no native library exists (ProcessBuilder, subprocess with list arguments)
+- Array-form/no-shell execution stops shell metacharacter injection but not argument injection (CWE-88) - a value that becomes a full argument can still be interpreted as a flag by the target program; validate values that could be mistaken for options
 - Input validation is insufficient - It's only effective as a secondary defence layer
 - Apply least privilege to any remaining process execution
 

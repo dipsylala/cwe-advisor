@@ -10,6 +10,7 @@ Hard-coded credentials (passwords, API keys, connection strings, encryption keys
 - Use .NET User Secrets during development and Key Vault or environment variables in production
 - Implement least-privilege access with managed identities where possible
 - Rotate credentials regularly and audit all secret access
+- Treat environment variables as a fallback, not a vault - they can still leak via process listings, crash dumps, or platform metadata endpoints, so prefer Key Vault for production
 
 ## Remediation Steps
 

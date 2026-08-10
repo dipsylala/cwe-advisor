@@ -23,6 +23,7 @@ Path Traversal in JavaScript/Node.js occurs when applications use unsanitized us
 - Implement allowlist validation for permitted file extensions and names
 - Sanitize input by rejecting `..`, null bytes, and encoded traversal attempts
 - Configure Express static middleware with `dotfiles: 'deny'` and strict root directories
+- Archive extraction (Zip Slip): treat entry paths from `adm-zip`, `unzipper`, `yauzl`, or `tar` as untrusted - resolve each with `path.resolve()` against the extraction directory and check containment before writing; `extract-zip` validates this internally in current versions, but manual extraction loops with lower-level libraries do not
 
 ## Safe Pattern
 

@@ -11,6 +11,7 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 - Use different credentials per environment (dev/staging/production)
 - Implement secrets rotation and access controls
 - Validate all credentials come from secure external sources
+- Environment variables reduce exposure versus hard-coding but are not foolproof - they can still leak through process inspection, debug output, or misconfigured server status pages
 
 ## Remediation Steps
 

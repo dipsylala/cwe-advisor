@@ -11,6 +11,7 @@
 - Pass each argument as a separate `exec.Command` parameter; never build a single command string with `+` or `fmt.Sprintf`
 - Use `exec.CommandContext` with a timeout to bound any unavoidable process execution
 - Validate any value that must reach `exec.Command` against a strict allowlist (regexp or map) before use
+- A separate argv prevents shell injection but not argument injection (CWE-88) - a value passed as its own argument can still be read as a flag by the target program; reject values starting with `-` or insert a literal `--` before user-controlled positional arguments where the target program supports it
 - Watch for the injection point moving downstream - a wrapper script invoked with safe argv that itself runs `sh -c` on one of the arguments reopens the same risk
 
 ## Remediation Steps

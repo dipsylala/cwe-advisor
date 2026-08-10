@@ -12,6 +12,7 @@ JavaScript deserialization vulnerabilities occur when `eval()`, `Function()`, `v
 - Validate deserialized data with schema validation libraries (Joi, Ajv, Zod) before use
 - Remove dependencies on insecure libraries like node-serialize, serialize-javascript, or funcster
 - Implement allowlists for expected object types and reject unexpected properties
+- `JSON.parse()` itself is safe, but merging its output into an existing object with `Object.assign()`, bracket-notation assignment (`target[key] = value`), or a recursive deep-merge library can still cause prototype pollution if `__proto__`/`constructor`/`prototype` keys are not rejected - validate keys before merging, or use `Object.create(null)`/`Map` for untrusted data
 - Use Content Security Policy and strict input validation at API boundaries
 
 ## Remediation Steps

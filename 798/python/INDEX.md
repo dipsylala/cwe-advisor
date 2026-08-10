@@ -11,6 +11,7 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 - Use secrets managers for production deployments with automatic rotation
 - Apply principle of least privilege to all credentials
 - Implement secure defaults and fail securely when credentials are missing
+- Environment variables are a practical fallback but can still leak via process inspection (`/proc/<pid>/environ`), crash dumps, or cloud metadata endpoints, so prefer a secrets manager where available
 
 ## Remediation Steps
 

@@ -11,7 +11,8 @@ Hard-coded credentials in Go typically appear as string literals or `const`/`var
 - Do not treat a committed `config.yaml`/`.env` file as safe just because the Go code reads it dynamically - if the file with real values is tracked in git, the secret is still exposed
 - Validate that required credential environment variables are non-empty at startup and fail fast with a clear error rather than proceeding with a zero value
 - Never log a loaded config struct (`log.Printf("%+v", config)`) - this reintroduces exposure even when the credential source itself is secure
-- Add `go vet` and secret-scanning tools (TruffleHog, git-secrets, GitHub secret scanning) to CI to catch reintroduced literals
+- Add secret-scanning tools (TruffleHog, git-secrets, GitHub secret scanning) to CI to catch reintroduced literals - `go vet` does not detect secrets, it only checks for suspicious constructs
+- Environment variables are a reasonable fallback, not a risk-free store - they remain readable via `/proc/<pid>/environ`, `ps eww <pid>` on BSD-style `ps`, or cloud metadata endpoints, so prefer a secrets manager for production credentials
 
 ## Remediation Steps
 

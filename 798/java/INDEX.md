@@ -11,6 +11,7 @@ Hard-coded credentials in source code create severe security risks as they are e
 - Leverage cloud-native secrets managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault) for production environments
 - Implement proper access controls and encryption for configuration files containing sensitive data
 - Rotate credentials regularly and revoke any previously hard-coded credentials immediately
+- Environment variables are a reasonable fallback but not immune to leakage - they can be read via process inspection, crash dumps, or cloud metadata services, so prefer a secrets manager for production
 
 ## Remediation Steps
 
