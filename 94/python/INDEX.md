@@ -1,4 +1,4 @@
-# CWE-94: Improper Control of Generation of Code (Code Injection) - Python
+# CWE-94: Improper Control of Generation of Code ('Code Injection') - Python
 
 ## LLM Guidance
 

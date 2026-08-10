@@ -1,4 +1,4 @@
-# CWE-113: HTTP Response Splitting - Java
+# CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Request/Response Splitting') - Java
 
 ## LLM Guidance
 

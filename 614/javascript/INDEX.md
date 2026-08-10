@@ -1,4 +1,4 @@
-# CWE-614: Sensitive Cookie Without 'Secure' Flag - JavaScript/Node.js
+# CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute - JavaScript
 
 ## LLM Guidance
 

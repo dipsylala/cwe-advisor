@@ -1,4 +1,4 @@
-# CWE-502: Insecure Deserialization - JavaScript / Node.js
+# CWE-502: Deserialization of Untrusted Data - JavaScript
 
 ## LLM Guidance
 

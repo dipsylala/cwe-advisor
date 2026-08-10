@@ -1,4 +1,4 @@
-# CWE-566: Authorization Bypass Through User-Controlled Key - JavaScript/Node.js
+# CWE-566: Authorization Bypass Through User-Controlled SQL Primary Key - JavaScript
 
 ## LLM Guidance
 

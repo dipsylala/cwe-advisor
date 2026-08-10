@@ -1,4 +1,4 @@
-# CWE-522: Insufficiently Protected Credentials - C# / .NET
+# CWE-522: Insufficiently Protected Credentials - C#
 
 ## LLM Guidance
 

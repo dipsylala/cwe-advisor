@@ -1,4 +1,4 @@
-# CWE-614: Sensitive Cookie Without 'Secure' Flag - Java
+# CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute - Java
 
 ## LLM Guidance
 

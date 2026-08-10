@@ -1,4 +1,4 @@
-# CWE-780: Use of RSA Without OAEP - C# / .NET
+# CWE-780: Use of RSA Algorithm without OAEP - C#
 
 ## LLM Guidance
 

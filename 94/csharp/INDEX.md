@@ -1,4 +1,4 @@
-# CWE-94: Code Injection - C# / .NET
+# CWE-94: Improper Control of Generation of Code ('Code Injection') - C#
 
 ## LLM Guidance
 

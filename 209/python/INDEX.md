@@ -1,4 +1,4 @@
-# CWE-209: Error Message Information Leak - Python
+# CWE-209: Generation of Error Message Containing Sensitive Information - Python
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-95: Eval Injection - JavaScript
+# CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection') - JavaScript
 
 ## LLM Guidance
 

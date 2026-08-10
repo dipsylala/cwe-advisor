@@ -1,4 +1,4 @@
-# CWE-502: Insecure Deserialization
+# CWE-502: Deserialization of Untrusted Data
 
 ## LLM Guidance
 

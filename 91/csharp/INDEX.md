@@ -1,4 +1,4 @@
-# CWE-91: XML Injection - C\#
+# CWE-91: XML Injection (aka Blind XPath Injection) - C#
 
 ## LLM Guidance
 

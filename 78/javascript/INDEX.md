@@ -1,4 +1,4 @@
-# CWE-78: OS Command Injection - JavaScript/Node.js
+# CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection') - JavaScript
 
 ## LLM Guidance
 

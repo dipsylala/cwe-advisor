@@ -1,4 +1,4 @@
-# CWE-79: Cross-Site Scripting (XSS) - PHP
+# CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting') - PHP
 
 ## LLM Guidance
 

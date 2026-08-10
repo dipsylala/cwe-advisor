@@ -1,4 +1,4 @@
-# CWE-95: Eval Injection - Python
+# CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection') - Python
 
 ## LLM Guidance
 

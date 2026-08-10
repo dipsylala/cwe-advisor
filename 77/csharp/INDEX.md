@@ -1,4 +1,4 @@
-# CWE-77: Command Injection - C\# / .NET
+# CWE-77: Improper Neutralization of Special Elements used in a Command ('Command Injection') - C#
 
 ## LLM Guidance
 

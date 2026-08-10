@@ -1,4 +1,4 @@
-# CWE-77: Command Injection - Python
+# CWE-77: Improper Neutralization of Special Elements used in a Command ('Command Injection') - Python
 
 ## LLM Guidance
 

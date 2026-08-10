@@ -1,4 +1,4 @@
-# CWE-22: Path Traversal - C\#
+# CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') - C#
 
 ## LLM Guidance
 

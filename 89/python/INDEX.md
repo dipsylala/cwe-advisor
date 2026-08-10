@@ -1,4 +1,4 @@
-# CWE-89: SQL Injection - Python
+# CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') - Python
 
 ## LLM Guidance
 

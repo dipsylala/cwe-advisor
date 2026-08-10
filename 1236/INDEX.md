@@ -1,4 +1,4 @@
-# CWE-1236: Formula Injection
+# CWE-1236: Improper Neutralization of Formula Elements in a CSV File
 
 ## LLM Guidance
 

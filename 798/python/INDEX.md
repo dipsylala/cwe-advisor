@@ -1,4 +1,4 @@
-# CWE-798: Hard-coded Credentials - Python
+# CWE-798: Use of Hard-coded Credentials - Python
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-798: Hard-coded Credentials - Java
+# CWE-798: Use of Hard-coded Credentials - Java
 
 ## LLM Guidance
 

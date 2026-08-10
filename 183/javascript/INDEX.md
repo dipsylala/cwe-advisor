@@ -1,4 +1,4 @@
-# CWE-183: Permissive List of Allowed Inputs - JavaScript/TypeScript
+# CWE-183: Permissive List of Allowed Inputs - JavaScript
 
 ## LLM Guidance
 

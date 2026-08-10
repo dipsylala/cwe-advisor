@@ -1,4 +1,4 @@
-# CWE-639: Authorization Bypass Through User-Controlled Key (IDOR)
+# CWE-639: Authorization Bypass Through User-Controlled Key
 
 ## LLM Guidance
 

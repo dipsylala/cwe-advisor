@@ -1,4 +1,4 @@
-# CWE-780: Use of RSA Without OAEP - Python
+# CWE-780: Use of RSA Algorithm without OAEP - Python
 
 ## LLM Guidance
 

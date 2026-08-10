@@ -1,4 +1,4 @@
-# CWE-22: Path Traversal - Java
+# CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') - Java
 
 ## LLM Guidance
 

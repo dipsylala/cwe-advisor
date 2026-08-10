@@ -1,4 +1,4 @@
-# CWE-94: Code Injection - PHP
+# CWE-94: Improper Control of Generation of Code ('Code Injection') - PHP
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-316: Cleartext Storage of Sensitive Information in Memory - C\#
+# CWE-316: Cleartext Storage of Sensitive Information in Memory - C#
 
 ## LLM Guidance
 

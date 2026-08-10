@@ -1,4 +1,4 @@
-# CWE-942: Overly Permissive CORS
+# CWE-942: Permissive Cross-domain Security Policy with Untrusted Domains
 
 ## LLM Guidance
 

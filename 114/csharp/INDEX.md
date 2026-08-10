@@ -1,4 +1,4 @@
-# CWE-114: Process Control - C\#
+# CWE-114: Process Control - C#
 
 ## LLM Guidance
 

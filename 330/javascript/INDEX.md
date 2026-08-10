@@ -1,4 +1,4 @@
-# CWE-330: Use of Insufficiently Random Values - JavaScript/Node.js
+# CWE-330: Use of Insufficiently Random Values - JavaScript
 
 ## LLM Guidance
 

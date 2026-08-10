@@ -1,4 +1,4 @@
-# CWE-91: XML Injection - Python
+# CWE-91: XML Injection (aka Blind XPath Injection) - Python
 
 ## LLM Guidance
 

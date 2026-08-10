@@ -1,4 +1,4 @@
-# CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes - JavaScript/Node.js
+# CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes - JavaScript
 
 ## LLM Guidance
 

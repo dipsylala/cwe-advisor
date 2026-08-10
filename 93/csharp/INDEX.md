@@ -1,4 +1,4 @@
-# CWE-93: CRLF Injection - C\# / ASP.NET
+# CWE-93: Improper Neutralization of CRLF Sequences ('CRLF Injection') - C#
 
 ## LLM Guidance
 

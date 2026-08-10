@@ -1,4 +1,4 @@
-# CWE-566: Authorization Bypass Through User-Controlled Key
+# CWE-566: Authorization Bypass Through User-Controlled SQL Primary Key
 
 ## LLM Guidance
 

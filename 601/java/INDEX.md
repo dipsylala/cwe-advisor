@@ -1,4 +1,4 @@
-# CWE-601: Open Redirect - Java
+# CWE-601: URL Redirection to Untrusted Site ('Open Redirect') - Java
 
 ## LLM Guidance
 

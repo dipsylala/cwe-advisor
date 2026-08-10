@@ -1,4 +1,4 @@
-# CWE-94: Code Injection - Java
+# CWE-94: Improper Control of Generation of Code ('Code Injection') - Java
 
 ## LLM Guidance
 

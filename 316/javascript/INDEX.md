@@ -1,4 +1,4 @@
-# CWE-316: Cleartext Storage of Sensitive Information in Memory - JavaScript/Node.js
+# CWE-316: Cleartext Storage of Sensitive Information in Memory - JavaScript
 
 ## LLM Guidance
 

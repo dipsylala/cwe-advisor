@@ -1,4 +1,4 @@
-# CWE-295: Improper Certificate Validation - C# / .NET
+# CWE-295: Improper Certificate Validation - C#
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-502: Insecure Deserialization - Java
+# CWE-502: Deserialization of Untrusted Data - Java
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) - C# / .NET
+# CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) - C\#
 
 ## LLM Guidance
 

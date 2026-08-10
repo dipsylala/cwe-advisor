@@ -1,4 +1,4 @@
-# CWE-614: Sensitive Cookie Without 'Secure' Flag
+# CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute
 
 ## LLM Guidance
 

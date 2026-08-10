@@ -1,4 +1,4 @@
-# CWE-73: External Control of File Name or Path - C\#
+# CWE-73: External Control of File Name or Path - C#
 
 ## LLM Guidance
 

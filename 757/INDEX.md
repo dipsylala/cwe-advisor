@@ -1,4 +1,4 @@
-# CWE-757: Selection of Less-Secure Algorithm
+# CWE-757: Selection of Less-Secure Algorithm During Negotiation ('Algorithm Downgrade')
 
 ## LLM Guidance
 

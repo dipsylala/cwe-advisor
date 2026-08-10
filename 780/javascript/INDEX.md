@@ -1,4 +1,4 @@
-# CWE-780: Use of RSA Without OAEP - JavaScript/Node.js
+# CWE-780: Use of RSA Algorithm without OAEP - JavaScript
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-209: Error Message Information Leak
+# CWE-209: Generation of Error Message Containing Sensitive Information
 
 ## LLM Guidance
 

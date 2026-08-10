@@ -1,4 +1,4 @@
-# CWE-502: Insecure Deserialization - Python
+# CWE-502: Deserialization of Untrusted Data - Python
 
 ## LLM Guidance
 

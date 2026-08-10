@@ -1,4 +1,4 @@
-# CWE-80: Improper Neutralization of Script-Related HTML Tags (Basic XSS) - JavaScript
+# CWE-80: Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS) - JavaScript
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-798: Hard-coded Credentials - C\#
+# CWE-798: Use of Hard-coded Credentials - C#
 
 ## LLM Guidance
 

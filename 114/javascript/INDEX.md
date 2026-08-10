@@ -1,4 +1,4 @@
-# CWE-114: Process Control - JavaScript/Node.js
+# CWE-114: Process Control - JavaScript
 
 ## LLM Guidance
 

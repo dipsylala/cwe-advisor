@@ -1,4 +1,4 @@
-# CWE-285: Improper Authorization - JavaScript/Node.js
+# CWE-285: Improper Authorization - JavaScript
 
 ## LLM Guidance
 

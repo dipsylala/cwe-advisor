@@ -1,4 +1,4 @@
-# CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes - PHP / Laravel
+# CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes - PHP
 
 ## LLM Guidance
 

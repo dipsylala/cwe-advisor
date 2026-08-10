@@ -1,4 +1,4 @@
-# CWE-93: CRLF Injection
+# CWE-93: Improper Neutralization of CRLF Sequences ('CRLF Injection')
 
 ## LLM Guidance
 

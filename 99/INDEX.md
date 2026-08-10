@@ -1,4 +1,4 @@
-# CWE-99: Resource Injection
+# CWE-99: Improper Control of Resource Identifiers ('Resource Injection')
 
 ## LLM Guidance
 

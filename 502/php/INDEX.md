@@ -1,4 +1,4 @@
-# CWE-502: Insecure Deserialization - PHP
+# CWE-502: Deserialization of Untrusted Data - PHP
 
 ## LLM Guidance
 

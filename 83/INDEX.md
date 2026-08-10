@@ -1,4 +1,4 @@
-# CWE-83: XSS (Improper Neutralization)
+# CWE-83: Improper Neutralization of Script in Attributes in a Web Page
 
 ## LLM Guidance
 

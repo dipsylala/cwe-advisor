@@ -1,4 +1,4 @@
-# CWE-117: Log Injection
+# CWE-117: Improper Output Neutralization for Logs
 
 ## LLM Guidance
 

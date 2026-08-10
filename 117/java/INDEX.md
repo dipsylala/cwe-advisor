@@ -1,4 +1,4 @@
-# CWE-117: Log Injection / Log Forging - Java
+# CWE-117: Improper Output Neutralization for Logs - Java
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-285: Improper Authorization - Java / Spring Security
+# CWE-285: Improper Authorization - Java
 
 ## LLM Guidance
 

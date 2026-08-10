@@ -1,4 +1,4 @@
-# CWE-918: Server-Side Request Forgery (SSRF) - JavaScript/Node.js
+# CWE-918: Server-Side Request Forgery (SSRF) - JavaScript
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-566: Authorization Bypass Through User-Controlled Key - Java
+# CWE-566: Authorization Bypass Through User-Controlled SQL Primary Key - Java
 
 ## LLM Guidance
 

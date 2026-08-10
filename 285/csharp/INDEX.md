@@ -1,4 +1,4 @@
-# CWE-285: Improper Authorization - C\# / ASP.NET Core
+# CWE-285: Improper Authorization - C#
 
 ## LLM Guidance
 

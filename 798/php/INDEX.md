@@ -1,4 +1,4 @@
-# CWE-798: Hard-coded Credentials - PHP
+# CWE-798: Use of Hard-coded Credentials - PHP
 
 ## LLM Guidance
 

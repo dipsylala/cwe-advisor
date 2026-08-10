@@ -1,4 +1,4 @@
-# CWE-209: Error Message Information Leak - JavaScript
+# CWE-209: Generation of Error Message Containing Sensitive Information - JavaScript
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-330: Use of Insufficiently Random Values - C# / .NET
+# CWE-330: Use of Insufficiently Random Values - C#
 
 ## LLM Guidance
 

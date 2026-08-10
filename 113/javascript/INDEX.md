@@ -1,4 +1,4 @@
-# CWE-113: HTTP Response Splitting - JavaScript/Node.js
+# CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Request/Response Splitting') - JavaScript
 
 ## LLM Guidance
 

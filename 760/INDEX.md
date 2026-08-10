@@ -1,4 +1,4 @@
-# CWE-760: Use of One-Way Hash Without Salt
+# CWE-760: Use of a One-Way Hash with a Predictable Salt
 
 ## LLM Guidance
 

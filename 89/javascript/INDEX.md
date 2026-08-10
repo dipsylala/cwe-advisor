@@ -1,4 +1,4 @@
-# CWE-89: SQL Injection - JavaScript
+# CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') - JavaScript
 
 ## LLM Guidance
 

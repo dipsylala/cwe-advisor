@@ -1,4 +1,4 @@
-# CWE-93: CRLF Injection - Java
+# CWE-93: Improper Neutralization of CRLF Sequences ('CRLF Injection') - Java
 
 ## LLM Guidance
 

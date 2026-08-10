@@ -1,4 +1,4 @@
-# CWE-352: Cross-Site Request Forgery (CSRF) - JavaScript/Node.js
+# CWE-352: Cross-Site Request Forgery (CSRF) - JavaScript
 
 ## LLM Guidance
 

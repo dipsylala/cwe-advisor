@@ -1,4 +1,4 @@
-# CWE-798: Use of Hard-coded Credentials - JavaScript/Node.js
+# CWE-798: Use of Hard-coded Credentials - JavaScript
 
 ## LLM Guidance
 

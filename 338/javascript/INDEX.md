@@ -1,4 +1,4 @@
-# CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) - JavaScript/Node.js
+# CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) - JavaScript
 
 ## LLM Guidance
 

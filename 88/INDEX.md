@@ -1,4 +1,4 @@
-# CWE-88: Argument Injection
+# CWE-88: Improper Neutralization of Argument Delimiters in a Command ('Argument Injection')
 
 ## LLM Guidance
 

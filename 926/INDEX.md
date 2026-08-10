@@ -1,4 +1,4 @@
-# CWE-926: Android Component Export
+# CWE-926: Improper Export of Android Application Components
 
 ## LLM Guidance
 

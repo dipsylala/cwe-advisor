@@ -1,4 +1,4 @@
-# CWE-94: Code Injection - JavaScript/Node.js
+# CWE-94: Improper Control of Generation of Code ('Code Injection') - JavaScript
 
 ## LLM Guidance
 

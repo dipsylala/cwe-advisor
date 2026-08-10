@@ -1,4 +1,4 @@
-# CWE-223: Omission of Security-Relevant Information
+# CWE-223: Omission of Security-relevant Information
 
 ## LLM Guidance
 

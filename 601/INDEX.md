@@ -1,4 +1,4 @@
-# CWE-601: URL Redirection to Untrusted Site (Open Redirect)
+# CWE-601: URL Redirection to Untrusted Site ('Open Redirect')
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-566: Authorization Bypass Through User-Controlled Key - Python
+# CWE-566: Authorization Bypass Through User-Controlled SQL Primary Key - Python
 
 ## LLM Guidance
 

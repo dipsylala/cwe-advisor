@@ -1,4 +1,4 @@
-# CWE-89: SQL Injection - PHP
+# CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') - PHP
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-117: Log Injection - JavaScript/Node.js
+# CWE-117: Improper Output Neutralization for Logs - JavaScript
 
 ## LLM Guidance
 

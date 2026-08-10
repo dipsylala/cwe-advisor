@@ -1,4 +1,4 @@
-# CWE-780: Use of RSA Without OAEP - Java
+# CWE-780: Use of RSA Algorithm without OAEP - Java
 
 ## LLM Guidance
 

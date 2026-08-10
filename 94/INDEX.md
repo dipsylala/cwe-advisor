@@ -1,4 +1,4 @@
-# CWE-94: Code Injection (Improper Control of Code Generation)
+# CWE-94: Improper Control of Generation of Code ('Code Injection')
 
 ## LLM Guidance
 

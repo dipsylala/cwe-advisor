@@ -1,4 +1,4 @@
-# CWE-209: Error Message Information Leak - Java
+# CWE-209: Generation of Error Message Containing Sensitive Information - Java
 
 ## LLM Guidance
 

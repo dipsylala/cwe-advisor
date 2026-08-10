@@ -1,4 +1,4 @@
-# CWE-502: Insecure Deserialization - C\# / .NET
+# CWE-502: Deserialization of Untrusted Data - C#
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-98: PHP Remote File Inclusion
+# CWE-98: Improper Control of Filename for Include/Require Statement in PHP Program ('PHP Remote File Inclusion')
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-117: Log Injection / Log Forging - C\# / ASP.NET
+# CWE-117: Improper Output Neutralization for Logs - C#
 
 ## LLM Guidance
 

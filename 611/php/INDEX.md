@@ -1,4 +1,4 @@
-# CWE-611: XML External Entity (XXE) Injection - PHP
+# CWE-611: Improper Restriction of XML External Entity Reference - PHP
 
 ## LLM Guidance
 

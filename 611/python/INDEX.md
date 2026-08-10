@@ -1,4 +1,4 @@
-# CWE-611: XML External Entity (XXE) Injection - Python
+# CWE-611: Improper Restriction of XML External Entity Reference - Python
 
 ## LLM Guidance
 

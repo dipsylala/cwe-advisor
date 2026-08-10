@@ -1,4 +1,4 @@
-# CWE-601: Open Redirect - PHP
+# CWE-601: URL Redirection to Untrusted Site ('Open Redirect') - PHP
 
 ## LLM Guidance
 

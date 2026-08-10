@@ -1,4 +1,4 @@
-# CWE-104: Struts Form Bean Does Not Extend Validation Class
+# CWE-104: Struts: Form Bean Does Not Extend Validation Class
 
 ## LLM Guidance
 

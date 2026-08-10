@@ -1,4 +1,4 @@
-# CWE-470: Unsafe Reflection
+# CWE-470: Use of Externally-Controlled Input to Select Classes or Code ('Unsafe Reflection')
 
 ## LLM Guidance
 

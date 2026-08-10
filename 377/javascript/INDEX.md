@@ -1,4 +1,4 @@
-# CWE-377: Insecure Temporary File - JavaScript/Node.js
+# CWE-377: Insecure Temporary File - JavaScript
 
 ## LLM Guidance
 

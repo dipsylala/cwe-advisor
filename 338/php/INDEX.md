@@ -1,4 +1,4 @@
-# CWE-338: Use of Cryptographically Weak PRNG - PHP
+# CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) - PHP
 
 ## LLM Guidance
 

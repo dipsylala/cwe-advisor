@@ -1,4 +1,4 @@
-# CWE-326: Inadequate Encryption Strength - JavaScript/Node.js
+# CWE-326: Inadequate Encryption Strength - JavaScript
 
 ## LLM Guidance
 

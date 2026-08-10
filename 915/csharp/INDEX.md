@@ -1,4 +1,4 @@
-# CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes - C\#
+# CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes - C#
 
 ## LLM Guidance
 

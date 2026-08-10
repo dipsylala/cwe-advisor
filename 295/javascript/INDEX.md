@@ -1,4 +1,4 @@
-# CWE-295: Improper Certificate Validation - JavaScript/Node.js
+# CWE-295: Improper Certificate Validation - JavaScript
 
 ## LLM Guidance
 

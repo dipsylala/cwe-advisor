@@ -1,4 +1,4 @@
-# CWE-614: Sensitive Cookie Without 'Secure' Flag - C# / ASP.NET Core
+# CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute - C#
 
 ## LLM Guidance
 

@@ -1,4 +1,4 @@
-# CWE-89: SQL Injection - C\#
+# CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') - C#
 
 ## LLM Guidance
 

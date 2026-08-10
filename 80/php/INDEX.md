@@ -1,4 +1,4 @@
-# CWE-80: Cross-Site Scripting (XSS) - PHP
+# CWE-80: Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS) - PHP
 
 ## LLM Guidance
 

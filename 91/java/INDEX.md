@@ -1,4 +1,4 @@
-# CWE-91: XML Injection - Java
+# CWE-91: XML Injection (aka Blind XPath Injection) - Java
 
 ## LLM Guidance
 

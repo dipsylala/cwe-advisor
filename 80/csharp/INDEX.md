@@ -1,4 +1,4 @@
-# CWE-80: Cross-Site Scripting (XSS) - C\# / ASP.NET
+# CWE-80: Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS) - C#
 
 ## LLM Guidance
 

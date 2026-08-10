@@ -1,4 +1,4 @@
-# CWE-331: Insufficient Entropy - JavaScript/Node.js
+# CWE-331: Insufficient Entropy - JavaScript
 
 ## LLM Guidance
 

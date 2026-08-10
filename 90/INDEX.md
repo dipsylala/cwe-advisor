@@ -1,4 +1,4 @@
-# CWE-90: LDAP Injection
+# CWE-90: Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection')
 
 ## LLM Guidance
 
