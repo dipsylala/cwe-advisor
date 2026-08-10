@@ -46,13 +46,15 @@ If code is provided, infer the language from file extensions, syntax, or manifes
 
 If the language is not listed above, check whether a matching lowercase subfolder exists under the CWE directory (e.g., `go/`, `rust/`). If it exists, use it. If not, rely solely on the general guidance from Step 2.
 
+Some findings are rooted in a platform manifest or configuration file rather than in program source code — for example, an Android component-export finding (CWE-926) lives in `AndroidManifest.xml`, not in the Kotlin/Java source that happens to sit alongside it. When the finding concerns a platform configuration file, check for a platform-named subfolder under the CWE directory (e.g., `android/`) instead of the inferred source-language subfolder. Keep platform guidance under its own platform name rather than folding it into a language subfolder. If guidance exists for both the platform (the manifest/config fix) and the language (any code-level handling) for the same CWE, load both.
+
 Check whether the subfolder exists, then read it:
 
 ```
 {CWE_ID}/{language}/INDEX.md
 ```
 
-If no language subfolder exists, rely solely on the general guidance from Step 2.
+If no language or platform subfolder exists, rely solely on the general guidance from Step 2.
 
 ### Step 4: Check Library Dependencies
 
@@ -80,6 +82,7 @@ If the developer agrees, gather dependency information in this order:
    | C#          | `*.csproj`, `packages.config`, `Directory.Packages.props` |
    | PHP         | `composer.json`, `composer.lock`                        |
    | C / C++     | `vcpkg.json`, `conanfile.txt`, `CMakeLists.txt`         |
+   | Go          | `go.mod`, `go.sum`                                      |
 
    Extract the declared version of any library referenced in the guidance. If multiple manifests exist, prefer lock files over loose version ranges. If a lock file and a manifest declare different versions for the same library, use the lock file version and note the discrepancy to the user.
 

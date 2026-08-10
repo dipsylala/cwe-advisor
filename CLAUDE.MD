@@ -13,7 +13,7 @@ This repository is a local CWE remediation knowledge base used by the `cwe-advis
 
 - CWE directories are numeric only, for example `89/` or `352/`.
 - The root `{CWE_ID}/INDEX.md` is language-agnostic guidance.
-- Language folders are lowercase ecosystem names. Existing folders include `c`, `csharp`, `java`, `javascript`, `perl`, `php`, `python`, and `ruby`.
+- Language folders are lowercase ecosystem names. Existing folders include `c`, `csharp`, `java`, `android`, `javascript`, `perl`, `php`, `python`, `go`, and `ruby`.
 - Language-specific files supplement the root guidance; they do not replace it.
 
 ## Authoring Principles
