@@ -16,7 +16,6 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 
 - Identify all locations where user input or external data is rendered in responses
 - Apply context-appropriate encoding using OWASP Java Encoder at each output point
-- Replace innerHTML assignments with textContent or properly encoded alternatives
 - Enable auto-escaping in your templating engine (JSP, Thymeleaf, FreeMarker)
 - Implement CSP headers with strict policies (`default-src 'self'`)
 - Review and test all dynamic content rendering paths

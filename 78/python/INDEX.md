@@ -30,7 +30,8 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 import subprocess
 output = subprocess.check_output(f"ping -c 1 {host}", shell=True)
 
-# UNSAFE: Even with shell=False
+# SAFE (last resort): argument list with shell=False avoids shell injection,
+# but prefer a native Python library over process execution when one exists
 result = subprocess.run(["ping", "-c", "1", host], capture_output=True)
 
 # SAFE: Use socket for reachability check

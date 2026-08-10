@@ -28,7 +28,8 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 // UNSAFE: Executing ping command
 Runtime.getRuntime().exec("ping -c 1 " + host);
 
-// UNSAFE: Even with ProcessBuilder
+// SAFE (last resort): ProcessBuilder with an argument array avoids shell
+// injection, but prefer a native Java API over process execution when one exists
 ProcessBuilder pb = new ProcessBuilder("ping", "-c1", host);
 Process proc = pb.start();
 

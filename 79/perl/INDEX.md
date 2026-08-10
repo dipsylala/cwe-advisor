@@ -7,7 +7,7 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 ## Key Principles
 
 - Always HTML-encode user input before rendering in HTML contexts using `encode_entities()` or `escapeHTML()`
-- Use parameterized templates with auto-escaping (Template Toolkit with HTML filter)
+- Use parameterized templates and apply Template Toolkit's HTML filter explicitly to every variable - TT does not auto-escape by default
 - Validate and sanitize input on server-side; apply allowlists for expected formats
 - Set Content-Security-Policy headers to restrict script execution sources
 - Never insert untrusted data directly into JavaScript, CSS, or URL contexts without proper encoding
@@ -17,7 +17,7 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 - Identify all locations where user input is rendered in HTML output
 - Replace direct variable interpolation with HTML encoding functions
 - Use `HTML::Entities::encode_entities($user_input)` for HTML body/attribute contexts
-- Enable auto-escaping in template engines (Template Toolkit's HTML filter)
+- Apply Template Toolkit's HTML filter (`[% var | html %]`) to every interpolated variable - it is not applied automatically
 - Implement Content-Security-Policy headers to block inline scripts
 - Test with XSS payloads like `<script>alert(1)</script>` to verify fixes
 

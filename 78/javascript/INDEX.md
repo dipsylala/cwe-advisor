@@ -32,7 +32,8 @@ exec(`ping -c 1 ${host}`, (error, stdout) => {
   console.log(stdout);
 });
 
-// UNSAFE: Even with execFile
+// SAFE (last resort): execFile with an argument array avoids shell injection,
+// but prefer a native Node API over process execution when one exists
 const { execFile } = require('child_process');
 execFile('ping', ['-c', '1', host], callback);
 

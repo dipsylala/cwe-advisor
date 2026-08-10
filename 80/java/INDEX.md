@@ -14,7 +14,7 @@ Cross-Site Scripting (CWE-80) occurs when untrusted data is included in web page
 
 ## Remediation Steps
 
-- Replace direct JSP expressions (`<%= %>`) with JSTL `<c -out>` tags
+- Replace direct JSP expressions (`<%= %>`) with JSTL `<c:out>` tags
 - Enable auto-escaping in templating frameworks (Thymeleaf, Freemarker)
 - Use OWASP Java Encoder for manual encoding in servlets
 - Set `HttpOnly` and `Secure` flags on session cookies

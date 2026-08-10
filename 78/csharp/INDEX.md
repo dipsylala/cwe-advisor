@@ -34,7 +34,8 @@ var startInfo = new ProcessStartInfo
 };
 Process.Start(startInfo);
 
-// UNSAFE: Even with ArgumentList
+// SAFE (last resort): ArgumentList with UseShellExecute = false avoids shell
+// injection, but prefer a native .NET API over process execution when one exists
 var psi = new ProcessStartInfo("ping") { UseShellExecute = false };
 psi.ArgumentList.Add(host);
 Process.Start(psi);
