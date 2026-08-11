@@ -5,11 +5,9 @@ description: Educate developers about CWE vulnerabilities and guide remediation 
 
 # CWE Advisor
 
-## Quick Start
-
-When a developer reports a CWE issue, follow the workflow below.
-
 ## Workflow
+
+When a developer reports a CWE issue, follow the steps below.
 
 ### Step 1: Identify the CWE ID
 
@@ -123,8 +121,6 @@ If no tooling or results are available, trace the flow by hand:
 5. **Break taint after allowlist validation** - when a fix validates untrusted input against an allowlist, treat the validation as a transformation, not only a gate. Do not keep passing the original tainted value downstream after a successful check; select the matching canonical value from the allowlist or a server-controlled map, assign it to a fresh variable, and use that trusted value for later sinks.
 6. **Forward pass for other sinks** - from that fix point, briefly check whether the same input flows to any other dangerous operations that would also need covering.
 
-Either way, the goal is the same: determine where to apply the fix and whether a single change is sufficient.
-
 ### Step 6: Offer a Fix
 
 #### Tone
@@ -137,8 +133,6 @@ Security findings often arrive as unexpected mandatory blockers. Developers may 
 - **Validate pushback on exploitability** - if a developer argues their context reduces risk ("this is internal-only"), acknowledge the point before explaining why the safe pattern is still the right path regardless.
 - **Handle false-positive claims** - if the developer provides evidence that the finding is a false positive (e.g., the input is already validated upstream, the sink is unreachable), re-examine the data flow with that context. If the trace confirms no exploitable path, acknowledge the false positive and suggest the developer suppress the finding with a documented justification.
 - **Don't assign blame** - frame findings as patterns to update, not mistakes to own.
-
-The goal is a developer who understands the problem and feels equipped to fix it, not one who is alarmed or defensive.
 
 ---
 
@@ -156,7 +150,7 @@ Only proceed with a fix once they confirm. Present the fix in this order:
    - When applying the fix, match the existing codebase's indentation, naming conventions, import organization, and formatting - unless the style itself introduces a security issue.
 4. **Explanation** - one paragraph explaining what changed and why it eliminates the weakness. If both a library upgrade and a code change are required, clarify which part each fix addresses - the library upgrade may close the CVE but the code-level safe pattern is still needed to enforce correct usage.
 
-If the fix uses an allowlist, the fixed code must use the value selected from the allowlist downstream. Avoid patterns that check `allowed.Contains(input)` or `allowed.includes(input)` and then pass `input` to the sink; prefer lookup or map patterns that return a canonical allowed value and pass that trusted value onward.
+If the fix uses an allowlist, apply the canonical-value substitution from Step 5 #5 - the fixed code must use the value selected from the allowlist, not the original tainted input, downstream.
 
 Always prefer the language-specific safe pattern over the general one when both are available.
 
