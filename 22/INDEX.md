@@ -17,7 +17,7 @@ Path Traversal occurs when applications use user-supplied input to construct fil
 
 ## Remediation Steps
 
-- Trace data flow - Identify where file path data enters (user input, APIs, databases), how it's constructed (string concatenation with `/` or `\`), and where it reaches file operations (`open()`, `readFile()`, etc.)
+- Trace data flow - Identify where file path data enters (user input, APIs, databases), how it's constructed (string concatenation with `/` or `\`), and where it reaches a file operation (see the language-specific guidance's Taint Sinks for concrete function names)
 - Implement indirect references - Replace direct path usage with user-provided IDs/names that map to system-controlled paths via database lookup or allowlist
 - Decode fully first - URL-decode the input (handling both single and double encoding) and apply Unicode NFC normalisation before any filtering or path construction
 - Canonicalize paths - Convert all paths to absolute canonical form, resolving symlinks and relative references before any validation

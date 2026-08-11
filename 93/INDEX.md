@@ -15,7 +15,7 @@ CRLF Injection occurs when untrusted user input is included in HTTP headers or p
 ## Remediation Steps
 
 - Identify the vulnerability - Review flaw details for file, line number, and code pattern where untrusted data reaches header construction
-- Trace data flow - Map the path from source (user input, database, external file) to sink (header-setting functions like `setHeader()`, `response.headers[]`)
+- Trace data flow - Map the path from source (user input, database, external file) to sink - a header-setting function (see the language-specific guidance's Taint Sinks for concrete names)
 - Locate dangerous patterns - Find string concatenation or interpolation where untrusted data is inserted into header values
 - Encode CRLF characters - Strip or encode `\r` and `\n` characters from all untrusted input before use
 - Use safe APIs - Replace manual header construction with framework-provided methods that handle encoding automatically

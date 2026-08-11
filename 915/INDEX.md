@@ -14,7 +14,7 @@ This vulnerability occurs when user input dynamically modifies object attributes
 
 ## Remediation Steps
 
-- Locate the vulnerability - Review flaw details for file, line number, and code pattern. Trace data flow from source (HTTP parameters, JSON, form data) to sink (`setattr()`, `__dict__`, `obj[user_input] =`, `Object.defineProperty()`, mass assignment)
+- Locate the vulnerability - Review flaw details for file, line number, and code pattern. Trace data flow from source (HTTP parameters, JSON, form data) to sink - dynamic/reflective attribute assignment or mass-assignment model binding (see the language-specific guidance's Taint Sinks for concrete function names)
 
 - Identify risk - Determine if attackers can modify security-critical attributes that control authorization, pricing, or application state
 

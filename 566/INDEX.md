@@ -2,21 +2,21 @@
 
 ## LLM Guidance
 
-CWE-566 (Insecure Direct Object Reference/IDOR) occurs when applications use user-controlled identifiers directly in database lookups or access decisions without verifying the authenticated user is authorized to access that specific resource. This enables horizontal privilege escalation where attackers access other users' data by manipulating ID parameters. Core fix: Enforce object-level access control on every resource lookup-never trust user-controlled keys to bypass authorization.
+CWE-566 is the SQL-specific case of Insecure Direct Object Reference (see CWE-639): a user-controlled value is used directly as, or to build, the primary key in a SQL query, and the query returns or modifies the matching row without verifying the authenticated user owns or may access that record. Unlike the broader CWE-639, the fix here is scoped to the query itself, not just an application-layer check. Core fix: add an ownership/authorization condition to the query so it cannot return another user's row even if an upstream check is bypassed.
 
 ## Key Principles
 
-- Validate ownership/authorization before every resource access, not just authentication
-- Use session-based ownership verification rather than trusting user-supplied IDs
-- Return consistent error codes (403 for unauthorized, 404 for not found) to prevent enumeration
-- Implement defence-in-depth with indirect references, access control lists, and audit logging
-- Apply authorization checks at the data access layer, not just application layer
+- Never trust a user-supplied primary key value as sufficient proof of authorization to access that row
+- Add an ownership condition to the query itself (filter by both the primary key and the authenticated user's ID), rather than checking ownership separately after the fact
+- Enforce this at the data access layer so no code path can query by primary key without the ownership filter
+- Return consistent error responses (403/404) that don't reveal whether a given key exists
+- Consider indirect or session-scoped references where the identifier exposed to the client does not map directly to the database primary key
 
 ## Remediation Steps
 
-- Trace data flow - Identify where resource IDs enter the system (URL params, POST data, API paths) and where they're used in database queries
-- Locate authorization gaps - Find direct lookups without ownership checks between user input and data access
-- Add ownership validation - Before resource access, verify the authenticated user owns/can access the requested resource ID
+- Trace data flow - Identify where a user-controlled value (URL parameter, form field, API path segment) reaches a SQL query as the lookup value for a primary key
+- Locate the query construction - Find selects/updates/deletes by primary key alone, without a condition tied to the authenticated user
+- Add ownership enforcement - Modify the query to filter on both the primary key and an ownership/tenant column scoped to the current session
+- Avoid fixing only at the application layer - Ensure the query itself cannot return another user's row even if an upstream authorization check is bypassed
 - Implement consistent responses - Return 403 for unauthorized access, 404 for non-existent resources; avoid leaking existence information
-- Use indirect references - Replace predictable IDs with session-mapped tokens or UUIDs where possible
-- Test thoroughly - Attempt cross-user access with different accounts to verify authorization enforcement
+- Test thoroughly - Attempt cross-user access with different accounts, substituting a valid primary key value belonging to a different account

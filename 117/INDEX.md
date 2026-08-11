@@ -16,7 +16,7 @@ Log Injection occurs when untrusted user input is written to logs without proper
 
 - Review security findings to identify where untrusted data is written to logs
 - Locate the source where untrusted data enters (HTTP parameters, headers, cookies, files, databases, network requests)
-- Trace to the sink by finding the logging statement (`logger.info()`, `log.warn()`, `console.log()`, etc.)
+- Trace to the sink by finding the logging statement (see the language-specific guidance's Taint Sinks for concrete function names)
 - Check the data flow through each frame in the data path for missing encoding or validation
 - Implement structured logging by configuring your logger to emit JSON/ECS format at the sink
 - Use structured JSON/ECS logging, or explicitly encode CR/LF and other control characters before writing untrusted data to plain-text logs

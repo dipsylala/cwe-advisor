@@ -15,7 +15,7 @@ Open redirect vulnerabilities occur when applications accept user-controllable i
 ## Remediation Steps
 
 - Identify the vulnerability - Review security findings for the file, line number, and parameters controlling redirects (`?next=`, `?redirect=`, `?returnUrl=`)
-- Trace data flow - Follow how untrusted input flows to redirect functions (`Response.Redirect()`, `header("Location -")`, `sendRedirect()`)
+- Trace data flow - Follow how untrusted input flows to the redirect-issuing function (see the language-specific guidance's Taint Sinks for concrete function names)
 - Implement allowlist validation - Create a server-side list of permitted redirect destinations and validate against exact matches
 - Use indirect references - Replace direct URL parameters with lookup keys that map to server-defined destinations
 - Validate strictly - Ensure redirects are relative paths or exact matches to allowlisted absolute URLs

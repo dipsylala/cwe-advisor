@@ -16,7 +16,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Remediation Steps
 
-- Identify all command execution points (Runtime.exec, subprocess.call, exec, system(), shell_exec, Process.Start, etc.)
+- Identify all command execution points - anywhere the process spawns a shell or external program (see the language-specific guidance's Taint Sinks for concrete function names)
 - Determine the native library alternative for each command's purpose (file operations → File I/O APIs, HTTP requests → HTTP clients, etc.)
 - Replace system commands with appropriate language-native APIs
 - For truly unavoidable commands, use parameterized execution APIs with separate argument arrays (never shell invocation)

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Code injection occurs when applications dynamically generate and execute code using untrusted input, allowing attackers to inject arbitrary code that executes within the application's runtime with full access to internals, variables, functions, database connections, and secrets. Unlike command injection that executes OS commands, code injection executes in the application's programming language context. Common vulnerable patterns include `eval()`, `exec()`, `Function()`, `compile()`, `ScriptEngine`, and unsafe template rendering.
+Code injection occurs when applications dynamically generate and execute code using untrusted input, allowing attackers to inject arbitrary code that executes within the application's runtime with full access to internals, variables, functions, database connections, and secrets. Unlike command injection that executes OS commands, code injection executes in the application's programming language context. Common vulnerable patterns include eval-style dynamic code evaluation functions, embedded scripting-engine invocation, and unsafe template rendering.
 
 ## Key Principles
 
@@ -14,7 +14,7 @@ Code injection occurs when applications dynamically generate and execute code us
 
 ## Remediation Steps
 
-- Trace data flow from source (HTTP parameters, form inputs, file uploads, API requests, database fields) to sink (eval(), exec(), Function(), compile(), ScriptEngine, unsafe templates)
+- Trace data flow from source (HTTP parameters, form inputs, file uploads, API requests, database fields) to sink - a dynamic code evaluation function or unsafe template render (see the language-specific guidance's Taint Sinks for concrete function names)
 - Review scan results for specific file paths, line numbers, and variable names where code execution occurs
 - Replace dynamic code execution with safer alternatives - lookup tables, predefined functions, switch statements, or configuration-driven logic
 - If dynamic execution is unavoidable, implement strict allowlists that validate input against known-safe values only

@@ -14,9 +14,9 @@ Insufficient entropy occurs when cryptographic operations (key generation, IV/no
 
 ## Remediation Steps
 
-- Identify weak randomness - Review flaw details for file/line using Math.random(), rand(), time()-based seeds, or timestamp values
+- Identify weak randomness - Review flaw details for file/line using general-purpose random functions, time()-based seeds, or timestamp values (see the language-specific guidance's Taint Sinks for concrete function names)
 - Determine usage context - Check if random values are used for encryption keys, IVs/nonces, session tokens, CSRF tokens, or API keys
-- Replace with CSPRNG - Use platform-specific secure RNGs (/dev/urandom on Linux, CryptGenRandom on Windows, SecureRandom in Java, crypto.randomBytes in Node.js)
+- Replace with CSPRNG - Use the platform or language's cryptographically secure random source (see the language-specific guidance's Safe Pattern for concrete APIs)
 - Validate entropy length - Ensure generated values meet minimum bit requirements for their security purpose
 - Test unpredictability - Verify that sequential calls produce non-repeating, non-sequential values
 - Remove weak sources - Eliminate all references to insecure random functions in security-critical code paths

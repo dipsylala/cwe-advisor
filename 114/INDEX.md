@@ -16,8 +16,8 @@ Only load components from trusted, integrity-checked locations and never allow u
 
 ## Remediation Steps
 
-- Identify the vulnerability. Locate where untrusted data controls process operations (`os.kill()`, `dlopen()`, `LoadLibrary()`, process spawning)
+- Identify the vulnerability. Locate where untrusted data controls process operations - library loading, process termination, or process spawning (see the language-specific guidance's Taint Sinks for concrete function names)
 - Replace user-controlled process parameters with hardcoded values or validated allowlists
-- Use absolute paths for libraries and set secure search paths (`DLL safe search mode`, `RPATH` restrictions)
+- Use absolute paths for libraries and enforce the platform loader's secure library search path settings
 - If process control is required, validate PIDs/names against authorized processes owned by the application
 - Apply least privilege. Ensure processes run with minimal permissions and cannot manipulate critical system processes

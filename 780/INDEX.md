@@ -14,7 +14,7 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 ## Remediation Steps
 
 - Locate RSA encryption calls in codebase and identify padding mode used
-- Update cipher configuration to explicitly specify OAEP padding (e.g., `RSA/ECB/OAEPWithSHA-256AndMGF1Padding`)
+- Update cipher configuration to explicitly specify OAEP padding with SHA-256 (or better) and MGF1 (see the language-specific guidance's Safe Pattern for the exact cipher/transform string)
 - Verify hash algorithms use SHA-256 or better for OAEP and MGF1
 - Implement hybrid encryption for data larger than key size minus padding overhead
 - Test encryption/decryption end-to-end to ensure compatibility

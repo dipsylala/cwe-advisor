@@ -15,7 +15,7 @@ Insecure temporary files occur when applications create predictable filenames, u
 ## Remediation Steps
 
 - Identify the vulnerability - Review flaw details for file path, line number, and insecurity type (predictable name, weak permissions, shared directory, or missing cleanup)
-- Replace with secure APIs - Use `tempfile.NamedTemporaryFile()` (Python), `Files.createTempFile()` (Java), `tmpfile()` (C), or `ioutil.TempFile()` (Go) with auto-delete enabled
+- Replace with secure APIs - use the language's dedicated secure temporary-file API, which generates a random name and sets safe permissions atomically, with auto-delete enabled (see the language-specific guidance's Safe Pattern for concrete APIs)
 - Set restrictive permissions - Ensure mode 0600 (owner read/write only) at creation time, not after
 - Implement guaranteed cleanup - Use try-finally blocks, context managers, or defer statements to ensure deletion even on errors
 - Validate sensitive data handling - If temp files contain credentials or PII, consider in-memory alternatives or encrypted temporary storage
