@@ -30,6 +30,8 @@ In C#, CWE-114 vulnerabilities occur when loading DLLs or executing processes wi
 ## Safe Pattern
 
 ```csharp
+using System.Linq;
+
 // Safe process execution with validated path
 public void ExecuteProcess(string userInput) {
     var allowedCommands = new[] { "notepad.exe", "calc.exe" };

@@ -38,8 +38,9 @@ def profile():
     username = request.args.get('name', '')
     # Auto-escaped in template
     return render_template_string('<h1>Welcome {{ name }}</h1>', name=username)
-    
-    # Or manual escaping
+
+# Or, when rendering outside a template (manual escaping):
+def render_greeting(username):
     safe_name = html.escape(username)
     return f'<h1>Welcome {safe_name}</h1>'
 ```

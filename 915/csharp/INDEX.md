@@ -8,7 +8,7 @@ Mass assignment vulnerabilities in C# occur when ASP.NET model binding automatic
 
 - Use dedicated ViewModels/DTOs containing only properties safe for user modification
 - Never bind directly to domain models or entities with sensitive properties
-- Apply `[BindNever]` or `[BindRequired]` attributes to control property binding explicitly
+- Apply `[BindNever]` to exclude sensitive properties from model binding explicitly
 - Validate `ModelState.IsValid` before processing any bound data
 - Use explicit property assignment instead of automatic model binding for sensitive operations
 

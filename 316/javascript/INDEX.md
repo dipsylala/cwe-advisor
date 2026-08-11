@@ -30,7 +30,7 @@ Storing sensitive data (passwords, cryptographic keys, tokens) in memory as clea
 ```javascript
 const crypto = require('crypto');
 
-function authenticateUser(passwordBuffer) {
+function authenticateUser(passwordBuffer, salt, storedHash) {
   const hashedPassword = Buffer.alloc(32);
   try {
     crypto.pbkdf2Sync(passwordBuffer, salt, 100000, 32, 'sha256').copy(hashedPassword);

@@ -32,6 +32,7 @@ In C, CWE-114 occurs when loading shared libraries (`dlopen()`, `LoadLibrary()`)
 ```c
 #include <dlfcn.h>
 #include <limits.h>
+#include <string.h>
 
 // Secure library loading with absolute path
 int load_library_safe(const char *lib_name) {

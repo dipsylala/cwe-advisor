@@ -7,7 +7,7 @@ Mass assignment vulnerabilities in Java occur when Spring MVC/Boot automatically
 ## Key Principles
 
 - Use separate DTOs for user input that expose only modifiable fields
-- Apply `@JsonIgnoreProperties(ignoreUnknown = true)` and exclude sensitive fields with `@JsonIgnore`
+- Exclude sensitive fields from JSON binding with `@JsonIgnore`
 - Restrict form parameter binding using `@InitBinder` with `setAllowedFields()` or `setDisallowedFields()`
 - Validate all input with Bean Validation constraints (`@Valid`, `@NotNull`, `@Size`, etc.)
 - Map DTO fields explicitly to entities rather than using reflection-based copiers

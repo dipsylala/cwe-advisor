@@ -36,7 +36,10 @@ import javax.mail.internet.MimeMessage;
 MimeMessage message = new MimeMessage(session);
 message.setFrom(new InternetAddress("noreply@example.com"));
 message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail)); // validates, throws on malformed input
-message.setSubject(userSuppliedSubject, "UTF-8"); // MIME-encodes, neutralizes embedded CRLF
+
+// Strip CRLF as defense in depth before the value ever reaches setSubject()
+String safeSubject = userSuppliedSubject.replaceAll("[\r\n]", "");
+message.setSubject(safeSubject, "UTF-8"); // MIME-encodes remaining content
 message.setText(userSuppliedBody);
 
 Transport.send(message);

@@ -6,7 +6,7 @@ Inadequate Encryption Strength in Java occurs when weak cryptographic algorithms
 
 ## Key Principles
 
-- Use AES with 256-bit keys for symmetric encryption and RSA with minimum 2048-bit keys for asymmetric encryption
+- Default new symmetric encryption code to AES-256; AES-128 is an acceptable NIST-approved floor only where a specific constraint requires it. Use RSA with minimum 2048-bit keys for asymmetric encryption
 - Generate cryptographic keys using `SecureRandom` with proper entropy, never hardcode or derive from weak sources
 - Specify complete cipher transformations including mode and padding (e.g., "AES/GCM/NoPadding") to avoid insecure defaults
 - Use authenticated encryption modes (GCM, CCM) that provide both confidentiality and integrity protection
@@ -14,12 +14,12 @@ Inadequate Encryption Strength in Java occurs when weak cryptographic algorithms
 
 ## Taint Sinks
 
-`Cipher.getInstance("DES")`, `Cipher.getInstance("AES")` (no mode/padding, defaults to ECB), `MessageDigest.getInstance("MD5")`, `MessageDigest.getInstance("SHA-1")`, `KeyGenerator.getInstance("AES").init(128)`
+`Cipher.getInstance("DES")`, `Cipher.getInstance("AES")` (no mode/padding, defaults to ECB), `MessageDigest.getInstance("MD5")`, `MessageDigest.getInstance("SHA-1")`, `KeyPairGenerator.getInstance("RSA").initialize(1024)` (below the 2048-bit minimum)
 
 ## Remediation Steps
 
 - Replace DES, 3DES, RC4, Blowfish with AES-256; replace MD5, SHA-1 with SHA-256 or SHA-512
-- Update `KeyGenerator.getInstance()` calls to specify key sizes - 256 for AES, 2048+ for RSA
+- Update `KeyGenerator.getInstance()` calls to specify explicit key sizes - default to 256 for AES (128 remains acceptable only where a specific constraint requires it), and 2048+ for RSA
 - Change cipher initialization to use explicit modes - prefer "AES/GCM/NoPadding" over "AES"
 - Replace `new Random()` or `Math.random()` with `SecureRandom` for all cryptographic operations
 - Review and update key storage mechanisms to use Java KeyStore with strong passwords

@@ -12,7 +12,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Use fsockopen() for network checks instead of ping command
 - Never use escapeshellarg() or escapeshellcmd() as a primary defence - they are insufficient
 - Never concatenate user input into command strings
-- Only use proc_open() as a last resort with bypass_shell option and argument arrays
+- Only use proc_open() as a last resort with an argument array; the `bypass_shell` option in `$other_options` avoids the `cmd.exe` wrapper but is Windows-specific and has no effect on Linux/macOS
 - An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Taint Sinks

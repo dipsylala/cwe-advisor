@@ -2,28 +2,28 @@
 
 ## LLM Guidance
 
-Insufficient entropy occurs when using Python's `random` module instead of `secrets` or `os.urandom()` for security-sensitive operations like generating tokens, encryption keys, IVs, or nonces. The `random` module uses pseudorandom number generation designed for statistical purposes, producing predictable values that attackers can exploit. Always use the `secrets` module (Python 3.6+) for cryptographic operations.
+Insufficient entropy in Python is not about picking the wrong random API - `secrets` and `os.urandom()` are already correct CSPRNG calls (contrast with CWE-338, which covers replacing the `random` module). The risk here is generating security-critical values before the OS entropy source is properly seeded, or in a cloned VM/container image that duplicated PRNG seed state. On Linux, `os.urandom()` (which `secrets` uses internally) calls the `getrandom()` syscall, and since Python 3.6 (PEP 524) that call blocks until the kernel CSPRNG has been seeded at least once - so standard `secrets` calls already wait out an unseeded pool rather than silently returning weak output.
 
 ## Key Principles
 
-- Use `secrets` module exclusively for all cryptographic random value generation
-- Never use `random` module for tokens, passwords, keys, IVs, nonces, or security decisions
-- Ensure sufficient length for generated values (minimum 32 bytes for tokens)
-- Use `os.urandom()` as fallback for Python versions before 3.6
-- Apply cryptographically secure randomness at all security boundaries
+- `secrets`/`os.urandom()` are the correct APIs; the defect is calling them before the OS entropy source is seeded, or from an image/instance that shares seed state with a clone - not the choice of function
+- On Linux, `os.urandom()` already blocks on `getrandom()` until the kernel CSPRNG is seeded (PEP 524), so no extra blocking logic is needed around `secrets` calls on that platform
+- Ensure sufficient entropy regardless of correct API: 16+ bytes (128+ bits) for tokens, 32+ bytes (256+ bits) for keys
+- Never bake long-lived secrets into a VM/container image at build time; generate them at first real startup so cloned instances don't inherit identical secret or seed material
+- On embedded or minimal container systems without a hardware RNG or entropy daemon (`rngd`, `haveged`), verify the OS entropy source is healthy before assuming `secrets` calls return strong output promptly
 
 ## Taint Sinks
 
-`random.random()`, `random.randint()`, `random.choice()`, `random.Random()` from the `random` module used for tokens or keys
+`secrets.token_bytes()`, `secrets.token_hex()`, `secrets.token_urlsafe()`, `os.urandom()` called during process/container/VM startup, image build scripts, or before OS entropy-source health is confirmed
 
 ## Remediation Steps
 
-- Replace `random.Random()`, `random.randint()`, `random.choice()` with `secrets` equivalents
-- Use `secrets.token_bytes(32)` for binary tokens and keys
-- Use `secrets.token_hex(32)` for hexadecimal tokens
-- Use `secrets.token_urlsafe(32)` for URL-safe tokens
-- Use `secrets.choice()` for selecting random elements securely
-- Verify token length meets security requirements (≥32 bytes recommended)
+- Locate where `secrets`/`os.urandom()` generate keys, tokens, IVs, or nonces, and identify whether generation happens during image build, container/VM startup, or normal runtime
+- Confirm output length meets the purpose: 16+ bytes for tokens, 32+ bytes for keys
+- Do not generate long-lived secrets as part of an image/template build step; defer generation to first real boot of each deployed instance
+- On Linux, rely on `os.urandom()`'s blocking `getrandom()` behavior rather than adding manual entropy checks; on other platforms, `secrets` already delegates to the OS CSPRNG
+- On embedded or minimal systems, confirm a hardware or software entropy source is present so the OS CSPRNG seeds promptly at boot
+- Verify unpredictability across multiple instances launched from the same image, not only across repeated calls within one instance
 
 ## Safe Pattern
 
@@ -42,5 +42,5 @@ secure_code = ''.join(secrets.choice(allowed_chars) for _ in range(8))
 
 # Compare tokens safely
 if secrets.compare_digest(user_token, stored_token):
-    # Grant access
+    session['authenticated'] = True
 ```

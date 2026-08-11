@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-HTTP Response Splitting in Python occurs when user-supplied strings are placed into HTTP response headers without stripping CRLF characters. In Flask, `response.headers['Location'] = user_input` and `make_response()` with user-derived header values are the typical sinks. Django's `HttpResponseRedirect` and `redirect()` perform some validation on the URL, but manually setting headers via `response['Header-Name'] = user_input` does not. Sanitize all user input before it enters any header value, or use framework redirect helpers with validated URLs.
+HTTP Response Splitting in Python occurs when user-supplied strings are placed into HTTP response headers without stripping CRLF characters. In Flask, `response.headers['Location'] = user_input` and `make_response()` with user-derived header values are the typical sinks. Django's `HttpResponse` rejects embedded `\r`/`\n` in any header value assignment (raising `BadHeaderError`), whether set via `redirect()` or via `response['Header-Name'] = user_input` directly - both go through the same underlying check. The real gap is redirect *target* validation (an attacker-controlled URL can still point off-site) and any lower-level WSGI header construction that bypasses Django's `HttpResponse` class entirely. Sanitize all user input before it enters any header value, and validate redirect targets against an allowlist.
 
 ## Key Principles
 

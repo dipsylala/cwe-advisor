@@ -2,28 +2,28 @@
 
 ## LLM Guidance
 
-Insufficient entropy in Java occurs when using `java.util.Random` or `Math.random()` instead of `java.security.SecureRandom` for cryptographic operations. The `Random` class produces predictable sequences that can be reproduced if the seed is known, making it unsuitable for security-sensitive operations like generating session tokens, encryption keys, or initialization vectors. Use `java.security.SecureRandom` for all security-sensitive random value generation.
+Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptographic generator (that is CWE-338) - it is about whether `SecureRandom` draws from a properly seeded entropy source. The default `new SecureRandom()` typically resolves to a non-blocking algorithm (e.g. `NativePRNGNonBlocking`, backed by `/dev/urandom` on Linux) that can return output before the OS pool is fully seeded. `SecureRandom.getInstanceStrong()` instead selects from `securerandom.strongAlgorithms` in `java.security`, which on typical Linux JVM configurations resolves to `NativePRNGBlocking` (backed by `/dev/random`) - deliberately blocking until sufficient entropy is available. This matters most for values generated early in a process's or VM's lifecycle, or in cloned VM/container images.
 
 ## Key Principles
 
-- Always use `SecureRandom` for cryptographic purposes; never use `Random` or `Math.random()` for security-sensitive operations
-- Prefer `SecureRandom.getInstanceStrong()` for maximum entropy when performance is not critical
-- Generate sufficient entropy: minimum 128 bits (16 bytes) for tokens/IVs, 256 bits (32 bytes) for encryption keys
-- Avoid manual seeding unless using a cryptographically strong entropy source
-- Properly encode random bytes (Base64, hex) for safe transmission and storage
+- `SecureRandom` is the correct algorithm; the defect is drawing from an entropy source that isn't seeded yet, or from a cloned instance sharing seed state - not the choice of class
+- For security-critical values generated at process/container/VM startup, prefer `SecureRandom.getInstanceStrong()`, which resolves to a blocking entropy source on typical Linux JVM configurations rather than the default non-blocking `SecureRandom()`
+- Generate sufficient entropy regardless of correct algorithm: 16+ bytes (128+ bits) for tokens/IVs, 32+ bytes (256+ bits) for keys
+- Be cautious of VM/container images built via templating or snapshotting; JVM/OS entropy or seed state captured at image-build time can be duplicated across clones unless reseeded
+- On embedded or virtualized hosts, verify the underlying OS entropy source is healthy - Java delegates entirely to the platform and does not generate its own entropy
 
 ## Taint Sinks
 
-`java.util.Random`, `Math.random()` used for tokens, keys, or initialization vectors
+`new SecureRandom()` (default constructor) and `SecureRandom.getInstance()` calls used for key/token generation during process, container, or VM startup, or in image build scripts, before entropy-source health is confirmed
 
 ## Remediation Steps
 
-- Replace all instances of `new Random()` with `new SecureRandom()` in security contexts
-- Replace `Math.random()` calls with `SecureRandom.nextDouble()` or equivalent methods
-- Use `SecureRandom.getInstanceStrong()` for critical operations like key generation
-- Generate adequate bytes - `byte[] token = new byte[32]; secureRandom.nextBytes(token);`
-- Encode output for use - `Base64.getUrlEncoder().withoutPadding().encodeToString(token)`
-- Review all random value generation in authentication, encryption, and token creation code
+- Locate where `SecureRandom` generates keys, tokens, or IVs, and identify whether generation happens during image build, container/VM startup, or normal runtime
+- Confirm output length: 16+ bytes for tokens/IVs, 32+ bytes for keys
+- For startup-time or boot-time generation, use `SecureRandom.getInstanceStrong()` instead of the default constructor so the call draws from a blocking, entropy-aware source
+- Do not generate long-lived keys as part of an image/template build step; defer generation to first real boot of each deployed instance
+- On embedded or virtualized JVM hosts, verify the OS-level entropy source (`/dev/random`, hardware RNG) is healthy
+- Verify unpredictability across multiple instances launched from the same image, not only across repeated calls within one instance
 
 ## Safe Pattern
 

@@ -14,14 +14,15 @@ Mass assignment vulnerabilities in Ruby on Rails occur when Rails automatically 
 
 ## Taint Sinks
 
-`Model.new(params[:model])`, `@model.update(params[:model])`, `params.permit!`, `attr_accessible`
+`Model.new(params[:model])`, `@model.update(params[:model])`, `params.permit!`
 
 ## Remediation Steps
 
 - Define private `*_params` methods in controllers using `params.require().permit()`
-- Replace all `Model.new(params[ -model])` with `Model.new(model_params)`
-- Replace `@model.update(params[ -model])` with `@model.update(model_params)`
+- Replace all `Model.new(params[:model])` with `Model.new(model_params)`
+- Replace `@model.update(params[:model])` with `@model.update(model_params)`
 - Review permitted attributes - remove any administrative or security-critical fields
+- Avoid legacy `attr_accessible`; use Strong Parameters instead
 - Add server-side validation for business rules and constraints
 - Test by attempting to inject unauthorized parameters in requests
 

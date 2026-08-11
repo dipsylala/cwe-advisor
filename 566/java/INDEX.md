@@ -2,42 +2,40 @@
 
 ## LLM Guidance
 
-Authorization bypass through user-controlled keys (IDOR) occurs when Java applications use user-supplied identifiers (order IDs, user IDs, document IDs) in database queries without verifying the authenticated user has authorization to access those resources. This enables horizontal privilege escalation where attackers can access, modify, or delete other users' data. The core fix is to validate ownership or permissions before granting access to any resource identified by user input.
+CWE-566 here is the SQL-primary-key case: a user-controlled ID (`@PathVariable`, `@RequestParam`) reaches a Spring Data JPA / Hibernate query via `findById()`, and the row is returned or modified without an ownership filter in the query itself. The fix belongs in the repository query - use a method like `findByIdAndUserId()`, or an explicit `WHERE id = ? AND user_id = ?` in a JPQL/native query - not a post-fetch comparison in application code, which is easy to omit on other code paths and easy to get wrong (mismatched types silently deny or allow access).
 
 ## Key Principles
 
-- Never trust user-supplied resource identifiers without authorization checks
-- Implement ownership validation by comparing resource owner with authenticated user
-- Use authorization frameworks (Spring Security, Apache Shiro) for consistent enforcement
-- Apply principle of least privilege in database queries by filtering on user context
-- Validate access at the service layer, not just presentation layer
+- Never trust a user-supplied primary key value as sufficient proof of authorization
+- Filter the query itself by both the primary key and the owning user's ID (e.g. `findByIdAndUserId(orderId, userId)`) - do not fetch by ID alone and compare ownership afterward
+- Define repository methods that return rows already scoped to the current user; avoid exposing a bare `findById()` for user-facing resources
+- Apply the same composite filter consistently across read, update, and delete operations
+- Compare like types when building the filter - the owner ID column type must match the authenticated user ID type (e.g. `Long` to `Long`), not a numeric ID against a `Principal`/`Authentication` username string
 
 ## Taint Sinks
 
-`repository.findById()` on a `@PathVariable`/`@RequestParam` ID without an ownership comparison
+`repository.findById()` used alone on a `@PathVariable`/`@RequestParam` ID, without a composite `findByIdAndUserId()` method or `WHERE ... AND user_id = ?` clause
 
 ## Remediation Steps
 
 - Locate user-controlled inputs (`@PathVariable`, `@RequestParam`, `@PathParam`) used as resource identifiers
-- Trace the data flow to database queries or resource access methods
-- Identify missing authorization checks between resource retrieval and usage
-- Add ownership validation comparing `entity.getUserId()` with authenticated user ID
-- Implement access control checks before returning or modifying resources
-- Test with different authenticated users attempting to access each other's resources
+- Trace the data flow to repository or query methods keyed on the primary key alone (`findById()`, or JPQL/native queries without a `user_id` condition)
+- Add a composite repository method (`findByIdAndUserId`) or `WHERE` clause that filters by both the ID and the authenticated user's ID
+- Replace any fetch-then-check application code with the query-level filter
+- Confirm the identifier type used in the filter matches the entity's owner field type
+- Test with different authenticated users attempting to access each other's resources by ID
 
 ## Safe Pattern
 
 ```java
+public interface OrderRepository extends JpaRepository<Order, Long> {
+    // SAFE: ownership is enforced in the query itself, not after the fetch
+    Optional<Order> findByIdAndUserId(Long id, Long userId);
+}
+
 @GetMapping("/orders/{orderId}")
-public Order getOrder(@PathVariable Long orderId, Authentication auth) {
-    Order order = orderRepository.findById(orderId)
+public Order getOrder(@PathVariable Long orderId, @AuthenticationPrincipal AppUserDetails principal) {
+    return orderRepository.findByIdAndUserId(orderId, principal.getUserId())
         .orElseThrow(() -> new ResourceNotFoundException());
-    
-    String currentUser = auth.getName();
-    if (!order.getUserId().equals(currentUser)) {
-        throw new AccessDeniedException("Not authorized");
-    }
-    
-    return order;
 }
 ```

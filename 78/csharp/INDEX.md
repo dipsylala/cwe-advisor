@@ -17,7 +17,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Taint Sinks
 
-`Process.Start()`, `ProcessStartInfo`, `Shell()`, `WScript.Shell`
+`Process.Start()`, `ProcessStartInfo`
 
 ## Remediation Steps
 

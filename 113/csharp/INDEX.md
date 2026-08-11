@@ -23,7 +23,7 @@ HTTP Response Splitting occurs when attackers inject CRLF (`\r\n`) characters in
 - Validate redirect URLs with `Url.IsLocalUrl()` for local redirects or an explicit allowed-origin allowlist for external redirects
 - Strip CRLF and Unicode line terminators: `input.Replace("\r", "").Replace("\n", "").Replace("\u0085", "").Replace("\u2028", "").Replace("\u2029", "")`; also strip percent-encoded variants `%0d`, `%0a`
 - Set `cookieOptions.HttpOnly = true` and use `Response.Cookies.Append()` for cookies
-- Enable ASP.NET Core's built-in header validation (enabled by default in Core 2.1+)
+- ASP.NET Core validates header values by default; avoid bypassing this with lower-level APIs that write raw header bytes
 
 ## Safe Pattern
 

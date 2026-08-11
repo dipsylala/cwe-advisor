@@ -30,6 +30,7 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 ```python
 import ipaddress
 import socket
+import requests
 from urllib.parse import urlparse
 
 ALLOWED_DOMAINS = {"api.trusted-service.com"}

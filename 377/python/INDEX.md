@@ -14,7 +14,7 @@ Insecure temporary file creation occurs when applications create files with pred
 
 ## Taint Sinks
 
-`open('/tmp/...')` with a predictable name, `os.mktemp()` (deprecated, insecure), manual `open(f"/tmp/{name}")`
+`open('/tmp/...')` with a predictable name, `tempfile.mktemp()` (deprecated, insecure), manual `open(f"/tmp/{name}")`
 
 ## Remediation Steps
 

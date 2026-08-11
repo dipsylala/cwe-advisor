@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-XXE vulnerabilities in .NET occur when XML parsers process external entity references in untrusted XML, enabling file disclosure, SSRF, and DoS attacks. Modern .NET versions (.NET Core 3.0+) have safe defaults, but .NET Framework and misconfigured parsers remain vulnerable.
+XXE vulnerabilities in .NET occur when XML parsers process external entity references in untrusted XML, enabling file disclosure, SSRF, and DoS attacks. Modern .NET / .NET Core versions have safe defaults (null `XmlResolver`, DTD processing prohibited), but .NET Framework and misconfigured parsers remain vulnerable.
 
 **Primary Defence:** Set `DtdProcessing = DtdProcessing.Prohibit` and `XmlResolver = null` in `XmlReaderSettings`.
 

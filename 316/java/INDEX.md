@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Storing sensitive data (passwords, cryptographic keys, tokens) in memory as cleartext exposes it to heap dumps, debuggers, and memory disclosure vulnerabilities. Java strings are immutable and persist in the string pool, making them particularly dangerous. Use `char[]` for passwords, clear arrays explicitly with `Arrays.fill()`, and avoid string operations on credentials.
+Storing sensitive data (passwords, cryptographic keys, tokens) in memory as cleartext exposes it to heap dumps, debuggers, and memory disclosure vulnerabilities. Java strings are immutable, so their backing character array cannot be proactively zeroed and lingers in heap memory for an indeterminate time until garbage collection reclaims it. Use `char[]` for passwords, clear arrays explicitly with `Arrays.fill()`, and avoid string operations on credentials.
 
 ## Key Principles
 
