@@ -30,7 +30,10 @@ Go's `net/http` package has no built-in CSRF protection, so state-changing handl
 package main
 
 import (
+    "encoding/hex"
+    "log"
     "net/http"
+    "os"
 
     "github.com/gorilla/csrf"
 )
@@ -39,8 +42,15 @@ func main() {
     mux := http.NewServeMux()
     mux.HandleFunc("/transfer", transferHandler)
 
+    // Load a 32-byte key from a secret store; generate it once with
+    // securecookie.GenerateRandomKey(32) and store it hex-encoded (64 chars).
+    // Never hardcode a literal key string.
+    authKey, err := hex.DecodeString(os.Getenv("CSRF_AUTH_KEY"))
+    if err != nil || len(authKey) != 32 {
+        log.Fatal("CSRF_AUTH_KEY must be a 64-character hex string (32 bytes)")
+    }
     csrfMiddleware := csrf.Protect(
-        []byte("32-byte-long-auth-key-from-secret-store"),
+        authKey,
         csrf.Secure(true),
         csrf.SameSite(csrf.SameSiteStrictMode),
     )

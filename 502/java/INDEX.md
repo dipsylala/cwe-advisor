@@ -12,7 +12,7 @@ Insecure deserialization occurs when untrusted data is used to create objects, p
 - Jackson's `ObjectMapper` is safe by default, but not unconditionally: enabling polymorphic typing (`@JsonTypeInfo`, `ObjectMapper.enableDefaultTyping()`) reintroduces gadget-chain risk by letting the input dictate the concrete class to instantiate - avoid it for untrusted input, or pair it with a strict base-type allowlist
 - Allowlist classes explicitly: If Java serialization is unavoidable, use `ObjectInputFilter` (Java 9+) or `ValidatingObjectInputStream` (Apache Commons IO) to allow only specific, known-safe classes
 - Never trust serialized data: Treat all serialized input as untrusted, even from seemingly secure sources
-- Avoid known-unsafe libraries: `XMLDecoder` and `XStream < v1.4.17` have no safe configuration and must be replaced
+- Avoid known-unsafe libraries: `XMLDecoder` has no safe configuration and must be replaced. XStream's allowlist framework (`XStream.addPermission()` / `setupDefaultSecurity()`) is available from v1.4.7 but must be explicitly configured; it is only enabled by default from v1.4.18 onward. Versions before 1.4.7, or later versions left unconfigured, are exploitable
 - Apply defence in depth: Combine multiple controls including input validation, least privilege, and monitoring
 
 ## Remediation Steps
@@ -20,7 +20,7 @@ Insecure deserialization occurs when untrusted data is used to create objects, p
 - Replace `ObjectInputStream` with JSON parsers like Jackson or Gson for data transfer
 - If Java serialization is unavoidable, implement `ObjectInputFilter` (Java 9+) with an explicit per-class allowlist; use `ValidatingObjectInputStream` (Apache Commons IO) for pre-Java-9 environments
 - Validate and sanitize all input before deserialization
-- Replace `XMLDecoder` and `XStream < v1.4.17` immediately - these have no safe configuration
+- Replace `XMLDecoder` immediately - it has no safe configuration. For XStream, upgrade to 1.4.18+ (allowlisting on by default) or explicitly call `setupDefaultSecurity()`/`addPermission()` on 1.4.7-1.4.17
 - Update dependencies regularly to patch known deserialization gadgets
 - Monitor and log all deserialization activity for anomaly detection
 

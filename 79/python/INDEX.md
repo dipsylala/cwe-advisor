@@ -24,7 +24,7 @@ XSS occurs when untrusted data is included in web output without proper encoding
 ## Safe Pattern
 
 ```python
-from flask import Flask, render_template_string
+from flask import Flask, render_template_string, request
 import html
 
 app = Flask(__name__)

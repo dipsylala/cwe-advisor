@@ -8,7 +8,7 @@ Code injection in C# occurs when untrusted input is compiled and executed at run
 
 - Never pass user input to `CSharpCodeProvider.CompileAssemblyFromSource()`, `CSharpCompilation.Create()`, or `Assembly.Load()` with user-generated code
 - Replace dynamic compilation with predefined delegates, strategy patterns, or configuration-driven dispatch
-- If user-configurable formulas are required, use `NCalc` or `DynamicExpresso` with method and type access locked down to a safe allowlist, and call `Interpreter.DisableReflection()` - without it, expressions can reach types via reflection (`x.GetType().Assembly.GetType(...)`) even when nothing was explicitly registered with `Reference()`
+- If user-configurable formulas are required, use `NCalc` or `DynamicExpresso` with method and type access locked down to a safe allowlist; `DynamicExpresso.Interpreter` has reflection access disabled by default, so do not call `Interpreter.EnableReflection()` for untrusted input, and do not `Reference()` any type that exposes file, process, or reflection APIs
 - Restrict `AppDomain` / sandbox environments - they do not reliably prevent code injection on modern .NET runtimes
 - Validate all expressions against a strict allowlist of permitted identifiers and operators before evaluation
 
@@ -16,7 +16,7 @@ Code injection in C# occurs when untrusted input is compiled and executed at run
 
 - Locate `CSharpCodeProvider.CompileAssemblyFromSource()` or `CSharpCompilation` calls that incorporate user input
 - Replace with a `Dictionary<string, Func<...>>` dispatch table or a strategy interface pattern
-- If a formula evaluator is required, configure `DynamicExpresso.Interpreter` with only the explicitly registered variables and functions, call `DisableReflection()`, and disable access to `System` namespaces
+- If a formula evaluator is required, configure `DynamicExpresso.Interpreter` with only the explicitly registered variables and functions, leave reflection disabled (the default - do not call `EnableReflection()`), and avoid referencing `System` namespaces
 - Validate input with a regex or parser before passing it to any evaluator
 - Run tests injecting `System.IO.File.Delete("/important")` style expressions and confirm they are rejected
 - Review NuGet packages that expose scripting APIs and assess whether user input can reach them
@@ -43,7 +43,8 @@ public double ApplyOperation(string opName, double value)
 
 // SAFE: DynamicExpresso with locked-down scope (if scripting is genuinely needed)
 // using DynamicExpresso;
-// var interpreter = new Interpreter(InterpreterOptions.Default).DisableReflection();
+// var interpreter = new Interpreter(InterpreterOptions.Default);
+// // Reflection is disabled by default - do NOT call interpreter.EnableReflection()
 // interpreter.SetVariable("x", userValue);  // Only known-safe variables
 // // Do NOT call interpreter.Reference(typeof(System.IO.File)) or similar
 // double result = interpreter.Eval<double>("x * 2");  // Operator only - no method calls

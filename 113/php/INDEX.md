@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-HTTP Response Splitting in PHP occurs when user-supplied values are passed to `header()` without stripping CRLF characters. PHP 7.4+ raises an error and suppresses headers containing `\n` or `\r\n` in native `header()` calls, but older versions and some frameworks do not provide this protection. Even in PHP 7.4+, percent-encoded variants (`%0a`, `%0d`) may still reach `header()` after URL decoding in redirect flows. Always sanitize user input before it enters any `header()` call and validate redirect destinations against an allowlist.
+HTTP Response Splitting in PHP occurs when user-supplied values are passed to `header()` without stripping CRLF characters. PHP has rejected raw `\n`/`\r\n` in native `header()` calls since PHP 5.1.2, but non-`header()` output paths (raw `fwrite` to the response stream, some frameworks' lower-level header handling) may not provide this protection. Even on current PHP, percent-encoded variants (`%0a`, `%0d`) may still reach `header()` after URL decoding in redirect flows, since PHP's check only blocks literal CR/LF bytes. Always sanitize user input before it enters any `header()` call and validate redirect destinations against an allowlist.
 
 ## Key Principles
 

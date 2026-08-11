@@ -15,7 +15,7 @@ Inadequate Encryption Strength occurs when cryptographic algorithms or key sizes
 
 - Review flaw details to identify where weak cryptographic algorithms or key sizes are used in your code
 - Identify weak algorithms - DES, 3DES, RC4, MD5, SHA-1, ECB mode, CBC without authentication, or policy-disallowed key sizes
-- Verify minimum key sizes - RSA ≥ 2048 bits, AES ≥ 128 bits (256 where policy requires it), ECC ≥ 256 bits
-- Use authenticated encryption such as AES-128-GCM, AES-256-GCM, or ChaCha20-Poly1305
+- Verify minimum key sizes - RSA ≥ 2048 bits, ECC ≥ 256 bits, AES ≥ 128 bits as an acceptable NIST-approved floor; standardize new code on AES-256 as the default unless a specific constraint requires 128
+- Use authenticated encryption such as AES-256-GCM (preferred) or ChaCha20-Poly1305; AES-128-GCM remains acceptable only where policy or a documented constraint permits it
 - Use SHA-256 or SHA-3 for hashing (not MD5 or SHA-1)
 - Implement centralized cryptographic configuration that enforces secure algorithm and key size minimums

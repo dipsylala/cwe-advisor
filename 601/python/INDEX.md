@@ -9,6 +9,7 @@ Open redirect vulnerabilities occur when user-controlled input determines redire
 - Validate redirect URLs are relative paths using `urlparse().netloc == ''` to ensure no external domain
 - Maintain an allowlist of trusted domains for absolute URLs and reject all others
 - Sanitize user input by checking that paths start with `/` but not `//` to prevent protocol-relative URLs
+- Reject any path containing a backslash (`\`) - browsers can normalize `/\evil.com` to `//evil.com`, bypassing a `//`-only check
 - Use framework-specific safe redirect utilities where available (Django's `url_has_allowed_host_and_scheme()`); Flask requires a custom helper using `urllib.parse` or Werkzeug patterns
 
 ## Remediation Steps
@@ -30,7 +31,10 @@ def safe_redirect(url, allowed_hosts=['example.com']):
     
     # Allow relative URLs without domain
     if not parsed.netloc:
-        return url if url.startswith('/') and not url.startswith('//') else '/'
+        is_safe_relative = (
+            url.startswith('/') and not url.startswith('//') and '\\' not in url
+        )
+        return url if is_safe_relative else '/'
     
     # Allow absolute URLs only from trusted hosts
     if parsed.netloc in allowed_hosts and parsed.scheme in ['http', 'https']:

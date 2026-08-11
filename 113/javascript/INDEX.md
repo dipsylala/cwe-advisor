@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-HTTP Response Splitting in Node.js occurs when user-supplied values are passed to `res.setHeader()`, `res.redirect()`, or `res.cookie()` without stripping CRLF characters (`\r\n`). An attacker who can inject a newline into a `Location` or `Set-Cookie` header can append a complete second HTTP response, enabling cache poisoning, XSS, and session hijacking. Node.js HTTP/1.1 core (`http` module) does not strip CRLF from header values set via the low-level API; Express delegates to it. Sanitize all user input before it reaches any header-setting call, or use framework redirect helpers that encode values automatically.
+HTTP Response Splitting in Node.js occurs when user-supplied values are passed to `res.setHeader()`, `res.redirect()`, or `res.cookie()` without stripping CRLF characters (`\r\n`). An attacker who can inject a newline into a `Location` or `Set-Cookie` header can append a complete second HTTP response, enabling cache poisoning, XSS, and session hijacking. Since Node.js 10, the `http` module throws `ERR_INVALID_CHAR` when a header value contains a raw CR or LF, which blocks the classic literal-newline attack in `res.setHeader()`/`res.writeHead()`; Express delegates to it. This does not cover percent-encoded variants (`%0d`, `%0a`) reaching headers after URL-decoding, Unicode line separators, or values injected through libraries with their own header/cookie serialization. Sanitize all user input before it reaches any header-setting call, or use framework redirect helpers that encode values automatically.
 
 ## Key Principles
 

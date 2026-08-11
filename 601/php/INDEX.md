@@ -7,7 +7,8 @@ Open redirect vulnerabilities occur when user-controlled input is used in `heade
 ## Key Principles
 
 - Prefer allowlist validation for external URLs against known safe domains
-- For internal redirects, validate paths are relative (start with `/` not `//`) or match expected patterns
+- For internal redirects, validate paths are relative (start with `/` not `//`), contain no backslashes, or match expected patterns
+- Reject any path containing `\` - browsers can normalize `/\evil.com` to `//evil.com`, bypassing a `//`-only check
 - Use framework-provided redirect methods that include built-in protections
 - Never directly insert user input into `Location` headers or redirect mechanisms
 - Implement URL parsing to verify scheme, host, and path components before redirecting
@@ -29,7 +30,8 @@ function safeRedirect($userUrl, $allowedDomains = ['example.com']) {
     
     // Allow relative paths only (local redirects)
     if (!isset($parsed['host']) && isset($parsed['path']) && 
-        $parsed['path'][0] === '/' && substr($parsed['path'], 0, 2) !== '//') {
+        $parsed['path'][0] === '/' && substr($parsed['path'], 0, 2) !== '//' &&
+        strpos($parsed['path'], '\\') === false) {
         header("Location: " . $parsed['path']);
         exit;
     }
