@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 ROOT_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles"]
 LANG_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles", "## Safe Pattern"]
+# TODO(taint-sinks): promote to LANG_REQUIRED_HEADINGS once the retrofit in TODO.md is complete.
+LANG_WARN_HEADINGS = ["## Taint Sinks"]
 STEPS_HEADINGS = ["## Remediation Steps", "## Actionable Steps"]
 
 ROOT_WORD_LIMIT = 500
@@ -74,6 +76,9 @@ def check_language_file(lang_dir, cwe_id):
     missing = [h for h in LANG_REQUIRED_HEADINGS if h not in text]
     if missing:
         errors.append(f"{rel(path)}: missing heading(s) {missing}")
+    missing_warn = [h for h in LANG_WARN_HEADINGS if h not in text]
+    if missing_warn:
+        warnings.append(f"{rel(path)}: missing heading(s) {missing_warn}")
     check_steps_heading(path, text)
     check_h1(path, text, cwe_id, is_language=True)
     if "```" not in text:

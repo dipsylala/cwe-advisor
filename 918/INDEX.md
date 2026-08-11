@@ -14,7 +14,7 @@ Server-Side Request Forgery (SSRF) occurs when an application fetches remote res
 
 ## Remediation Steps
 
-- Locate SSRF vulnerabilities by tracing untrusted data flow from input sources to HTTP request functions (`requests.get()`, `fetch()`, `curl_exec()`)
+- Locate SSRF vulnerabilities by tracing untrusted data flow from input sources to the HTTP client call that issues the outbound request - see the language-specific guidance's Taint Sinks for concrete function names
 - Implement URL allowlists as primary defence - validate full URLs against permitted destinations before making requests
 - Add IP validation by resolving URLs and blocking private/internal IP ranges
 - Use safe URL parsing libraries to prevent bypasses via encoding or URL manipulation

@@ -13,6 +13,10 @@
 - {Framework-native protection to enable or preserve}
 - {Defence-in-depth control, if applicable}
 
+## Taint Sinks
+
+{Comma-separated inline-code list of the concrete function/method/API names that are the dangerous operation for this CWE in this language - reference data for tracing, not a sentence.}
+
 ## Remediation Steps
 
 - Locate - {Identify language-specific sources and sinks, such as request APIs and dangerous operations}

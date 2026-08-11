@@ -62,13 +62,15 @@ Required sections:
 1. `# CWE-{ID}: {Vulnerability Name} - {Language}`
 2. `## LLM Guidance`
 3. `## Key Principles`
-4. `## Remediation Steps`
-5. `## Safe Pattern`
+4. `## Taint Sinks`
+5. `## Remediation Steps`
+6. `## Safe Pattern`
 
 Content expectations:
 
 - Mention real APIs, functions, classes, annotations, framework settings, or package names.
 - Name common vulnerable sinks and safe replacement APIs for that language.
+- `Taint Sinks`: a short, comma-separated list of the concrete function/method/API names that are the dangerous operation for this CWE in this language (as inline code), so an LLM tracing data flow can search for them with whatever tool it has - grep, symbol search, or otherwise. Reference data, not prose explanation; do not restate it as a sentence elsewhere in the file.
 - If the safe pattern requires a specific library, package, or framework component, identify that dependency by name and prefer maintained, commonly used options.
 - Show the smallest useful safe example. Include imports only when they clarify the API surface.
 - Mark examples with comments such as `SAFE:`. Include unsafe examples only when they materially improve contrast.
