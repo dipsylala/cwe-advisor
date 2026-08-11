@@ -4,7 +4,7 @@
 
 SQL Injection occurs when untrusted user input is incorporated into SQL queries without proper sanitization, allowing attackers to manipulate query logic, extract data, or execute administrative operations.
 
-**Primary Defence:** Use parameterized queries provided by Node.js database libraries (mysql, pg, better-sqlite3, etc.)
+**Primary Defence:** Use parameterized queries provided by Node.js database libraries (`mysql2`, `pg`, `better-sqlite3`, etc.) - prefer `mysql2` over the legacy `mysql` package, which has seen no meaningful maintenance in years.
 
 ## Key Principles
 
@@ -29,7 +29,7 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 // Unsafe: String concatenation
 const unsafe = `SELECT * FROM users WHERE id = ${userId}`;
 
-// Safe: Parameterized query (mysql)
+// Safe: Parameterized query (mysql2, API-compatible with the legacy mysql package)
 db.query('SELECT * FROM users WHERE id = ?', [userId], (err, results) => {
   // Handle results
 });

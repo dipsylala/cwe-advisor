@@ -2,14 +2,14 @@
 
 ## LLM Guidance
 
-XSS occurs when untrusted data is included in web output without proper encoding, allowing attackers to inject malicious scripts. Python frameworks like Django and Flask provide auto-escaping in templates-use `{{ variable }}` syntax and keep auto-escaping enabled. For manual encoding, use `html.escape()` or `bleach.clean()` with allowlists for rich content.
+XSS occurs when untrusted data is included in web output without proper encoding, allowing attackers to inject malicious scripts. Python frameworks like Django and Flask provide auto-escaping in templates-use `{{ variable }}` syntax and keep auto-escaping enabled. For manual encoding, use `html.escape()` or an HTML sanitizer with allowlists for rich content - `bleach` is widely used but is in reduced/security-fix-only maintenance; `nh3` (Python bindings to Rust's `ammonia`) is the actively maintained alternative for new code.
 
 ## Key Principles
 
 - Use framework auto-escaping: Django templates and Jinja2 `.html` files escape by default
 - Never mark untrusted input as safe: Avoid `|safe`, `mark_safe()`, or `Markup()` on user data
 - Context-aware encoding: Use HTML escaping for HTML context, JavaScript encoding for `<script>` blocks
-- Sanitize rich content: Use `bleach.clean()` with strict allowlists for permitted HTML tags/attributes
+- Sanitize rich content: Use `bleach.clean()` or `nh3.clean()` with strict allowlists for permitted HTML tags/attributes - prefer `nh3` for new code since `bleach` is in reduced maintenance
 - Validate input format: Reject unexpected formats early before rendering
 
 ## Remediation Steps
