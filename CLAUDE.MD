@@ -84,8 +84,8 @@ Content expectations:
 6. Keep code samples short, syntactically valid, and focused on safe remediation.
 7. For entries that mention third-party libraries, check that the guidance supports a future dependency version review.
 8. Review for duplicated generic explanation, missing source/sink tracing, vague validation advice, and unsupported framework claims.
-9. Verify Markdown paths and headings before finishing.
-10. Add or update the corresponding row in [aliases.md](aliases.md): CWE ID, official name, and any common industry synonyms a developer might type instead of the number. Leave the aliases column as `-` if the official name has no common shorthand - do not restate words already in the name.
+9. Add or update the corresponding row in [aliases.md](aliases.md): CWE ID, official name, and any common industry synonyms a developer might type instead of the number. Leave the aliases column as `-` if the official name has no common shorthand - do not restate words already in the name.
+10. Run `python scripts/lint.py` and fix any reported errors before finishing. It is a deterministic, non-LLM check for required headings, root-file code-fence violations, broken Markdown links, and `aliases.md` staying in sync with the CWE directories - it does not check writing quality or technical accuracy.
 
 ## Quality Checklist
 
