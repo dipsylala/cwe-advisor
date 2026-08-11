@@ -41,3 +41,7 @@ Adding or editing an entry? See [CLAUDE.md](CLAUDE.md) for the authoring spec - 
 conventions, required sections, tone, and the quality bar entries are held to. The short version:
 guidance should teach the LLM what to do, not restate security concepts it already knows, and
 should point at the specific fix rather than a general essay on the vulnerability class.
+
+After cloning, run `git config core.hooksPath .githooks` once to enable the pre-commit structural
+lint (`scripts/lint.py`) - it checks required headings, root-file code fences, broken links, and
+that `aliases.md` stays in sync with the CWE directories.

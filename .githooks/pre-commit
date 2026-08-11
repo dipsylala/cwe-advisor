@@ -1,0 +1,6 @@
+#!/bin/sh
+# Deterministic structural lint - see scripts/lint.py and CLAUDE.md.
+# Enabled via: git config core.hooksPath .githooks
+
+python scripts/lint.py
+exit $?
