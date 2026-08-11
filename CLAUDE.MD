@@ -18,8 +18,12 @@ This repository is a local CWE remediation knowledge base used by the `cwe-advis
 
 ## Authoring Principles
 
+Write to teach the LLM what to do, not what it already knows - every sentence should add information it cannot reliably infer on its own.
+
 - Write for an LLM that will edit real developer code. Prefer direct remediation instructions over background explanation.
 - Keep each sentence useful for fixing code. Avoid repeating generic security facts the model already knows.
+- Guide, don't dictate: describe the approach - what to locate, what pattern to replace, what mechanism to use - so the LLM reasons its way to an idiomatic, context-aware fix rather than copying a provided snippet verbatim. A language file's `Safe Pattern` is a concrete anchor for the correct API surface, not a template for the whole remediation.
+- Cover the common case, not the encyclopaedia: target the most common, highest-impact form of the vulnerability. Omitting edge cases and exotic scenarios is intentional - covering them lengthens the entry without improving the fix rate for typical findings.
 - General CWE files should be guidance-only and should not include code examples.
 - Language-specific files should include a minimal `Safe Pattern` section with correct API usage.
 - Prefer vendor-neutral guidance in root files and framework/API-specific guidance in language files.
@@ -91,6 +95,7 @@ Content expectations:
 - Safe patterns do not introduce unrelated vulnerabilities.
 - The entry is concise enough to be loaded as LLM context.
 - New languages use existing folder names when applicable.
+- The entry doesn't explain background the LLM already knows, repeat information covered elsewhere in the same entry, or replace guidance with a worked example where guidance alone would suffice.
 
 ## Editing Existing Entries
 
