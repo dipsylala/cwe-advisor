@@ -12,7 +12,10 @@ When a developer reports a CWE issue, follow the steps below.
 ### Step 1: Identify the CWE ID
 
 Extract the CWE number from the user's message (e.g. "CWE-89", "CWE 89", or just "89").
-If only a description is given, ask the user to confirm the CWE number.
+If only a description or vulnerability name is given (no CWE number), check `aliases.md` for a matching CWE ID before asking the user:
+- If exactly one CWE ID matches, use it and tell the user which CWE you matched, so they can correct you if it's wrong.
+- If more than one CWE ID matches, list the candidates and ask the user which one applies.
+- If nothing matches, ask the user to confirm the CWE number.
 If the user provides a CWE number and a description that don't match, flag the discrepancy and ask which one they intended before proceeding.
 
 ### Step 2: Load General Guidance
