@@ -14,6 +14,10 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 - Use least privilege - Database accounts should have minimal necessary permissions
 - Escape dynamic identifiers - When table/column names must be dynamic, use allowlisting
 
+## Taint Sinks
+
+`cursor.execute()` with f-string/concatenation, Django `.raw()`, `.extra()`, SQLAlchemy `text()` with interpolated values
+
 ## Remediation Steps
 
 - Replace all string concatenation and f-strings in SQL queries with parameterized placeholders

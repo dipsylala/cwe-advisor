@@ -12,6 +12,10 @@ Permissive input validation occurs when regex patterns or validation logic fails
 - Use specialized validation classes (`URI`, `Path`, `InetAddress`) for structured data instead of regex
 - Apply defence-in-depth with multiple validation layers for critical inputs
 
+## Taint Sinks
+
+`Matcher.find()` on unanchored patterns, `Pattern.compile()` without `^...$` anchors, missing length checks before regex
+
 ## Remediation Steps
 
 - Replace `Pattern.compile(regex).matcher(input).find()` with `input.matches("^" + regex + "$")`

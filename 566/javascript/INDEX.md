@@ -12,6 +12,10 @@ IDOR vulnerabilities in Node.js REST APIs occur when route parameters or request
 - Return 404 for both non-existent and unauthorized resources to avoid confirming resource existence to attackers
 - Apply consistent ownership checks across all HTTP verbs - GET, PUT, PATCH, and DELETE on the same resource all need protection
 
+## Taint Sinks
+
+`Model.findById()`, `Model.findByPk()` on `req.params.id`/`req.body.id` without a composite user-scoped filter
+
 ## Remediation Steps
 
 - Locate route parameters used as resource identifiers (`req.params.id`, `req.params.orderId`, etc.)

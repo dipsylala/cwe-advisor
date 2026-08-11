@@ -13,6 +13,10 @@ In .NET, CWE-77 commonly appears where an application talks to a non-OS command 
 - Validate and bound the size/character set of values used as keys or command arguments as defence-in-depth, even though the client library already prevents delimiter injection
 - Connect with least-privilege data-store credentials (read-only where possible) so an injected command has limited effect if this control is ever bypassed
 
+## Taint Sinks
+
+`NetworkStream.Write()`/`Socket.Send()` with hand-built inline-protocol commands (e.g. Redis `"SET " + key`)
+
 ## Remediation Steps
 
 - Locate - find code that opens a raw `Socket`/`TcpClient`/`NetworkStream` to a Redis, Memcached, or similar protocol port, or that builds a command string via `string.Concat`/interpolation before writing it to the connection

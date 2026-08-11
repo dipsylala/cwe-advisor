@@ -12,6 +12,10 @@ Insufficiently protected credentials in C# typically manifest as connection stri
 - Add `appsettings*.json` overrides with secrets to `.gitignore`; use `dotnet user-secrets` in development
 - Rotate any secrets that have been committed to version control and treat them as compromised
 
+## Taint Sinks
+
+hardcoded secrets in `appsettings.json`/`web.config`, `MD5.Create()`/`SHA1.Create()` for password hashing, plaintext connection strings
+
 ## Remediation Steps
 
 - Remove hardcoded credentials and connection strings from source code and `appsettings.json`

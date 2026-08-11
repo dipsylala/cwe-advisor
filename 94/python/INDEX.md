@@ -12,6 +12,10 @@ Code injection in Python occurs when untrusted input is passed to code execution
 - Validate and sanitize all inputs before processing, using allowlists not denylists
 - Use template engines with auto-escaping instead of string formatting for dynamic content
 
+## Taint Sinks
+
+`eval()`, `exec()`, `compile()`, `__import__()` with untrusted names
+
 ## Remediation Steps
 
 - Replace `eval()` calls with JSON parsing where possible; if using `ast.literal_eval()`, enforce input size and nesting limits

@@ -13,6 +13,10 @@ In ASP.NET Core, Incorrect Authorization usually shows up as an `[Authorize(Role
 - Call `IAuthorizationService.AuthorizeAsync` on every controller action that reads or mutates the resource, including PUT/PATCH/DELETE variants, not only the initial GET
 - Have handlers call `context.Fail()` or simply not call `context.Succeed()` on any code path that does not explicitly match - unhandled cases must deny
 
+## Taint Sinks
+
+`user.IsInRole()`, `[Authorize(Roles = "...")]` role-only attributes, inline `role != "Admin"` checks, controller actions without `IAuthorizationService.AuthorizeAsync()`
+
 ## Remediation Steps
 
 - Locate - Find role or permission checks using string comparison (`user.IsInRole(...)`, `role != "Admin"`, custom `if` blocks) and any resource lookups that never check an owner/tenant field

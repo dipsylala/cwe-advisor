@@ -12,6 +12,10 @@ CWE-95 occurs when untrusted input from HTTP requests, APIs, files, or external 
 - Validate and sanitize all input with strict whitelists before any processing
 - Apply least-privilege principles to limit damage if execution occurs
 
+## Taint Sinks
+
+`eval()`, `exec()`, `compile()`, `__import__()`
+
 ## Remediation Steps
 
 - Identify all uses of `eval()`, `exec()`, `compile()`, and dynamic imports in the codebase

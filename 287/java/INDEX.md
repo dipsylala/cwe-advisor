@@ -13,6 +13,10 @@ In Spring applications, Improper Authentication commonly appears as a custom `Au
 - For resource-server JWT validation, prefer Spring Security's `NimbusJwtDecoder` with an explicit `macAlgorithm()`/`signatureAlgorithm()` so the accepted algorithm is pinned in code, not inferred from the token.
 - Enforce authentication in the `SecurityFilterChain` in addition to the provider, so a misconfigured provider cannot expose an otherwise-protected route.
 
+## Taint Sinks
+
+`AuthenticationProvider.authenticate()` without credential check, `Jwts.parser().parse()`/`parseClaimsJwt()` unsigned variants
+
 ## Remediation Steps
 
 - Locate - Find custom `AuthenticationProvider`/`AuthenticationManager` implementations, JWT parsing filters, and `Jwts.parser()`/`Jwts.parserBuilder()` call sites

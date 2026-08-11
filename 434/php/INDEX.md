@@ -13,6 +13,10 @@ PHP uploads arrive via the `$_FILES` superglobal and are typically persisted wit
 - Generate the stored filename server-side, for example with `bin2hex(random_bytes(16))`; never build the storage path from `$_FILES['x']['name']`
 - Enforce `upload_max_filesize`/`post_max_size` in `php.ini` and re-check size in code, since `$_FILES['x']['size']` alone is not sufficient validation
 
+## Taint Sinks
+
+`move_uploaded_file()`, `$_FILES['x']['name']`, `$_FILES['x']['type']`
+
 ## Remediation Steps
 
 - Locate - Find where `$_FILES` is read and where `move_uploaded_file()` (or equivalent) writes the file

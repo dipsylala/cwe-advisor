@@ -12,6 +12,10 @@
 - Store tokens securely with proper validation mechanisms
 - Use URL-safe encoding (base64url) for tokens in URLs
 
+## Taint Sinks
+
+`Math.random()`
+
 ## Remediation Steps
 
 - Identify all `Math.random()` usage for tokens, keys, or secrets

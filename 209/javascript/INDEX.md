@@ -14,6 +14,10 @@ Error Message Information Leak occurs when JavaScript applications expose sensit
 - Sanitize database errors to remove query details, table names, and schema information
 - Disable debug mode and verbose logging in production deployments
 
+## Taint Sinks
+
+`res.send(err.stack)`, `err.message`/`err.stack` in JSON response, default Express error handler in non-production mode
+
 ## Remediation Steps
 
 - Add environment-based error middleware that checks `NODE_ENV === 'production'`

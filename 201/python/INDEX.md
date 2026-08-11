@@ -12,6 +12,10 @@ Python web applications commonly expose sensitive data through HTTP responses, e
 - Use structured logging that excludes sensitive fields
 - Implement response DTOs or serializers with only necessary fields
 
+## Taint Sinks
+
+`fields = '__all__'` in DRF serializers, `jsonify(user.__dict__)`, `return str(exception)`/`traceback.format_exc()` to clients, `DEBUG = True`
+
 ## Remediation Steps
 
 - Set `DEBUG = False` in Django/Flask production settings

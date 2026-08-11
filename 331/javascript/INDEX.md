@@ -14,6 +14,10 @@ Insufficient entropy occurs when using `Math.random()` for security-sensitive op
 - Use appropriate encoding (hex, base64, base64url) for the use case
 - Review third-party libraries to ensure they use secure random sources
 
+## Taint Sinks
+
+`Math.random()`, `Date.now()`-seeded values used for tokens, session IDs, or keys
+
 ## Remediation Steps
 
 - Identify all `Math.random()` usage in security contexts (tokens, session IDs, passwords, keys)

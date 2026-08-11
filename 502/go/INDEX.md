@@ -13,6 +13,10 @@ Go's type system limits classic gadget-chain remote code execution, but `encodin
 - If using `gopkg.in/yaml.v2` or `v3`, treat "no code execution" as separate from "no need to validate"-apply the same field-level validation as JSON, and never build an `interface{}` field expansion from untrusted YAML tags
 - Determine privileged fields (admin status, balance, role) from server-side authorization/database lookups, never from deserialized client data
 
+## Taint Sinks
+
+`gob.NewDecoder().Decode()`, `net/rpc` handlers, `json.Unmarshal()`/`Decode()` into `interface{}` or `map[string]interface{}`, `yaml.Unmarshal()`
+
 ## Remediation Steps
 
 - Locate - Find `gob.Decode`, `net/rpc` handlers, `json.Unmarshal`/`json.NewDecoder(...).Decode`, and `yaml.Unmarshal` calls that read from `r.Body`, request parameters, or other untrusted sources

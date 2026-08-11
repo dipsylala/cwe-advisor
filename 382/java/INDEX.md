@@ -13,6 +13,10 @@ Calling `System.exit()` inside a servlet, filter, listener, or EJB business meth
 - For shutdown-path failures (`destroy()`, `@PreDestroy`), log the error and let the container continue its own shutdown sequence rather than forcing a harder exit
 - Do not rely on a `SecurityManager` to block `System.exit()` as the primary control - `SecurityManager` is deprecated for removal in modern Java; the fix is removing the call, not sandboxing it
 
+## Taint Sinks
+
+`System.exit()`, `Runtime.getRuntime().exit()`, `Runtime.getRuntime().halt()`
+
 ## Remediation Steps
 
 - Locate - Search for `System.exit(` in servlets, filters, listeners, and EJBs using grep or IDE search across the web and EJB tiers

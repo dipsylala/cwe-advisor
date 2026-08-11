@@ -12,6 +12,10 @@ Storing sensitive data (passwords, keys, tokens) as cleartext strings in C# memo
 - Use external credential stores or OS credential handles where possible; avoid introducing `SecureString` in new .NET code unless a legacy API requires it
 - Avoid serialization, logging, or concatenation of sensitive data
 
+## Taint Sinks
+
+`string` fields/variables/parameters holding passwords, keys, or tokens; `SecureString` in new code
+
 ## Remediation Steps
 
 - Identify all sensitive data stored as `string` (passwords, keys, tokens)

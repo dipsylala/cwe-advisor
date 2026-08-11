@@ -13,6 +13,10 @@ Open redirect vulnerabilities occur when user-controlled input is used in `heade
 - Never directly insert user input into `Location` headers or redirect mechanisms
 - Implement URL parsing to verify scheme, host, and path components before redirecting
 
+## Taint Sinks
+
+`header("Location: " . $userInput)`, `<meta http-equiv="refresh">` with unvalidated URLs
+
 ## Remediation Steps
 
 - Identify all redirect points using `header()`, framework redirect methods, or client-side redirects

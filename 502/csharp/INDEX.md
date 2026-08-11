@@ -11,6 +11,10 @@ Insecure deserialization in .NET occurs when untrusted data is deserialized usin
 - Allowlist types explicitly: if polymorphic deserialization is unavoidable with Newtonsoft.Json, pair `TypeNameHandling` with a `SerializationBinder` that restricts to known types
 - Apply input validation after deserialization when using safe serializers like `System.Text.Json`
 
+## Taint Sinks
+
+`BinaryFormatter.Deserialize()`, `NetDataContractSerializer.Deserialize()`, `ObjectStateFormatter.Deserialize()`, `SoapFormatter.Deserialize()`, `JsonConvert.DeserializeObject()` with `TypeNameHandling`
+
 ## Remediation Steps
 
 - Identify all deserialization points: `BinaryFormatter`, `NetDataContractSerializer`, `SoapFormatter`, `ObjectStateFormatter`, and `JsonConvert.DeserializeObject` with `TypeNameHandling` set to anything other than `None`

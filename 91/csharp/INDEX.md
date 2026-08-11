@@ -12,6 +12,10 @@ XML Injection occurs when untrusted user input is embedded into XML documents wi
 - Validate input against strict allowlists before XML construction
 - Parse and reconstruct XML rather than modifying as strings
 
+## Taint Sinks
+
+String-concatenated/interpolated XML (`$"<tag>{input}</tag>"`), `XmlWriter.WriteRaw()`
+
 ## Remediation Steps
 
 - Replace string concatenation with `XElement`/`XAttribute` constructors

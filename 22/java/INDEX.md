@@ -16,6 +16,10 @@ Path Traversal occurs when user input constructs file paths without validation, 
 - Avoid constructing paths from untrusted input when possible
 - Archive extraction (Zip Slip): treat `ZipEntry.getName()` from `java.util.zip.ZipInputStream` (or Apache Commons Compress) as untrusted - resolve it against the destination directory and verify containment with `Path.startsWith()` after `toRealPath()`/normalization, the same pattern used above, before extracting
 
+## Taint Sinks
+
+`new File(path)`, `Files.newInputStream()`, `new FileInputStream()`, `ZipEntry.getName()` (Zip Slip)
+
 ## Remediation Steps
 
 - Implement indirect object references (user provides ID, application maps to filename)

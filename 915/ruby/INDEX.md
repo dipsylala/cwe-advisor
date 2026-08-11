@@ -12,6 +12,10 @@ Mass assignment vulnerabilities in Ruby on Rails occur when Rails automatically 
 - Validate business logic - Strong Parameters prevents mass assignment but doesn't validate values
 - Avoid legacy patterns - Never use `attr_accessible` or permit all with `params.permit!`
 
+## Taint Sinks
+
+`Model.new(params[:model])`, `@model.update(params[:model])`, `params.permit!`, `attr_accessible`
+
 ## Remediation Steps
 
 - Define private `*_params` methods in controllers using `params.require().permit()`

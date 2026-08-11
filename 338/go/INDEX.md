@@ -13,6 +13,10 @@
 - When reducing `crypto/rand` output to a smaller range (OTP digits), use `crypto/rand.Int(rand.Reader, big.NewInt(n))` rather than `%` on raw bytes, which introduces modulo bias
 - `math/rand`/`math/rand/v2` remain the correct choice for simulations, games, and reproducible test fixtures - the fix is scoping their use away from security code, not removing them entirely
 
+## Taint Sinks
+
+`rand.Intn()`, `rand.Int63()`, `rand.Float64()` (`math/rand`, `math/rand/v2`)
+
 ## Remediation Steps
 
 - Locate - search for `math/rand`, `"math/rand/v2"`, `rand.Intn`, `rand.Int63`, and `rand.Float64` in token, key, nonce, or credential-generation code

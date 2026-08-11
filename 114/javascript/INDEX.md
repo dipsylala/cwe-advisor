@@ -19,6 +19,10 @@ Key Security Issues:
 - Implement least privilege principles for process execution permissions
 - Use safe APIs like `execFile()` that bypass shell interpretation
 
+## Taint Sinks
+
+`child_process.exec()`, `execSync()`, `spawn()` with `shell: true`, `fork()` with untrusted args, `process.kill()`
+
 ## Remediation Steps
 
 - Replace `exec()` and `execSync()` with `spawn()` or `execFile()` to avoid shell interpretation

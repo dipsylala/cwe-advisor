@@ -13,6 +13,10 @@ Log injection in Go typically comes from `log.Printf`/`log.Println` writing untr
 - A custom `slog.Handler` written for a proprietary log shipper does not inherit JSON escaping automatically - verify it encodes control characters itself before formatting output
 - Where the field format is well-defined (username, ID), validate with a regex allowlist and log only the validated value as an additional layer
 
+## Taint Sinks
+
+`log.Printf()`, `log.Println()` with concatenated input, `slog.Info()`/`Error()` called with input baked into the message string instead of an attribute
+
 ## Remediation Steps
 
 - Locate - find logging sinks: `log.Printf`, `log.Println`, `slog.Info`/`Error`, `logrus`/`zap` calls

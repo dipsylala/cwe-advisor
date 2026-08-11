@@ -12,6 +12,10 @@ RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) is vulnerabl
 - Never use legacy PKCS#1 v1.5 padding (`RSA_PKCS1_PADDING`) for encryption
 - Consider using `publicEncrypt`/`privateDecrypt` with explicit padding configuration
 
+## Taint Sinks
+
+`crypto.publicEncrypt()`, `crypto.privateDecrypt()` with `padding: crypto.constants.RSA_PKCS1_PADDING`
+
 ## Remediation Steps
 
 - Locate all `crypto.publicEncrypt()` and `crypto.privateDecrypt()` calls

@@ -12,6 +12,10 @@ Insecure temporary file creation in Node.js occurs when applications create file
 - Never create temporary files in world-writable directories with predictable names
 - Validate and sanitize any user input used in temporary file operations
 
+## Taint Sinks
+
+`fs.writeFile('/tmp/...')` with a predictable name, `fs.open()` without the exclusive `wx` flag, hardcoded filenames under `os.tmpdir()`
+
 ## Remediation Steps
 
 - Replace manual `fs.writeFile()` in `/tmp` with `tmp.file()` or `fs.mkdtemp()` for secure random names

@@ -11,6 +11,10 @@ Mass assignment vulnerabilities occur when user input is directly mapped to obje
 - Mark sensitive fields as `read_only` in serializers or `editable=False` in models
 - Use separate serializers/forms for create vs update operations with different field sets
 
+## Taint Sinks
+
+`setattr()` in a loop over request data, `fields = "__all__"` in a ModelSerializer/ModelForm, `**request.data` unpacked into a model constructor
+
 ## Remediation Steps
 
 - Replace `fields = "__all__"` with explicit field lists - `fields = ['name', 'email', 'description']`

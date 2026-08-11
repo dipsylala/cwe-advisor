@@ -13,6 +13,10 @@ In PHP applications, Improper Authentication commonly appears as credential chec
 - Let `JWT::decode()` throw on any algorithm mismatch or `alg: none` header (`UnexpectedValueException`/`SignatureInvalidException`) - catch it only to reject the request, never to fall back to unverified data.
 - Store JWT signing secrets and password pepper values outside source control (environment variables or a secret manager), not hardcoded in the codebase.
 
+## Taint Sinks
+
+`==`/`!=` password comparison, legacy `JWT::decode($jwt, $key, $algs)` array-of-algorithms form
+
 ## Remediation Steps
 
 - Locate - Find password comparison code in login handlers and `JWT::decode()`/`JWT::encode()` call sites

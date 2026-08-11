@@ -12,6 +12,10 @@ In Node.js/TypeScript apps using `@anthropic-ai/sdk` (or OpenAI's, which follows
 - Treat any filename or path present in model output or a tool result as attacker-controlled: apply `path.basename()` and confirm the resolved path is contained within the intended directory before any file write or read
 - A model claiming in its text output that it "verified" or "checked" something is not evidence of anything - perform independent verification for security-relevant claims
 
+## Taint Sinks
+
+`eval()`, `child_process.exec()`/`execSync()`, unchecked `tool_use.input` passed to a handler, `fs.writeFile()` with a model-provided filename
+
 ## Remediation Steps
 
 - Locate every point where a model's text response, a `tool_use.input` field, or a filename from a tool result reaches `eval`, `child_process.exec`/`execSync`, a SQL query, a filesystem call, or an HTML render

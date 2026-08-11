@@ -13,6 +13,10 @@ Open redirect vulnerabilities in Node.js occur when user-controlled input flows 
 - Reject or sanitize any redirect URL containing external domains
 - Apply URL parsing to verify protocol and hostname match expected values
 
+## Taint Sinks
+
+`res.redirect()`, `res.writeHead()` Location header, `window.location` / `window.location.href` assignment with unvalidated input
+
 ## Remediation Steps
 
 - Parse the redirect URL using Node.js `URL` constructor to extract components

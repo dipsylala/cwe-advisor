@@ -12,6 +12,10 @@ Mass assignment vulnerabilities in C# occur when ASP.NET model binding automatic
 - Validate `ModelState.IsValid` before processing any bound data
 - Use explicit property assignment instead of automatic model binding for sensitive operations
 
+## Taint Sinks
+
+`TryUpdateModelAsync()`, action parameters bound directly to domain/entity types, `[Bind]` applied to an entity instead of a DTO
+
 ## Remediation Steps
 
 - Create a ViewModel/DTO class with only the properties users should modify

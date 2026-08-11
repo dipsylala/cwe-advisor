@@ -13,6 +13,10 @@ Go's standard library still ships legacy packages (`crypto/des`, `crypto/md5`, `
 - Generate RSA keys with `rsa.GenerateKey(rand.Reader, 2048)` at minimum (4096 for long-lived secrets); use `rsa.EncryptOAEP`, not PKCS#1 v1.5 padding, for new code
 - For TLS, set `tls.Config.MinVersion: tls.VersionTLS12` or higher; leave `CipherSuites` unset to use Go's maintained safe defaults rather than hand-picking ciphers
 
+## Taint Sinks
+
+`crypto/des`, `crypto/rc4`, `crypto/md5`, `crypto/sha1`, `rsa.GenerateKey(rand.Reader, 1024)`, manual ECB `block.Encrypt` loops
+
 ## Remediation Steps
 
 - Locate - search for `crypto/des`, `crypto/rc4`, `crypto/md5`, `crypto/sha1`, `rsa.GenerateKey(rand.Reader, 1024`, and manual per-block `Encrypt` loops

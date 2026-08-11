@@ -14,6 +14,10 @@ Cross-Site Scripting (CWE-80) occurs when untrusted data is included in web page
 - Validate input against allowlists where possible, then encode before output
 - Never insert untrusted data directly into JavaScript blocks or event handlers
 
+## Taint Sinks
+
+`print` of unescaped CGI parameters, string-interpolated HTML output without `escapeHTML()`
+
 ## Remediation Steps
 
 - Replace all direct output of user data with `escapeHTML()` wrapper calls

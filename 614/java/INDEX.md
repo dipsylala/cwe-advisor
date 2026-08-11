@@ -12,6 +12,10 @@ Sensitive cookies in Java web applications transmitted without the `secure` attr
 - Configure framework-level defaults for secure cookie creation
 - Validate that production environments use HTTPS exclusively
 
+## Taint Sinks
+
+`new Cookie()` without `setSecure(true)`, `ResponseCookie.from()` without `.secure(true)`, `SessionCookieConfig.setSecure()` left false
+
 ## Remediation Steps
 
 - Identify all cookie creation points (Servlet `Cookie`, Spring `ResponseCookie`, framework configurations)

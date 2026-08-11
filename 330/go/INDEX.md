@@ -13,6 +13,10 @@ Go exposes two distinct random-number APIs: `math/rand` (and `math/rand/v2`), a 
 - For random integers in a bounded range (OTPs, random selection), use `crypto/rand.Int(rand.Reader, big.NewInt(n))`, which performs rejection sampling and avoids modulo bias
 - `math/rand`/`math/rand/v2` remain acceptable for tests, simulations, and non-security shuffling - keep those usages clearly separated from security code paths
 
+## Taint Sinks
+
+`math/rand.Intn()`, `math/rand.Int63()`, `math/rand.Seed()`, `math/rand/v2` used for tokens/keys/nonces
+
 ## Remediation Steps
 
 - Locate - search for `math/rand`, `rand.Seed`, `rand.Intn`, and `rand.Int63` near token, key, password-reset, or session generation code

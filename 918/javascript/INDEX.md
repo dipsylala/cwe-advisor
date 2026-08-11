@@ -13,6 +13,10 @@ SSRF in Node.js occurs when applications fetch remote resources using user-suppl
 - Disable redirects: Prevent attackers from bypassing validation via HTTP redirects
 - Parse and validate: Use `URL` constructor to parse and validate scheme, hostname, and port
 
+## Taint Sinks
+
+`fetch()`, `axios.get()`, `http.request()`, `https.request()`, `XMLHttpRequest.open()`
+
 ## Remediation Steps
 
 - Create an allowlist of permitted domains/hosts for external requests

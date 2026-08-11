@@ -14,6 +14,10 @@ Using reference equality (`==`) instead of value equality (`.equals()`) for stri
 - Consider `equalsIgnoreCase()` for case-insensitive comparisons
 - Never use `==` except for explicit null checks
 
+## Taint Sinks
+
+`==`, `!=` on `String` objects in authentication, authorization, or token-validation logic
+
 ## Remediation Steps
 
 - Scan codebase for `string1 == string2` patterns in conditionals and authentication logic

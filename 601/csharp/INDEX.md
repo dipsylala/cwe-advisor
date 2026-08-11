@@ -12,6 +12,10 @@ Open Redirect vulnerabilities occur when an application redirects users to URLs 
 - Reject absolute URLs, external domains, protocol-relative URLs, and dangerous schemes; allow validated local absolute paths such as `/dashboard`
 - Default to safe fallback URLs when validation fails
 
+## Taint Sinks
+
+`Response.Redirect()`, `RedirectToAction()`, `Redirect()` called with unvalidated input instead of `Url.IsLocalUrl()`-checked values
+
 ## Remediation Steps
 
 - Identify all redirect operations using `Response.Redirect()`, `RedirectToAction()`, or similar methods

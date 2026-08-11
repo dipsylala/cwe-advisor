@@ -12,6 +12,10 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 - Never rely solely on cookies for authentication without CSRF protection
 - For REST APIs consumed by native apps, use token-based auth instead of cookies
 
+## Taint Sinks
+
+`app.post()`/`app.put()`/`app.delete()` routes not behind `doubleCsrfProtection` middleware
+
 ## Remediation Steps
 
 - Install CSRF middleware - `npm install csrf-csrf cookie-parser`

@@ -12,6 +12,10 @@ HTTP Response Splitting in Node.js occurs when user-supplied values are passed t
 - Validate redirect targets against an allowlist of known-safe paths or origins before redirecting
 - Avoid manually constructing `Set-Cookie` header values - use `res.cookie()` with `httpOnly` and `sameSite` options
 
+## Taint Sinks
+
+`res.setHeader()`, `res.writeHead()`, `res.redirect()`, `res.cookie()`
+
 ## Remediation Steps
 
 - Replace manual `res.setHeader('Location', userInput)` with `res.redirect()` after URL validation

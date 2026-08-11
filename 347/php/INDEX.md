@@ -13,6 +13,10 @@
 - Reject the `none` algorithm and weak algorithms; only construct `Key` objects for the specific algorithm your issuer uses
 - Use `hash_equals()` for HMAC/signature comparisons - never `==`, `===`, or `strcmp()`, none of which are constant-time
 
+## Taint Sinks
+
+`JWT::decode()` with a bare key string (no `Key` object), `hash_hmac()` compared with `==`/`===`/`strcmp()`
+
 ## Remediation Steps
 
 - Locate - find `JWT::decode(...)` calls and any manual `hash_hmac(...)` comparisons

@@ -13,6 +13,10 @@ Goroutines make concurrent access trivial to introduce and easy to miss: a share
 - Pass data ownership through channels where the design allows it, instead of sharing memory and synchronizing access to it
 - Run `go test -race` (or build with `-race`) in CI to catch missed synchronization before it reaches production
 
+## Taint Sinks
+
+Unsynchronized `map` writes from a `go func() {...}`, package-level `var` read-modify-write, struct field mutation without `sync.Mutex`
+
 ## Remediation Steps
 
 - Locate - Find struct fields, package-level variables, maps, or slices read and written by more than one goroutine

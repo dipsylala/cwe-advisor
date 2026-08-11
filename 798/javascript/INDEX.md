@@ -13,6 +13,10 @@ Hard-coded credentials in JavaScript/Node.js occur when sensitive values (passwo
 - Apply principle of least privilege to all API keys and service credentials
 - Environment variables are a practical fallback but not risk-free - they can leak through process inspection (`/proc/<pid>/environ`), crash reports, or cloud metadata endpoints, so prefer a secrets manager in production
 
+## Taint Sinks
+
+`mysql.createConnection({password: "..."})`, `new AWS.Config({accessKeyId, secretAccessKey})`, `jwt.sign(payload, secret)`, `process.env.X || "literal"` fallback
+
 ## Remediation Steps
 
 - Move all hardcoded credentials to environment variables or secret management services

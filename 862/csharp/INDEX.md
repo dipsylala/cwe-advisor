@@ -13,6 +13,10 @@ In ASP.NET Core, Missing Authorization typically appears as a controller action 
 - Do not rely on hiding UI controls or client-side route guards; every check must run server-side
 - Cover Minimal API endpoints (`app.MapGet(...)`) the same way as MVC controllers; `[Authorize]` on a controller does not extend to a separately registered Minimal API route
 
+## Taint Sinks
+
+`[HttpGet]`, `[HttpPost]`, `[HttpPut]`, `[HttpDelete]` actions, `app.MapGet()`, `app.MapPost()` routes, SignalR `Hub` methods lacking `[Authorize]`/`AuthorizeAsync()`
+
 ## Remediation Steps
 
 - Locate - Identify controller actions, Minimal API route handlers, and SignalR hubs that perform sensitive operations or return sensitive data

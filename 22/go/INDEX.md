@@ -14,6 +14,10 @@ Path Traversal in Go usually appears when request or config data reaches `os.Ope
 - Where available, use Go 1.24+ `os.Root`/`os.OpenInRoot` for file access rooted at a directory, which resists traversal even through symlinks
 - Archive extraction (Zip Slip): treat `archive/zip` and `archive/tar` entry `Name` fields as untrusted - join with `filepath.Join`, clean, and apply the same base-directory containment check as any other path (or reject with Go 1.20+ `filepath.IsLocal`) before creating the file; reject entries with `..` or absolute paths
 
+## Taint Sinks
+
+`os.Open()`, `os.ReadFile()`, `http.ServeFile()`, `os.Create()`, `archive/zip`/`archive/tar` entry `Name` field (Zip Slip)
+
 ## Remediation Steps
 
 - Locate - find file-serving/reading sinks: `os.Open`, `os.ReadFile`, `os.Create`, `http.ServeFile`, `os.DirFS`

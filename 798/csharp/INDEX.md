@@ -12,6 +12,10 @@ Hard-coded credentials (passwords, API keys, connection strings, encryption keys
 - Rotate credentials regularly and audit all secret access
 - Treat environment variables as a fallback, not a vault - they can still leak via process listings, crash dumps, or platform metadata endpoints, so prefer Key Vault for production
 
+## Taint Sinks
+
+`new SqlConnection(connectionString)`, `new NetworkCredential(user, password)`, `UseSqlServer(connectionString)`, hardcoded values in `appsettings.json`
+
 ## Remediation Steps
 
 - Identify all hard-coded credentials using code scanning tools or manual review

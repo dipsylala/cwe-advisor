@@ -12,6 +12,10 @@ CWE-183 occurs when input validation uses overly permissive patterns that fail t
 - Enforce input length limits before pattern matching
 - Fail closed on validation errors with explicit rejection
 
+## Taint Sinks
+
+`re.search()`/`re.match()` without anchors, unanchored regex patterns, missing length checks before validation
+
 ## Remediation Steps
 
 - Replace `re.search()` or `re.match()` with `re.fullmatch()` for complete validation

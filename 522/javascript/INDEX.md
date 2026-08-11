@@ -12,6 +12,10 @@ Insufficiently Protected Credentials in JavaScript/Node.js occurs when passwords
 - Add `.env` files to `.gitignore` and scan repositories for committed secrets
 - Implement credential rotation policies and use short-lived tokens where possible
 
+## Taint Sinks
+
+hardcoded secrets in source, `crypto.createHash('md5'|'sha1')` for passwords, `console.log()` of credentials, committed `.env` files
+
 ## Remediation Steps
 
 - Replace plaintext password storage with bcrypt hashing (minimum 12 rounds)

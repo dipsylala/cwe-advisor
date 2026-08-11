@@ -13,6 +13,10 @@ In Flask, Django, and FastAPI, this weakness usually appears as a CORS extension
 - Restrict allowed methods and headers (`allow_methods`, `allow_headers`, `CORS_ALLOW_METHODS`) to what each API route needs
 - Verify the CORS library version in the project manifest (`requirements.txt`/`pyproject.toml`) supports allowlist-based configuration, since older releases of these packages default to permissive behavior
 
+## Taint Sinks
+
+`CORS(app, origins="*")`, `CORSMiddleware(allow_origins=["*"])`, unanchored `CORS_ALLOWED_ORIGIN_REGEXES`, manual `response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")`
+
 ## Remediation Steps
 
 - Locate - Search for `CORS(`, `CORSMiddleware`, `CORS_ALLOWED_ORIGINS`, `Access-Control-Allow-Origin`, and manual header-setting code in `after_request`/middleware hooks

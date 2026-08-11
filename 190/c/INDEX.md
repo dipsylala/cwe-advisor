@@ -13,6 +13,10 @@ Signed integer overflow in C is undefined behavior, not defined wraparound - a c
 - Treat any overflowed or wrapped length that reaches `malloc()`, `calloc()`, or `memcpy()` as a buffer-overflow risk, not merely an arithmetic bug - validate before the allocation, not after
 - Where builtins are unavailable, use `<limits.h>`/`<stdint.h>` constants (`INT_MAX`, `SIZE_MAX`) to size the precondition check to the actual operand type, and prefer `calloc(count, size)` over `malloc(count * size)` since `calloc` performs its own overflow check on the multiplication
 
+## Taint Sinks
+
+`malloc()`, `calloc()`, `realloc()`, `memcpy()`, `memmove()` sized by unchecked arithmetic, array indexing from unchecked arithmetic
+
 ## Remediation Steps
 
 - Locate - Find addition or multiplication whose result sizes a `malloc`/`calloc`/`realloc` call, a `memcpy`/`memmove` length, an array index, or another security-relevant count

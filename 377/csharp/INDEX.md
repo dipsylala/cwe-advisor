@@ -12,6 +12,10 @@ Insecure temporary file creation occurs when applications create files with pred
 - Implement deterministic disposal patterns using `using` statements
 - Validate temporary directory paths before creating files
 
+## Taint Sinks
+
+`Path.GetTempFileName()`, manual `Path.Combine(Path.GetTempPath(), fixedName)`, `File.Create()` with a predictable path
+
 ## Remediation Steps
 
 - Replace manual filename construction with an unpredictable name created atomically using `FileMode.CreateNew`

@@ -13,6 +13,10 @@ Hard-coded credentials in source code create severe security risks as they are e
 - Rotate credentials regularly and revoke any previously hard-coded credentials immediately
 - Environment variables are a reasonable fallback but not immune to leakage - they can be read via process inspection, crash dumps, or cloud metadata services, so prefer a secrets manager for production
 
+## Taint Sinks
+
+`DriverManager.getConnection()` with literal password, `new PasswordAuthentication()`, `Properties.setProperty("password", ...)`, `@Value("${secret:default}")` hardcoded default
+
 ## Remediation Steps
 
 - Identify all hard-coded credentials using static analysis tools or code review

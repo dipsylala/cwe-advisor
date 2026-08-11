@@ -12,6 +12,10 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 - Set Content Security Policy (CSP) headers to restrict script execution sources
 - Use HTML templating engines with auto-escaping enabled by default
 
+## Taint Sinks
+
+`response.getWriter().println()`, `PrintWriter.print()`, JSP `<%= expr %>`, Thymeleaf `th:utext`
+
 ## Remediation Steps
 
 - Identify all locations where user input or external data is rendered in responses

@@ -12,6 +12,10 @@ Insufficient entropy occurs when using Python's `random` module instead of `secr
 - Use `os.urandom()` as fallback for Python versions before 3.6
 - Apply cryptographically secure randomness at all security boundaries
 
+## Taint Sinks
+
+`random.random()`, `random.randint()`, `random.choice()`, `random.Random()` from the `random` module used for tokens or keys
+
 ## Remediation Steps
 
 - Replace `random.Random()`, `random.randint()`, `random.choice()` with `secrets` equivalents

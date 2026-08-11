@@ -12,6 +12,10 @@ HTTP Response Splitting in PHP occurs when user-supplied values are passed to `h
 - Prefer `wp_safe_redirect()` / framework redirect helpers with host allowlisting over raw `header()` calls
 - Use `setcookie()` instead of `header('Set-Cookie: ...')` to avoid manual cookie header construction
 
+## Taint Sinks
+
+`header()`, `setcookie()`, `session_set_cookie_params()`
+
 ## Remediation Steps
 
 - Locate `header('Location: ' . $var)` patterns where `$var` derives from user input

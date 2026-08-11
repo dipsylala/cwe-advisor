@@ -12,6 +12,10 @@
 - Keep `Math.random()` only for non-security purposes (animations, game mechanics, UI randomization)
 - Validate that random values have sufficient entropy for their security purpose
 
+## Taint Sinks
+
+`Math.random()`
+
 ## Remediation Steps
 
 - Identify all uses of `Math.random()` in authentication, session management, encryption, and token generation

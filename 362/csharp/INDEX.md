@@ -13,6 +13,10 @@ Shared mutable state on a singleton service, static field, or in-memory cache is
 - For EF Core entities, add a `[Timestamp]`/`RowVersion` byte array or `[ConcurrencyCheck]` property so `SaveChanges()` throws `DbUpdateConcurrencyException` on a conflicting concurrent write
 - Do not assume a singleton-registered service is race-free; ASP.NET Core invokes singleton services concurrently across all in-flight requests
 
+## Taint Sinks
+
+Unsynchronized `Dictionary<>`/`List<>` mutation, singleton/static field read-modify-write without `lock`, `lock` wrapping `await`
+
 ## Remediation Steps
 
 - Locate - Find fields on singleton/static services, or shared collections, read and written by concurrent request handlers or background tasks

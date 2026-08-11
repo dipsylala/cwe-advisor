@@ -13,6 +13,10 @@ In Laravel, Missing Authorization typically appears as a controller method reach
 - Use the `can` middleware (`->middleware('can:update,order')`) on routes so authorization is visible in the route definition and cannot be silently omitted from a handler
 - Let unauthorized `authorize()` calls throw `AuthorizationException`, which Laravel converts to a 403 response by default - do not catch and suppress it
 
+## Taint Sinks
+
+`Route::get()`, `Route::post()`, `Route::put()`, `Route::delete()` routes, controller actions lacking `$this->authorize()`/`Gate::allows()`
+
 ## Remediation Steps
 
 - Locate - Identify controller methods, form request classes, and API actions that perform sensitive operations or return sensitive data

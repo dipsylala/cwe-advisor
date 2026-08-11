@@ -13,6 +13,10 @@ In Java and Spring applications this occurs when request data (`@RequestParam`, 
 - Never let a request parameter select a properties file path or a remote config URL without validating the filename/hostname against an allowlist
 - Log both accepted and rejected configuration changes with the acting principal for audit purposes
 
+## Taint Sinks
+
+`System.setProperty()`, `Connection.setCatalog()`, `Connection.setSchema()`, `Logger.setLevel()`, `Properties.load()`
+
 ## Remediation Steps
 
 - Locate - find where `request.getParameter()`, `@RequestParam`, or a deserialized `@RequestBody` flows into `System.setProperty()`, a config `Map.put()`, `Logger.setLevel()`, `Connection.setCatalog()`, or `Properties.load()`/`FileInputStream` with a path argument

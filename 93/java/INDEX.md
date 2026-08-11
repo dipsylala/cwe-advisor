@@ -12,6 +12,10 @@ CRLF Injection occurs when attackers inject `\r\n` characters to manipulate HTTP
 - Allowlist Validation: Validate header values against strict patterns (alphanumeric, specific safe characters only)
 - Avoid Direct Manipulation: Never directly construct HTTP headers or log entries from untrusted input
 
+## Taint Sinks
+
+`HttpServletResponse.setHeader()`, `HttpServletResponse.addHeader()`, `HttpServletResponse.sendRedirect()`, `Logger.info()` with unsanitized input
+
 ## Remediation Steps
 
 - Identify all locations where user input flows into HTTP headers or log statements

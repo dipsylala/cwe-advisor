@@ -11,6 +11,10 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 - Configure OAEPParameterSpec explicitly with MGF1 and appropriate hash algorithm
 - Use RSA key sizes of 2048 bits minimum (4096 recommended for sensitive data)
 
+## Taint Sinks
+
+`Cipher.getInstance("RSA")`, `Cipher.getInstance("RSA/ECB/PKCS1Padding")` (no explicit OAEP)
+
 ## Remediation Steps
 
 - Replace `Cipher.getInstance("RSA")` with `Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")`

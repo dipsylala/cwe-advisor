@@ -12,6 +12,10 @@ Weak random number generation occurs when the `random` module is used for securi
 - Prefer built-in methods: `secrets.token_urlsafe()`, `secrets.token_hex()`, `secrets.token_bytes()`
 - Use `secrets.choice()` for random selection from sequences in security contexts
 
+## Taint Sinks
+
+`random.random()`, `random.choice()`, `random.randint()`, `random.seed()`
+
 ## Remediation Steps
 
 - Replace `random.choice()` with `secrets.choice()` for character selection

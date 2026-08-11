@@ -12,6 +12,10 @@ Storing sensitive data (passwords, cryptographic keys, tokens) in memory as clea
 - Avoid string conversions: Never call `new String(charArray)` or similar on credentials
 - Use secure APIs: Leverage `javax.crypto.SecretKey`, `java.security.KeyStore`, and `Destroyable` interfaces
 
+## Taint Sinks
+
+`String password` fields/parameters, `new String(charArray)`, string concatenation of credentials
+
 ## Remediation Steps
 
 - Replace `String password` parameters with `char[] password`

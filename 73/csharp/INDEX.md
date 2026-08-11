@@ -13,6 +13,10 @@ External control of file names or paths occurs when user-supplied input construc
 - Never trust `IFormFile.FileName` or any user-controlled path input directly
 - Implement defence-in-depth with filesystem permissions
 
+## Taint Sinks
+
+`File.*()` methods, `FileStream`, `StreamReader`/`StreamWriter`, `Path.Combine()` with unvalidated input
+
 ## Remediation Steps
 
 - Identify sources - Find untrusted input from `Request.Query`, `Request.Form`, `IFormFile.FileName`, route parameters, headers, or deserialized objects

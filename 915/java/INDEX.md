@@ -12,6 +12,10 @@ Mass assignment vulnerabilities in Java occur when Spring MVC/Boot automatically
 - Validate all input with Bean Validation constraints (`@Valid`, `@NotNull`, `@Size`, etc.)
 - Map DTO fields explicitly to entities rather than using reflection-based copiers
 
+## Taint Sinks
+
+`BeanUtils.copyProperties()`, `@RequestBody` bound directly to a JPA entity, `@ModelAttribute` bound to an entity
+
 ## Remediation Steps
 
 - Create a DTO class containing only fields users should modify (e.g., `UpdateUserDTO` with `name`, `email`)

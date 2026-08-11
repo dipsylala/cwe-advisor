@@ -13,6 +13,10 @@ In Spring applications, uploads arrive as `MultipartFile` on a `@PostMapping` ha
 - Generate the stored filename with `UUID.randomUUID()` rather than reusing `getOriginalFilename()`, which may contain path traversal sequences
 - For image uploads, re-encode with `javax.imageio.ImageIO` (read then write) before persisting, which strips embedded scripts or malformed metadata that raw bytes may carry
 
+## Taint Sinks
+
+`MultipartFile.getOriginalFilename()`, `MultipartFile.getContentType()`, `transferTo()` into a webroot path
+
 ## Remediation Steps
 
 - Locate - Find the `@PostMapping` or `@RequestParam MultipartFile` handler that accepts the upload

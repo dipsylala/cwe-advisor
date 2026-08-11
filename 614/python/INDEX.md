@@ -12,6 +12,10 @@ Sensitive Cookie Without 'Secure' Flag occurs when cookies containing authentica
 - Use `samesite='Strict'` or `'Lax'` to prevent CSRF attacks
 - Configure framework session settings to use secure defaults
 
+## Taint Sinks
+
+`response.set_cookie()` without `secure=True`, `SESSION_COOKIE_SECURE` left unset/false, `session.cookie_secure` unset in Django settings
+
 ## Remediation Steps
 
 - Identify all locations where cookies are set in your application

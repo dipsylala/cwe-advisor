@@ -13,6 +13,10 @@ In .NET applications this occurs when request data (query strings, form fields, 
 - Any admin endpoint that changes a setting must authorize with `[Authorize(Roles = "Admin")]` and check the requested key and value against a `HashSet<string>` allowlist before applying it
 - Never let a request parameter select a database catalog (`SqlConnection.ChangeDatabase()`), a config file path, or a remote config URL without allowlist validation
 
+## Taint Sinks
+
+`Environment.SetEnvironmentVariable()`, `ConfigurationManager.AppSettings.Set()`, `IConfigurationRoot` indexer set, `SqlConnection.ChangeDatabase()`
+
 ## Remediation Steps
 
 - Locate - find where `Request`, route values, or deserialized request bodies flow into `IConfiguration` indexers, `Environment.SetEnvironmentVariable()`, `ConfigurationManager.AppSettings`, logger level setters, `ChangeDatabase()`, or file/URL loading calls

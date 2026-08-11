@@ -12,6 +12,10 @@ Open redirect vulnerabilities in Java web applications occur when user-controlle
 - Strict URL parsing: Validate protocol, domain, and path components before redirecting
 - Framework-level guards: Configure Spring Security or servlet filters to block external redirects
 
+## Taint Sinks
+
+`response.sendRedirect()`, `"redirect:" + userInput`, `RequestDispatcher.forward()`, `<meta http-equiv="refresh">` with unvalidated URLs
+
 ## Remediation Steps
 
 - Identify all `response.sendRedirect()`, `return "redirect -"`, and `<meta http-equiv="refresh">` usage

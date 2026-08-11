@@ -14,6 +14,10 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 - Implement least-privilege access for LDAP service accounts
 - Use DN (Distinguished Name) sanitization for attribute values
 
+## Taint Sinks
+
+`Connection.search()` (ldap3) with a concatenated filter string
+
 ## Remediation Steps
 
 - Replace string concatenation with escaped filter construction

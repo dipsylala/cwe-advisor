@@ -12,6 +12,10 @@ Authorization bypass through user-controlled keys (IDOR) occurs when C# applicat
 - Use strongly-typed claims (`ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)`) to get authenticated user context
 - Return 404 instead of 403 for unauthorized resources to avoid information disclosure
 
+## Taint Sinks
+
+`FindAsync()`, `FirstOrDefaultAsync()`, LINQ queries on route/query-bound IDs without a `.Where(e => e.UserId == currentUserId)` filter
+
 ## Remediation Steps
 
 - Identify user-controlled inputs - route parameters (`[FromRoute]`), query strings (`[FromQuery]`), request body properties

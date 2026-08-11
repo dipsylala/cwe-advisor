@@ -13,6 +13,10 @@ JavaScript's single-threaded event loop guarantees that synchronous code runs to
 - Never assume a `Promise.all` of independent async operations preserves ordering on shared state; each awaited step is an interleaving point
 - For cross-process or multi-instance deployments, use a distributed lock (Redis `SET NX`/`redlock`) or datastore-level atomicity rather than an in-process mutex, which only protects one process
 
+## Taint Sinks
+
+Module-level variable mutated after an `await`, unguarded `Promise.all` writes to a shared object/cache, read-modify-write on a database row without a mutex
+
 ## Remediation Steps
 
 - Locate - Find module-level variables, cached objects, or database rows read and written by more than one concurrent async call

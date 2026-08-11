@@ -11,6 +11,10 @@ XXE vulnerabilities occur when XML parsers process external entity references in
 - Use secure parser configurations consistently across all XML processing code
 - Consider using simpler data formats like JSON when XML features aren't required
 
+## Taint Sinks
+
+`DocumentBuilder.parse()`, `SAXParser.parse()`, `XMLReader.parse()`, `XMLInputFactory.createXMLStreamReader()`
+
 ## Remediation Steps
 
 - Enable secure processing - `factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)`

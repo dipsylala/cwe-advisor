@@ -13,6 +13,10 @@ In Spring applications, Missing Authorization typically appears as a `@RestContr
 - Prefer `@PreAuthorize` at the service layer over controller-only checks so the rule applies regardless of which controller or scheduled job invokes the method
 - Unauthorized calls should raise `AccessDeniedException`, handled by Spring Security's default `AccessDeniedHandler` as a 403 - do not catch and suppress it
 
+## Taint Sinks
+
+`@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`, `@RequestMapping` methods lacking `@PreAuthorize`/`@Secured`
+
 ## Remediation Steps
 
 - Locate - Identify `@RestController`/`@Controller` methods and service methods that perform sensitive actions or return sensitive data

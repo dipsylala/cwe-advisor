@@ -12,6 +12,10 @@ Authorization bypass through user-controlled keys (IDOR) occurs when Java applic
 - Apply principle of least privilege in database queries by filtering on user context
 - Validate access at the service layer, not just presentation layer
 
+## Taint Sinks
+
+`repository.findById()` on a `@PathVariable`/`@RequestParam` ID without an ownership comparison
+
 ## Remediation Steps
 
 - Locate user-controlled inputs (`@PathVariable`, `@RequestParam`, `@PathParam`) used as resource identifiers

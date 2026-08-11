@@ -13,6 +13,10 @@ Go's standard `encoding/xml` package does not resolve external SYSTEM/PUBLIC ent
 - Never reimplement `SYSTEM`/`PUBLIC` entity expansion in application code (e.g. regex-based substitution that reads local files); this recreates the vulnerability `encoding/xml` avoids
 - Apply `http.MaxBytesReader` or `io.LimitReader` consistently on every XML input path, including streaming `Decoder.Token()` loops, not only the `Unmarshal` path, to prevent resource-exhaustion regardless of which parser is in use
 
+## Taint Sinks
+
+`xml.Unmarshal()`, `xml.NewDecoder().Decode()`, `Decoder.Token()`, CGo `libxml2`/`expat` bindings
+
 ## Remediation Steps
 
 - Locate - Find every `xml.Unmarshal`, `xml.NewDecoder`, third-party XML parser call, or CGo `libxml2`/`expat` binding that processes request bodies, uploaded files, or other untrusted XML

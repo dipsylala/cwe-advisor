@@ -13,6 +13,10 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Apply least privilege principles to database accounts
 - Use stored procedures with parameterized inputs where appropriate
 
+## Taint Sinks
+
+`Statement.executeQuery()`, `Statement.executeUpdate()`, `createNativeQuery()`, MyBatis `${}` substitution
+
 ## Remediation Steps
 
 - Locate - Identify the source (user input entry points like `request.getParameter()`, `@RequestParam`) and sink (SQL execution like `executeQuery()`, `createNativeQuery()`)

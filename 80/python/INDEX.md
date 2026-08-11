@@ -14,6 +14,10 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Validate input types: Restrict input to expected formats before rendering
 - Content Security Policy: Implement CSP headers as defence-in-depth
 
+## Taint Sinks
+
+`mark_safe()`, `|safe` filter, `Markup()`, manual HTML string concatenation
+
 ## Remediation Steps
 
 - Audit template code for `|safe`, `mark_safe()`, or manual HTML concatenation with user data

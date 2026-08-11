@@ -12,6 +12,10 @@ Mass assignment in Node.js occurs when request body objects are spread or merged
 - Treat fields like `role`, `isAdmin`, `permissions`, `accountBalance`, and `ownerId` as server-only attributes
 - Apply the same restriction on update (PUT/PATCH) as on create - partial updates are equally vulnerable
 
+## Taint Sinks
+
+`Model.create(req.body)`, `model.update(req.body)`, `Object.assign(target, req.body)`, `{ ...req.body }` spread into a persisted object
+
 ## Remediation Steps
 
 - Identify calls to `Model.create(req.body)`, `instance.update(req.body)`, `Object.assign(target, req.body)`, or `{ ...req.body }` spread into persisted objects

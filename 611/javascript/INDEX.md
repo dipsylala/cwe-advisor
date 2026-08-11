@@ -11,6 +11,10 @@ XXE injection occurs when XML parsers process external entity references, allowi
 - Validate and sanitize XML input before parsing, rejecting suspicious patterns
 - Prefer JSON over XML for data exchange when architecturally feasible
 
+## Taint Sinks
+
+`libxmljs.parseXml()`, `xml2js.parseString()`, `fast-xml-parser` with entity processing enabled
+
 ## Remediation Steps
 
 - Configure `libxmljs` with `noent - false`, `nonet - true`, `dtdload - false` options

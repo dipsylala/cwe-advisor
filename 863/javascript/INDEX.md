@@ -13,6 +13,10 @@ In Express and similar Node.js frameworks, Incorrect Authorization commonly appe
 - Re-validate authorization on the server for every request; a check performed only in client-side JavaScript or hidden UI elements is not a control
 - Default to `403 Forbidden` when the role is unrecognized, the ownership check fails, or an error occurs while resolving either
 
+## Taint Sinks
+
+`req.body.role`, `req.query.role`, `jwt.decode()` (unverified), `role !== 'admin'` denylist checks, routes missing shared authorization middleware
+
 ## Remediation Steps
 
 - Locate - Find middleware or route handlers reading role/user data from `req.body`, `req.query`, or a decoded-without-verification token, and any denylist-style role comparisons

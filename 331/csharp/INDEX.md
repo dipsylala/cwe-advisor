@@ -11,6 +11,10 @@ Insufficient entropy in C# occurs when using `System.Random` or `Guid.NewGuid()`
 - Use cryptographically secure methods for generating salts, nonces, IVs, and secrets
 - Avoid seeding patterns that reduce entropy (e.g., time-based seeds with `Random`)
 
+## Taint Sinks
+
+`System.Random`, `Guid.NewGuid()` used for tokens, session IDs, or cryptographic keys
+
 ## Remediation Steps
 
 - Identify all uses of `Random`, `Guid.NewGuid()`, or predictable value generation in security code

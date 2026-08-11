@@ -12,6 +12,10 @@ CSRF occurs when state-changing endpoints don't validate that requests originate
 - Include tokens in forms via template tags and AJAX via custom headers
 - Never disable CSRF protection with `@csrf_exempt` or similar decorators
 
+## Taint Sinks
+
+`@csrf_exempt`, views missing `CsrfViewMiddleware`/Flask-WTF `CSRFProtect`
+
 ## Remediation Steps
 
 - Add `django.middleware.csrf.CsrfViewMiddleware` to Django `MIDDLEWARE` settings

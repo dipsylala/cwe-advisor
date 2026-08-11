@@ -13,6 +13,10 @@ In Java, CWE-77 commonly appears where an application drives an SMTP (or IMAP/FT
 - Apply the same principle to any other hand-rolled protocol client (IMAP, FTP): prefer a maintained client library over raw socket text
 - Log rejected or malformed addresses for monitoring, without echoing raw untrusted input back into any interpreter
 
+## Taint Sinks
+
+`Socket.getOutputStream().write()` with hand-built SMTP/IMAP/FTP command lines (concatenated `\r\n`)
+
 ## Remediation Steps
 
 - Locate - find code that opens a `Socket` to an SMTP/IMAP/FTP port and writes command strings built via concatenation or `String.format`

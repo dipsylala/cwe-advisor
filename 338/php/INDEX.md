@@ -14,6 +14,10 @@ Use of Cryptographically Weak PRNG in PHP occurs when developers use non-cryptog
 - Never seed or predict CSPRNG output
 - Ensure sufficient entropy (minimum 16 bytes for tokens, 32+ bytes for keys)
 
+## Taint Sinks
+
+`rand()`, `mt_rand()`, `uniqid()`, `srand()`, `lcg_value()`
+
 ## Remediation Steps
 
 - Identify all uses of weak PRNGs in authentication, session management, cryptography, and token generation

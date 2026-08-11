@@ -13,6 +13,10 @@
 - Reject the `none` algorithm and weak algorithms; only accept the specific signing method your issuer uses
 - Use `hmac.Equal()` (`crypto/hmac`) or `subtle.ConstantTimeCompare()` (`crypto/subtle`) for HMAC/signature comparisons - never `bytes.Equal()` or `==`
 
+## Taint Sinks
+
+`jwt.Parse()`/`jwt.ParseWithClaims()` with a `Keyfunc` missing `token.Method` check, `bytes.Equal()` on HMAC bytes
+
 ## Remediation Steps
 
 - Locate - find `jwt.Parse(...)`, `jwt.ParseWithClaims(...)`, and any `Keyfunc` implementations, plus manual `hmac.New(...)` comparisons

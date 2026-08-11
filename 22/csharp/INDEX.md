@@ -14,6 +14,10 @@ Path Traversal occurs when user-supplied input constructs file paths without val
 - Prefer indirect references (database IDs mapped to filenames)
 - Archive extraction (Zip Slip): treat `ZipArchiveEntry.FullName` as untrusted - combine it with the destination directory, canonicalize with `Path.GetFullPath()`, and verify the result starts with the destination directory (with a trailing separator) before extracting; `ZipFile.ExtractToDirectory()` validates this internally in modern .NET (Core 2.1+), but manual per-entry extraction loops do not
 
+## Taint Sinks
+
+`File.ReadAllText()`, `File.Open()`, `Path.Combine()` with unvalidated input, `ZipArchiveEntry.FullName` (Zip Slip)
+
 ## Remediation Steps
 
 - Identify all user inputs that influence file operations (reads, writes, includes)

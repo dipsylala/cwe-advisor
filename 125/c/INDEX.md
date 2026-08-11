@@ -13,6 +13,10 @@ In C, out-of-bounds reads arise from raw pointer arithmetic and array indexing t
 - Never pass an attacker-supplied or miscalculated size directly to `memcpy()`, `read()`, or an `sscanf()` field width; clamp it against both the source's actual available bytes and the destination's capacity first
 - Compile with `-fsanitize=address,undefined` in testing and `-D_FORTIFY_SOURCE=2` (with `-O1` or higher) in production builds as defence-in-depth
 
+## Taint Sinks
+
+`memcpy()`, `memmove()`, `read()`, `sscanf()`, array indexing/pointer arithmetic with unvalidated offset or length
+
 ## Remediation Steps
 
 - Locate - Search for pointer arithmetic, array indexing, and calls to `memcpy()`, `memmove()`, `read()`, `sscanf()`, and similar copy/scan functions

@@ -12,6 +12,10 @@ Insufficient entropy in Java occurs when using `java.util.Random` or `Math.rando
 - Avoid manual seeding unless using a cryptographically strong entropy source
 - Properly encode random bytes (Base64, hex) for safe transmission and storage
 
+## Taint Sinks
+
+`java.util.Random`, `Math.random()` used for tokens, keys, or initialization vectors
+
 ## Remediation Steps
 
 - Replace all instances of `new Random()` with `new SecureRandom()` in security contexts

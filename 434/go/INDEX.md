@@ -13,6 +13,10 @@ Go's `net/http` exposes uploads through `multipart.FileHeader` after `r.ParseMul
 - Store uploaded files outside any directory served by `http.FileServer` or `http.Dir`; serve them back through a handler that streams from private storage
 - Use `filepath.Clean` and `filepath.Join` cautiously and verify the resulting path stays within the intended storage directory before writing
 
+## Taint Sinks
+
+`FileHeader.Filename`, `Header.Get("Content-Type")`, writes under an `http.FileServer` root
+
 ## Remediation Steps
 
 - Locate - Find the handler that calls `r.FormFile()` or iterates `r.MultipartForm.File` to receive the upload

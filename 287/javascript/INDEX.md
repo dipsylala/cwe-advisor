@@ -13,6 +13,10 @@ In Node.js applications, Improper Authentication commonly appears as a Passport.
 - Store JWT and session secrets outside source control and rotate them if a forged or unsigned token is ever accepted in logs.
 - Leave `ignoreExpiration` at its default (`false`) so `jwt.verify()` enforces `exp`/`nbf`; do not set it to `true` in production code paths.
 
+## Taint Sinks
+
+Passport `Strategy` `done(null, user)` without comparison, `jwt.decode()` for trust decisions, `jwt.verify()` without `algorithms`
+
 ## Remediation Steps
 
 - Locate - Find `passport.use()` `Strategy` callbacks, and `jwt.verify()`/`jwt.decode()` call sites in authentication middleware

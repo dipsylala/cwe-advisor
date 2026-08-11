@@ -13,6 +13,10 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Implement DNS rebinding protection by validating all A/AAAA records before connecting and enforcing egress controls
 - Pin the request to the validated IP with `CURLOPT_RESOLVE` rather than passing the original URL to cURL for re-resolution - `parse_url()` and cURL's own URL parser can disagree on malformed input, so the host that was validated is not guaranteed to be the host cURL would otherwise connect to
 
+## Taint Sinks
+
+`curl_exec()`, `file_get_contents()`, `fopen()`, `fsockopen()`, `SoapClient()`
+
 ## Remediation Steps
 
 - Extract and validate the hostname from user-supplied URLs

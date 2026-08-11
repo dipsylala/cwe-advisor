@@ -12,6 +12,10 @@ Log Injection in JavaScript/Node.js occurs when untrusted user input is written 
 - Configure logging frameworks to automatically escape or sanitize user input fields
 - Validate and sanitize all user-controlled data at application boundaries before it reaches logging code
 
+## Taint Sinks
+
+`console.log()` with raw input, `winston`/`bunyan`/`pino` logger calls using string interpolation instead of structured fields
+
 ## Remediation Steps
 
 - Identify all locations where user input (params, headers, body) is logged

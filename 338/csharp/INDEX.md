@@ -12,6 +12,10 @@
 - `Guid.NewGuid()` is not a suitable security token - UUIDv4 values have fixed bits, at most 122 bits of entropy, and are not cryptographic PRFs
 - Keep `System.Random` only for non-security simulation, gaming, or test data generation
 
+## Taint Sinks
+
+`new Random()`, `Random.Shared.Next()`, `Guid.NewGuid()` (as a security token)
+
 ## Remediation Steps
 
 - Search for `new Random()` and `Random.Shared` in authentication, session, token, and key-generation code

@@ -13,6 +13,10 @@ Go's `net/http.Cookie` struct sets no security attributes by default, so `http.S
 - Do not derive `Secure` from `r.TLS != nil` when the app sits behind a reverse proxy - `r.TLS` reflects the proxy-to-app hop, which is often plaintext even when the client used HTTPS
 - Keep `MaxAge` short for session cookies; use a separate, rotated token for "remember me" functionality
 
+## Taint Sinks
+
+`http.SetCookie()`, `http.Cookie{}` literal without `Secure: true`, `gorilla/sessions.Options` without `Secure: true`
+
 ## Remediation Steps
 
 - Locate - Find every `net/http.Cookie{}` literal, `http.SetCookie()` call, and session-library options struct (e.g. `gorilla/sessions.Options`)

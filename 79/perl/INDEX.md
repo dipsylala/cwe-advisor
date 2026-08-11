@@ -12,6 +12,10 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 - Set Content-Security-Policy headers to restrict script execution sources
 - Never insert untrusted data directly into JavaScript, CSS, or URL contexts without proper encoding
 
+## Taint Sinks
+
+`print`/`say` with raw interpolation, unfiltered Template Toolkit `[% var %]`, CGI.pm builders (`h1()`, `p()`) fed unescaped input
+
 ## Remediation Steps
 
 - Identify all locations where user input is rendered in HTML output

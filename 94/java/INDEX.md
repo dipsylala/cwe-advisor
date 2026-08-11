@@ -12,6 +12,10 @@ Code injection in Java occurs when untrusted input is evaluated through scriptin
 - Never pass user input to Groovy's `GroovyShell.evaluate()`, `GroovyClassLoader.parseClass()`, or `GroovyScriptEngine`
 - Validate and allowlist all inputs strictly before any expression evaluation
 
+## Taint Sinks
+
+`ScriptEngine.eval()`, `GroovyShell.evaluate()`, `GroovyClassLoader.parseClass()`, `GroovyScriptEngine`, `MVEL.eval()`
+
 ## Remediation Steps
 
 - Locate `ScriptEngine.eval(userInput)`, `GroovyShell.evaluate(userInput)`, or similar dynamic compilation calls

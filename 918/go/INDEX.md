@@ -13,6 +13,10 @@ SSRF in Go applications happens when a user-supplied URL flows into `http.Get()`
 - Set `http.Client.CheckRedirect` to reject or revalidate each redirect target against the same allowlist/IP checks - the default client follows up to 10 redirects automatically
 - Never pass unvalidated user input directly to `http.Get()`, `http.Client.Do()`, or `http.Client.Post()`
 
+## Taint Sinks
+
+`http.Get()`, `http.Client.Do()`, `http.Client.Post()`, `http.Client.Head()`
+
 ## Remediation Steps
 
 - Locate - Find `http.Get()`, `http.Client.Do()`/`Get()`/`Post()` calls where the URL originates from request parameters, form values, JSON bodies, or webhook configuration

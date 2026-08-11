@@ -13,6 +13,10 @@ Android activities, services, broadcast receivers, and content providers become 
 - Treat the package name from `getCallingPackage()` as spoofable; validate the caller's signing certificate fingerprint when identity matters
 - Validate every value read from an incoming `Intent` (extras, data URI, action) as untrusted, even after the caller is verified
 
+## Taint Sinks
+
+`android:exported="true"` without `android:permission`, missing `android:exported` on components with intent filters, unchecked `getCallingPackage()`
+
 ## Remediation Steps
 
 - Locate - Audit `AndroidManifest.xml` for every `<activity>`, `<service>`, `<receiver>`, and `<provider>`, noting any with `android:exported="true"`, a missing `android:exported` attribute, or an intent filter with no explicit export value

@@ -11,6 +11,10 @@ Inadequate Encryption Strength in JavaScript/Node.js applications occurs when de
 - Derive keys from passwords using PBKDF2 (600,000+ iterations), scrypt, or Argon2
 - Avoid deprecated algorithms: DES, 3DES, RC4, MD5, SHA1, AES-ECB mode
 
+## Taint Sinks
+
+`crypto.createCipheriv('des...')`, `crypto.createCipheriv('aes-128-ecb', ...)`, `crypto.createHash('md5')`, `crypto.createHash('sha1')`
+
 ## Remediation Steps
 
 - Replace weak ciphers (DES, RC4, ECB, CBC without authentication, or sub-128-bit/policy-disallowed keys) with AES-GCM or ChaCha20-Poly1305

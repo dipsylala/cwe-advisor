@@ -12,6 +12,10 @@ Code injection in C# occurs when untrusted input is compiled and executed at run
 - Restrict `AppDomain` / sandbox environments - they do not reliably prevent code injection on modern .NET runtimes
 - Validate all expressions against a strict allowlist of permitted identifiers and operators before evaluation
 
+## Taint Sinks
+
+`CSharpCodeProvider.CompileAssemblyFromSource()`, `CSharpCompilation.Create()`, `Assembly.Load()`, `DynamicExpresso.Interpreter.Eval()` with reflection enabled
+
 ## Remediation Steps
 
 - Locate `CSharpCodeProvider.CompileAssemblyFromSource()` or `CSharpCompilation` calls that incorporate user input

@@ -12,6 +12,10 @@ CSRF vulnerabilities in Java web applications occur when state-changing endpoint
 - Validate CSRF tokens on the server side for all non-safe HTTP methods
 - Never disable CSRF protection globally without explicit security review
 
+## Taint Sinks
+
+`@PostMapping`/`@PutMapping`/`@DeleteMapping` with `http.csrf().disable()` or missing `_csrf` token
+
 ## Remediation Steps
 
 - Add Spring Security dependency and enable CSRF protection in configuration

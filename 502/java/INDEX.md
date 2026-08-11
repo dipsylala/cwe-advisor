@@ -15,6 +15,10 @@ Insecure deserialization occurs when untrusted data is used to create objects, p
 - Avoid known-unsafe libraries: `XMLDecoder` has no safe configuration and must be replaced. XStream's allowlist framework (`XStream.addPermission()` / `setupDefaultSecurity()`) is available from v1.4.7 but must be explicitly configured; it is only enabled by default from v1.4.18 onward. Versions before 1.4.7, or later versions left unconfigured, are exploitable
 - Apply defence in depth: Combine multiple controls including input validation, least privilege, and monitoring
 
+## Taint Sinks
+
+`ObjectInputStream.readObject()`, `XMLDecoder.readObject()`, `XStream.fromXML()`, `ObjectMapper.enableDefaultTyping()`/`@JsonTypeInfo`
+
 ## Remediation Steps
 
 - Replace `ObjectInputStream` with JSON parsers like Jackson or Gson for data transfer

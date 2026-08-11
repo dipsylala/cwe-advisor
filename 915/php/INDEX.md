@@ -12,6 +12,10 @@ Mass assignment in Laravel Eloquent occurs when `Model::create($request->all())`
 - Use `$request->only(['field1', 'field2'])` to select permitted fields from the request
 - Set security-critical attributes (role, is_admin, verified_at) only through dedicated code paths, not from request input
 
+## Taint Sinks
+
+`Model::create($request->all())`, `$model->update($request->all())`, `$model->fill($request->all())`, `$guarded = []`
+
 ## Remediation Steps
 
 - Find `Model::create($request->all())` and `$model->update($request->all())` calls in controllers

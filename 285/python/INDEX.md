@@ -12,6 +12,10 @@ In Python web frameworks, improper authorization occurs when views or API endpoi
 - Use DRF's `IsAdminUser`, `IsAuthenticated`, or custom `BasePermission` subclasses for consistent enforcement
 - For object-level authorization, override `get_object()` or use `get_queryset()` filtered by the current user
 
+## Taint Sinks
+
+views/`ViewSet`s missing `@permission_required`/`permission_classes`, unscoped `Model.objects.all()` querysets
+
 ## Remediation Steps
 
 - Identify views missing authorization decorators or `permission_classes` - any CBV or FBV that performs privileged operations

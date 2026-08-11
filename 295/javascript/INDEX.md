@@ -12,6 +12,10 @@ Improper certificate validation in JavaScript/Node.js applications allows man-in
 - Pin certificates only when necessary and maintain proper update procedures
 - Use updated Node.js versions with current TLS/SSL libraries
 
+## Taint Sinks
+
+`rejectUnauthorized: false`, `NODE_TLS_REJECT_UNAUTHORIZED='0'`
+
 ## Remediation Steps
 
 - Remove any `rejectUnauthorized - false` or `NODE_TLS_REJECT_UNAUTHORIZED='0'` settings

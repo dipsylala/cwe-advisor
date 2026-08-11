@@ -13,6 +13,10 @@ External control of file names or paths occurs when user-supplied input construc
 - Leverage framework-provided safe functions like Flask's `send_from_directory()` with `safe_join()`
 - Never directly concatenate user input into file paths without validation
 
+## Taint Sinks
+
+`open()`, `Path().read_text()`, `os.remove()`, `shutil.copy()`, `send_file()` with unvalidated input
+
 ## Remediation Steps
 
 - Identify user input sources - request parameters (`request.args`, `request.form`), file uploads (`request.FILES`, `filename` attribute), URL path parameters, headers, and API payloads

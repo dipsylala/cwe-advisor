@@ -13,6 +13,10 @@ Go error handling by convention returns `error` values that callers often serial
 - Use custom error types (or error codes) carrying both a safe public message and an internal detail field, so handlers only ever surface the safe field
 - Gate verbose error output behind an explicit development-only flag that defaults to off, never one inferred from an ambient value
 
+## Taint Sinks
+
+`http.Error(w, err.Error(), ...)`, `json.NewEncoder(w).Encode(err)`, unrecovered panics reaching the client
+
 ## Remediation Steps
 
 - Locate - search for `http.Error(w, err.Error()`, `fmt.Sprintf("%v", err)` written to a response, `json.NewEncoder(w).Encode(err)`, and handlers lacking panic recovery

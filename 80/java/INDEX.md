@@ -12,6 +12,10 @@ Cross-Site Scripting (CWE-80) occurs when untrusted data is included in web page
 - Apply Content Security Policy headers to restrict script execution
 - Never trust user input, even from authenticated users
 
+## Taint Sinks
+
+`<%= %>` (JSP expression), `response.getWriter().write()`, `th:utext`, unescaped `${...}` output
+
 ## Remediation Steps
 
 - Replace direct JSP expressions (`<%= %>`) with JSTL `<c:out>` tags

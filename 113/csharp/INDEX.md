@@ -12,6 +12,10 @@ HTTP Response Splitting occurs when attackers inject CRLF (`\r\n`) characters in
 - Use `Url.IsLocalUrl()` or explicit allowed-origin/path allowlists before redirects
 - Enable response header validation in web.config or through middleware
 
+## Taint Sinks
+
+`Response.AddHeader()`, `Response.Headers.Add()`, `Response.Headers["Location"]`, `Response.Redirect()`
+
 ## Remediation Steps
 
 - Replace manual `Response.AddHeader()` or `Response.Headers.Add()` calls with framework methods

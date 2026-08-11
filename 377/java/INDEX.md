@@ -11,6 +11,10 @@ Insecure temporary file creation occurs when applications create files with pred
 - Ensure deterministic cleanup with try-finally blocks or try-with-resources
 - Never create temp files with predictable or hardcoded names
 
+## Taint Sinks
+
+`new File(predictablePath)`, `File.createTempFile()` without POSIX permissions set, `FileWriter` writing to a fixed `/tmp` path
+
 ## Remediation Steps
 
 - Replace manual file creation with `Files.createTempFile("prefix-", ".tmp")`

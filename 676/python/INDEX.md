@@ -13,6 +13,10 @@ Python's dangerous functions are dangerous because of what they are designed to 
 - If a dangerous function is unavoidable (e.g. a plugin system genuinely needs `exec`), isolate it and restrict its `globals`/`locals` to a minimal allowlist, and treat this as a design smell, not a fix
 - Enforce the ban with `bandit` (rules B102, B307, B301/B403, B605/B607) in CI
 
+## Taint Sinks
+
+`eval()`, `exec()`, `pickle.load()`/`pickle.loads()`, `os.system()`, `subprocess`/`os.popen` with `shell=True`
+
 ## Remediation Steps
 
 - Locate - Search for `eval(`, `exec(`, `os.system(`, `pickle.load(`, `pickle.loads(`, `yaml.load(`, and `subprocess`/`os.popen` calls with `shell=True`

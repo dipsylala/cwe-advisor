@@ -14,6 +14,10 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify requests o
 - Validate SameSite cookie attributes are set to `Strict` or `Lax`
 - Never disable CSRF protection for authenticated endpoints
 
+## Taint Sinks
+
+`[HttpPost]`/`[HttpPut]`/`[HttpDelete]` actions missing `[ValidateAntiForgeryToken]`, `[IgnoreAntiforgeryToken]`
+
 ## Remediation Steps
 
 - Add `services.AddAntiforgery()` to `ConfigureServices` in Startup.cs

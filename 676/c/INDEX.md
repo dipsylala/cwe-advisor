@@ -13,6 +13,10 @@ C's standard library includes functions that are dangerous by convention, not by
 - Where a dangerous function must remain, document why the call site is safe (fixed, non-attacker-controlled input) and add a length or bounds check
 - Enforce the ban with static analysis (`cppcheck`, Clang static analyzer, `-Wformat-security`) in CI
 
+## Taint Sinks
+
+`strcpy()`, `strcat()`, `gets()`, `sprintf()`, `system()`, `popen()`
+
 ## Remediation Steps
 
 - Locate - Search for `strcpy(`, `strcat(`, `gets(`, `sprintf(`, `system(`, `popen(` across the codebase

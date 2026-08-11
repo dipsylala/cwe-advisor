@@ -12,6 +12,10 @@ In Spring Security applications, improper authorization occurs when endpoints or
 - Never derive authorization decisions from user-supplied input (e.g., a `role` request parameter)
 - Test each protected endpoint with a lower-privileged account to confirm access is denied
 
+## Taint Sinks
+
+service/controller methods missing `@PreAuthorize`/`@Secured`, `permitAll()` on sensitive paths, missing `.requestMatchers().hasRole()`
+
 ## Remediation Steps
 
 - Enable method security - add `@EnableMethodSecurity` to a `@Configuration` class

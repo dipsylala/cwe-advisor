@@ -12,6 +12,10 @@ Sensitive Cookie Without 'Secure' Flag occurs when cookies containing sensitive 
 - Ensure application runs on HTTPS in production; cookies with `secure` flag won't work over HTTP
 - Apply secure cookies globally via middleware or default session configuration
 
+## Taint Sinks
+
+`res.cookie()` without `secure: true`, `res.setHeader('Set-Cookie', ...)`, `express-session`/`cookie-session` config without `secure: true`
+
 ## Remediation Steps
 
 - Identify all cookie-setting operations using `res.cookie()`, `res.setHeader('Set-Cookie')`, or session libraries

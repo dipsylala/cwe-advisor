@@ -13,6 +13,10 @@ Open redirects in Go occur when a value from `r.URL.Query().Get("next")`, `r.For
 - For OAuth/SAML `redirect_uri` parameters, require an exact match (`subtle.ConstantTimeCompare` or simple `==`) against a per-client registered URI list, never partial or substring matching
 - Apply the same validator function at every redirect entry point (login, logout, OAuth callback, any secondary API/mobile handler), not just the primary login flow
 
+## Taint Sinks
+
+`http.Redirect()` called with an unvalidated `r.URL.Query().Get()`, `r.FormValue()`, or `Referer` header value
+
 ## Remediation Steps
 
 - Locate - Find every `http.Redirect(w, r, target, ...)` call and trace `target` back to its source: query parameter, form value, header, or session data

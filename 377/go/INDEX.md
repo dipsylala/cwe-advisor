@@ -13,6 +13,10 @@ Insecure temporary files in Go usually come from manually building paths with `f
 - Never derive a second temp file's path by string-manipulating a securely created file's name (e.g., swapping the extension); create each temp file independently through `os.CreateTemp`
 - For highly sensitive contents, encrypt data before writing it to the temp file as defense-in-depth beyond permission restrictions
 
+## Taint Sinks
+
+`os.Create()`/`os.OpenFile()` with `fmt.Sprintf("/tmp/...")`, manual `filepath.Join(os.TempDir(), ...)`, `os.Chmod()` after creation
+
 ## Remediation Steps
 
 - Locate - Find manual temp path construction (`filepath.Join(os.TempDir(), ...)`, `fmt.Sprintf("/tmp/...")`) and any `os.Create`/`os.OpenFile` calls targeting those paths

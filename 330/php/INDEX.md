@@ -12,6 +12,10 @@ Weak random number generation in PHP occurs when insecure functions like `rand()
 - Never use predictable PRNGs for authentication, authorization, cryptography, or session management
 - Verify token length is sufficient (at least 16-32 bytes for security tokens)
 
+## Taint Sinks
+
+`rand()`, `mt_rand()`, `uniqid()`, `lcg_value()`
+
 ## Remediation Steps
 
 - Identify all uses of weak random functions in security-sensitive code paths

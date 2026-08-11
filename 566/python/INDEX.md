@@ -12,6 +12,10 @@ Authorization bypass through user-controlled keys (IDOR) occurs when Python web 
 - Query by composite keys - Filter by both resource ID and user ID: `filter(id=doc_id, user_id=current_user.id)`
 - Return 404 instead of 403 - Avoid leaking resource existence information
 
+## Taint Sinks
+
+`Model.query.get()`, `.filter_by(id=doc_id)`, `get_object_or_404()` without a `user_id` filter
+
 ## Remediation Steps
 
 - Locate the vulnerability - Find where user-controlled IDs flow into database queries without authorization checks

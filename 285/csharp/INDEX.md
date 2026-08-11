@@ -12,6 +12,10 @@ In ASP.NET Core applications, improper authorization occurs when authentication 
 - Combine authentication and role/policy-based authorization for sensitive operations
 - Never assume endpoints are protected without explicit authorization attributes
 
+## Taint Sinks
+
+`[HttpGet]`/`[HttpPost]` actions missing `[Authorize]`, misused `[AllowAnonymous]`, controller actions without role/policy checks
+
 ## Remediation Steps
 
 - Add `[Authorize]` attribute to all controller classes requiring authentication

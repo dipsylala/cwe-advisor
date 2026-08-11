@@ -12,6 +12,10 @@ In ASP.NET Core, cookies created without `CookieOptions.Secure = true` can be tr
 - Combine with `HttpOnly = true` and `SameSite = SameSiteMode.Strict` for defence-in-depth
 - Enable HSTS (`UseHsts()`) so browsers only connect over HTTPS
 
+## Taint Sinks
+
+`Response.Cookies.Append()` with `Secure` unset, `CookieOptions` without `Secure = true`, `CookiePolicyOptions.Secure` left at default
+
 ## Remediation Steps
 
 - Find all `Response.Cookies.Append()` calls and add `Secure = true` to their `CookieOptions`

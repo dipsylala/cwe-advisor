@@ -12,6 +12,10 @@ Code injection in PHP most commonly occurs via `eval()`, the `preg_replace()` `/
 - Replace dynamic dispatch patterns with `match` expressions or lookup arrays of callable functions
 - Disable `allow_url_include` and `allow_url_fopen` in `php.ini` to block remote file inclusion
 
+## Taint Sinks
+
+`eval()`, `assert($string)`, `preg_replace()` with `/e` modifier, `create_function()`, `include`/`require` with user-controlled path
+
 ## Remediation Steps
 
 - Search for `eval(`, `assert("`, `preg_replace(.*/e`, `create_function(` and remove each one

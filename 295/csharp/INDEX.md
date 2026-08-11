@@ -12,6 +12,10 @@ Improper certificate validation in C# occurs when `HttpClientHandler.ServerCerti
 - Use `HttpClient` without a custom handler - the default validates against the Windows/system certificate store
 - `HttpClientHandler.DangerousAcceptAnyServerCertificateValidator` is named "Dangerous" intentionally - never use it in production
 
+## Taint Sinks
+
+`ServerCertificateCustomValidationCallback` returning `true`, `ServicePointManager.ServerCertificateValidationCallback`, `HttpClientHandler.DangerousAcceptAnyServerCertificateValidator`
+
 ## Remediation Steps
 
 - Search for `ServerCertificateCustomValidationCallback` returning `true` or ignoring the `errors` parameter

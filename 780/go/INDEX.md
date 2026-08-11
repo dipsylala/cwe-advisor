@@ -13,6 +13,10 @@ Go's `crypto/rsa` package exposes both the insecure `rsa.EncryptPKCS1v15`/`rsa.D
 - Always source randomness for `rsa.EncryptOAEP` from `crypto/rand.Reader`, never `math/rand` or a deterministic reader, even in test helpers that could get reused elsewhere
 - Use RSA keys of at least 2048 bits (4096 for long-lived keys)
 
+## Taint Sinks
+
+`rsa.EncryptPKCS1v15()`, `rsa.DecryptPKCS1v15()`, `rsa.SignPKCS1v15()`, `rsa.VerifyPKCS1v15()`
+
 ## Remediation Steps
 
 - Locate - Search for `rsa.EncryptPKCS1v15`, `rsa.DecryptPKCS1v15`, `rsa.SignPKCS1v15`, or `rsa.VerifyPKCS1v15` calls in the codebase

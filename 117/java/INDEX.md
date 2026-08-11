@@ -12,6 +12,10 @@ Log Injection occurs when untrusted data is written to log files without encodin
 - Avoid string concatenation when building log messages with user-controlled data
 - Configure logstash-logback-encoder or Log4j2 JsonLayout for production environments
 
+## Taint Sinks
+
+`logger.info()`/`log.warn()` with string concatenation, `System.out.println()` with raw input
+
 ## Remediation Steps
 
 - Add logstash-logback-encoder or log4j-layout-template-json dependency to your project

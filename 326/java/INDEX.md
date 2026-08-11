@@ -12,6 +12,10 @@ Inadequate Encryption Strength in Java occurs when weak cryptographic algorithms
 - Use authenticated encryption modes (GCM, CCM) that provide both confidentiality and integrity protection
 - Regularly update to latest JDK versions to benefit from security patches and modern algorithm support
 
+## Taint Sinks
+
+`Cipher.getInstance("DES")`, `Cipher.getInstance("AES")` (no mode/padding, defaults to ECB), `MessageDigest.getInstance("MD5")`, `MessageDigest.getInstance("SHA-1")`, `KeyGenerator.getInstance("AES").init(128)`
+
 ## Remediation Steps
 
 - Replace DES, 3DES, RC4, Blowfish with AES-256; replace MD5, SHA-1 with SHA-256 or SHA-512

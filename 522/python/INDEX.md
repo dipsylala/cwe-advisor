@@ -12,6 +12,10 @@ Insufficiently Protected Credentials in Python occurs when passwords, API keys, 
 - Transmit credentials only over TLS/HTTPS, never in URL parameters or unencrypted channels
 - Rotate credentials regularly and revoke compromised secrets immediately
 
+## Taint Sinks
+
+hardcoded secrets in source, `hashlib.md5()`/`hashlib.sha1()` for passwords, `print()`/`logging` of credentials
+
 ## Remediation Steps
 
 - Replace hardcoded credentials with environment variables loaded via `os.getenv()` or `python-dotenv`

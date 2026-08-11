@@ -13,6 +13,10 @@ Java JWT libraries are vulnerable to algorithm confusion when verification code 
 - Use `MessageDigest.isEqual(byte[], byte[])` for any raw signature or HMAC comparison - never `String.equals()`, `==`, or `Arrays.equals()`, none of which are constant-time
 - Validate issuer, audience, and expiration in addition to the signature
 
+## Taint Sinks
+
+`Jwts.parser()` without pinned `verifyWith()`, `SignedJWT.verify()`, `SigningKeyResolver` branching on header `alg`, `String.equals()`/`Arrays.equals()` on signatures
+
 ## Remediation Steps
 
 - Locate - find `Jwts.parser()`/`JwtParserBuilder`, `SignedJWT.verify()`, `ConfigurableJWTProcessor`, or custom `Mac`/`Signature` verification code

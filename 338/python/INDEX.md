@@ -13,6 +13,10 @@ Use of Cryptographically Weak PRNG occurs when developers use Python's `random` 
 - Reserve `random` module only for non-security contexts like simulations, games, or testing
 - Use `os.urandom()` as fallback for Python < 3.6 or lower-level randomness needs
 
+## Taint Sinks
+
+`random.random()`, `random.randint()`, `random.choice()`, `random.getrandbits()`
+
 ## Remediation Steps
 
 - Identify all `import random` statements and audit usage for security contexts

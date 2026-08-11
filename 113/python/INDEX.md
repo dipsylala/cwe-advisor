@@ -12,6 +12,10 @@ HTTP Response Splitting in Python occurs when user-supplied strings are placed i
 - Validate redirect destinations against an allowlist of permitted paths or use `urllib.parse.urlparse()` to confirm the scheme and host are safe
 - Avoid `response.headers.add()` with unsanitized user input; prefer framework-level cookie and header helpers
 
+## Taint Sinks
+
+`response.headers[...]=`, `response.headers.add()`, `HttpResponse[...]=` (Django), `make_response()`
+
 ## Remediation Steps
 
 - Replace manual `response.headers['Location'] = user_input` with `redirect(validated_url)` (Flask/Django)

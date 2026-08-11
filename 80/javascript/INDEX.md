@@ -12,6 +12,10 @@ Cross-Site Scripting (CWE-80) occurs when untrusted data is inserted into web pa
 - Implement Content Security Policy (CSP) headers to restrict script execution
 - Sanitize HTML content with libraries like DOMPurify when rich content is required
 
+## Taint Sinks
+
+`innerHTML`, `outerHTML`, `document.write()`, `insertAdjacentHTML()`
+
 ## Remediation Steps
 
 - Identify all locations where user input is rendered to the DOM

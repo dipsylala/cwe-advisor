@@ -13,6 +13,10 @@ PyJWT requires an explicit `algorithms` list on every `jwt.decode()` call; omitt
 - Validate `iss`, `aud`, and `exp` via `jwt.decode()`'s built-in `issuer=`/`audience=`/`options={"require": [...]}` arguments rather than checking claims manually after decoding
 - Use `hmac.compare_digest()` for any HMAC or signature comparison - never `==`, which short-circuits and leaks timing information
 
+## Taint Sinks
+
+`jwt.decode()` without `algorithms`, `options={"verify_signature": False}`, `hmac.new()` result compared with `==`
+
 ## Remediation Steps
 
 - Locate - find `jwt.decode(...)`, `jwt.get_unverified_header(...)`, and any manual `hmac.new(...)` comparisons

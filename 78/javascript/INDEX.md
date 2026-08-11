@@ -15,6 +15,10 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Only use child_process as a last resort with argument arrays and shell: false
 - An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+## Taint Sinks
+
+`child_process.exec()`, `child_process.execSync()`, `child_process.spawn()` (with `shell: true`), `child_process.execFile()`
+
 ## Remediation Steps
 
 - Locate command execution - Identify all child_process.exec(), spawn(), execFile() instances

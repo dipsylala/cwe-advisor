@@ -12,6 +12,10 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Set Content-Security-Policy headers to limit script execution
 - Never trust user input, even if previously validated
 
+## Taint Sinks
+
+unescaped `echo`/`<?= ?>`, Blade `{!! !!}`, Twig `|raw`
+
 ## Remediation Steps
 
 - Identify all user-controlled data rendered in responses

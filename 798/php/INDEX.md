@@ -13,6 +13,10 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 - Validate all credentials come from secure external sources
 - Environment variables reduce exposure versus hard-coding but are not foolproof - they can still leak through process inspection, debug output, or misconfigured server status pages
 
+## Taint Sinks
+
+`new PDO($dsn, $user, $password)` with literal, `define('DB_PASSWORD', ...)`, `curl_setopt($ch, CURLOPT_USERPWD, ...)`
+
 ## Remediation Steps
 
 - Identify all hard-coded credentials in code and configuration files

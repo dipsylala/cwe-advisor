@@ -14,6 +14,10 @@ CRLF Injection occurs when untrusted input containing carriage return (`\r`) and
 - Encode or escape special characters when headers must include dynamic content
 - Never concatenate raw user input directly into HTTP response headers
 
+## Taint Sinks
+
+`res.setHeader()`, `res.set()`, `res.redirect()` with unsanitized input
+
 ## Remediation Steps
 
 - Identify all locations where user input flows into HTTP headers or response fields

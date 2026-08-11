@@ -13,6 +13,10 @@ Go's `net/http` package has no built-in CSRF protection, so state-changing handl
 - Never perform state changes on GET/HEAD requests; reserve them for safe, idempotent operations
 - Reject requests missing or failing the CSRF token check with `http.StatusForbidden` before any business logic runs
 
+## Taint Sinks
+
+State-changing handlers (`http.MethodPost`/`Put`/`Delete`) registered outside `csrf.Protect()`-wrapped router
+
 ## Remediation Steps
 
 - Locate - Find state-changing handlers using `r.Method == http.MethodPost` (or PUT/DELETE/PATCH) and confirm whether they are registered under a CSRF-protected router

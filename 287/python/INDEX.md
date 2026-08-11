@@ -13,6 +13,10 @@ In Django applications, Improper Authentication commonly appears as a custom cla
 - Return `None` from a custom backend's `authenticate()` on any failure so Django's `authenticate()` falls through to the next configured backend instead of raising and short-circuiting.
 - Keep `PASSWORD_HASHERS` ordered with the strongest hasher first; Django rehashes automatically to the first entry on the next successful login.
 
+## Taint Sinks
+
+Direct `user.password` comparison bypassing `check_password()`, `jwt.decode()` with `options={"verify_signature": False}` or missing `algorithms`
+
 ## Remediation Steps
 
 - Locate - Find `AUTHENTICATION_BACKENDS` entries and their `authenticate()` methods, and `jwt.decode()` call sites

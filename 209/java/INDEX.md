@@ -14,6 +14,10 @@ Error Message Information Leak occurs when Java applications expose exception st
 - Sanitize validation errors to avoid exposing internal field names, patterns, or business rules
 - Redact sensitive data (passwords, tokens, PII) from logs using custom layouts or filters
 
+## Taint Sinks
+
+`ex.getMessage()`/`ex.printStackTrace()` in response body, `server.error.include-stacktrace=always`, default Whitelabel error page
+
 ## Remediation Steps
 
 - Configure Spring Boot to disable exception details - set `server.error.include-exception=false`, `include-stacktrace=never`, `include-message=never`

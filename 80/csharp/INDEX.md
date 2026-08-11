@@ -12,6 +12,10 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Defence in depth: Combine output encoding with CSP headers and input validation
 - Sanitize rich content: Use libraries like HtmlSanitizer for user-submitted HTML
 
+## Taint Sinks
+
+`Html.Raw()`, `HtmlString`, `MvcHtmlString`, `InnerHtml`, `Response.Write()`
+
 ## Remediation Steps
 
 - Replace all `@Html.Raw(userInput)` with `@userInput` to enable automatic encoding

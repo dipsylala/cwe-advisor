@@ -14,6 +14,10 @@ In C#, CWE-114 vulnerabilities occur when loading DLLs or executing processes wi
 - Apply least privilege principles when spawning child processes
 - Never concatenate user input directly into process arguments or DLL paths
 
+## Taint Sinks
+
+`Process.Start()`, `[DllImport]` with unvalidated path, `LoadLibrary()`/`LoadLibraryEx()` via P/Invoke
+
 ## Remediation Steps
 
 - Call `SetDllDirectory("")` at application startup to disable current directory DLL loading

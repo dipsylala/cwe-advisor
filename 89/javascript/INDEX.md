@@ -14,6 +14,10 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 - Use ORMs cautiously, ensuring raw query methods still use parameterization
 - Never trust client-side validation alone; always validate on the server
 
+## Taint Sinks
+
+`connection.query()`, `pool.query()` with concatenated strings, Sequelize/Knex `.raw()`
+
 ## Remediation Steps
 
 - Identify all locations where user input flows into SQL queries

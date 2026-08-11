@@ -12,6 +12,10 @@ LDAP Injection occurs when untrusted data is used to construct LDAP queries with
 - Avoid DN construction - Never concatenate user input into Distinguished Names or filter strings
 - Principle of least privilege - Use service accounts with minimal LDAP permissions
 
+## Taint Sinks
+
+`DirectorySearcher.Filter` built by concatenation, `DirectoryEntry.Path` built from user input, `String.Format()` into an LDAP filter
+
 ## Remediation Steps
 
 - Apply regex allowlist validation to usernames/inputs - `^[a-zA-Z0-9._-]{3,64}$`

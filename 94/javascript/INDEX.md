@@ -12,6 +12,10 @@ Code injection occurs when untrusted input flows into code execution functions l
 - Apply principle of least privilege to execution contexts
 - Validate and restrict all dynamic code paths
 
+## Taint Sinks
+
+`eval()`, `new Function()`, `setTimeout(string)`, `setInterval(string)`, `vm.runInContext()`, `vm.runInNewContext()`
+
 ## Remediation Steps
 
 - Replace `eval()` with `JSON.parse()` for data parsing

@@ -12,6 +12,10 @@ JavaScript eval injection occurs when untrusted input flows into dynamic code ex
 - Parse safely: Use `JSON.parse()` for data, never `eval()` for JSON
 - Sanitize module paths: Validate and restrict dynamic `require()` or `import()` calls
 
+## Taint Sinks
+
+`eval()`, `new Function()`, `setTimeout(string, ...)`, `setInterval(string, ...)`, dynamic `require()`/`import()`
+
 ## Remediation Steps
 
 - Search codebase for `eval()`, `Function()`, `setTimeout/setInterval` with string args, and dynamic `require()`

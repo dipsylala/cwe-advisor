@@ -13,6 +13,10 @@ Node.js applications typically handle uploads with `multer`. The common mistake 
 - Store uploads outside any path passed to `express.static()`; serve files back through a route that streams from the private storage location
 - Generate the stored filename (e.g., with `crypto.randomUUID()`); never write using `file.originalname`
 
+## Taint Sinks
+
+`file.originalname`, `file.mimetype`, `multer` `fileFilter` trust, writes into an `express.static` root
+
 ## Remediation Steps
 
 - Locate - Find the `multer()` middleware configuration and the route handler that receives `req.file`/`req.files`

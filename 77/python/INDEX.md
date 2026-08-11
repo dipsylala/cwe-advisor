@@ -13,6 +13,10 @@ In Python, CWE-77 commonly appears where an application talks to a Redis (or sim
 - Validate and bound key/value length and character set as defence-in-depth, even though the client library already prevents delimiter injection
 - Connect with least-privilege Redis ACL credentials (read-only where possible) so an injected command has limited effect if this control is ever bypassed
 
+## Taint Sinks
+
+`socket.send()`/`sendall()` with hand-built inline-protocol commands (e.g. Redis f-string `f"SET {key}..."`)
+
 ## Remediation Steps
 
 - Locate - find code that opens a raw `socket` connection to a Redis/Memcached port, or that builds a command string via f-strings/`%`/`.format()` before sending it

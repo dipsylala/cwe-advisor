@@ -13,6 +13,10 @@ In PHP, CWE-77 commonly appears in applications that implement their own command
 - Apply defence-in-depth: run the interpreter's handlers with the minimum permissions they need, and log unrecognised or rejected commands
 - Keep this bespoke-interpreter case separate from OS command execution (CWE-78) and argument/flag injection into an external process (CWE-88); no shell or external process is involved here
 
+## Taint Sinks
+
+`call_user_func($userInput)`, `$cmd()` variable-function call, `$$cmd` variable-variable dispatch
+
 ## Remediation Steps
 
 - Locate - find custom command-parsing code (an admin console, chat command handler, macro interpreter) that takes user input and dispatches it to a function or action

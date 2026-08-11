@@ -13,6 +13,10 @@ In Flask and Django, uploads arrive through `request.files` or a `FileField`. A 
 - In Django, `FileField(upload_to=...)` controls the storage subpath but does not validate content; add a `validators=[...]` callable or clean method that performs the magic-byte check before save
 - Store uploads outside `STATIC_ROOT`/`MEDIA_ROOT` if they should not be directly web-accessible, or serve them through a view that enforces access control rather than direct static serving
 
+## Taint Sinks
+
+`secure_filename()`, `file.content_type`, `uploaded_file.content_type`, `FileField`
+
 ## Remediation Steps
 
 - Locate - Find where `request.files['x']` (Flask) or a `FileField`/`ImageField` (Django) receives the upload

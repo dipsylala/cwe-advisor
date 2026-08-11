@@ -12,6 +12,10 @@ CRLF Injection occurs when untrusted user input containing carriage return (`\r`
 - Implement structured logging (JSON format) to prevent log injection attacks
 - Apply length limits to header values and logged content to prevent DoS attacks
 
+## Taint Sinks
+
+`response.headers[...] =`, `HttpResponse()` header assignment, `redirect()` with unsanitized input, `logging.info()` with unsanitized input
+
 ## Remediation Steps
 
 - Identify all locations where user input flows into HTTP headers, email headers, log messages, or response fields

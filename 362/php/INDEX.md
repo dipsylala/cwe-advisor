@@ -13,6 +13,10 @@ PHP's typical process-per-request model means requests do not share in-memory st
 - For state shared across multiple servers, use a datastore-level lock (database row lock, Redis `SET key value NX EX ttl`) rather than a host-local mechanism like `flock()` or APCu
 - Never assume "PHP is single-threaded" removes the race; concurrent requests are still concurrent processes acting on the same external resource
 
+## Taint Sinks
+
+`apcu_fetch()` followed by `apcu_store()`, separate `SELECT` then `UPDATE` without `FOR UPDATE`, file read-modify-write without `flock()`
+
 ## Remediation Steps
 
 - Locate - Find database rows, files, session keys, or cache keys read and written by more than one concurrent request

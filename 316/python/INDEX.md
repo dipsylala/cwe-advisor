@@ -12,6 +12,10 @@ Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cl
 - Use secure input methods (`getpass`) and avoid printing/logging credentials
 - Consider memory-locking libraries (`mlock`) for highly sensitive applications
 
+## Taint Sinks
+
+`str` variables/attributes holding passwords or keys, f-string/`+` concatenation of credentials, `input()` for passwords
+
 ## Remediation Steps
 
 - Replace string-based credentials with `bytearray` for passwords and keys

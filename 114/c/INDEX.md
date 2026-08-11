@@ -14,6 +14,10 @@ In C, CWE-114 occurs when loading shared libraries (`dlopen()`, `LoadLibrary()`)
 - Set restrictive file permissions (755 for executables, owned by trusted user)
 - Verify library signatures and integrity before loading
 
+## Taint Sinks
+
+`dlopen()`, `LoadLibrary()`, `LoadLibraryEx()`, `exec*()` family, `CreateProcess()`, `system()`
+
 ## Remediation Steps
 
 - Replace all relative paths with absolute, validated paths

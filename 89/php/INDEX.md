@@ -16,6 +16,10 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Bind `LIKE` wildcard values as a parameter too - concatenating `"%$search%"` into an otherwise-prepared query still injects the wildcard portion
 - Treat `PDO::quote()` as manual escaping, not parameterization - it builds a string for you to concatenate and is easy to misuse; prefer bound parameters
 
+## Taint Sinks
+
+`mysqli_query()`, `mysqli::query()`, `PDO::query()`, `PDO::exec()`
+
 ## Remediation Steps
 
 - Locate the sink (SQL execution point) and source (user input) in the data flow report

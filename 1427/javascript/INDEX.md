@@ -12,6 +12,10 @@ In Node.js/TypeScript apps using `@anthropic-ai/sdk` (or the OpenAI SDK, which f
 - Keep tools narrow and parameterized rather than giving the model broad capabilities (arbitrary shell, unrestricted network fetch) that turn a successful injection into full compromise
 - Gate irreversible actions behind a check against the real authenticated session, never a value read from the tool call's `input`
 
+## Taint Sinks
+
+`system` string built with untrusted content, `client.messages.create()`, tool handler executing on `toolUse.input` without re-authorization
+
 ## Remediation Steps
 
 - Locate every `client.messages.create()` call and confirm `system` contains only developer-authored text, with user input and fetched content passed as `messages` content instead

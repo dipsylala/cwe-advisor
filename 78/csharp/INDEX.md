@@ -15,6 +15,10 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Only use ProcessStartInfo as a last resort with ArgumentList and UseShellExecute = false
 - ArgumentList prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+## Taint Sinks
+
+`Process.Start()`, `ProcessStartInfo`, `Shell()`, `WScript.Shell`
+
 ## Remediation Steps
 
 - Locate command execution - Identify all Process.Start() and ProcessStartInfo instances

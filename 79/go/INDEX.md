@@ -13,6 +13,10 @@ XSS in Go usually stems from using `text/template` for HTML output, building HTM
 - If HTML fragments must be built outside a parsed template, use `template.HTMLEscapeString`, `template.JSEscapeString`, or `template.URLQueryEscaper` for the specific context, never a generic escaper
 - If input selects a link, resource, or class via an allowlist, resolve it through a Go map lookup and pass only the resolved value into the template
 
+## Taint Sinks
+
+`template.HTML()`, `template.JS()`, `template.URL()`, `template.HTMLAttr()`, `text/template.Execute()`, `w.Write()` with concatenated HTML
+
 ## Remediation Steps
 
 - Locate - find HTML rendering sinks: `template.Execute`/`ExecuteTemplate`, `w.Write` with HTML strings, `fmt.Fprintf` writing HTML

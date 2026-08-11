@@ -13,6 +13,10 @@ In Node.js applications this occurs when request data (`req.body`, `req.query`, 
 - Never pass a request-controlled path to `fs.readFileSync()`/`require()` for config loading, and never fetch a request-controlled URL for remote configuration (SSRF risk)
 - Log both accepted and rejected configuration changes with the acting user's identity
 
+## Taint Sinks
+
+`process.env[key]=`, `config.util.extendDeep()`, `logger.level=`, CORS `origin` option
+
 ## Remediation Steps
 
 - Locate - find where `req.body`, `req.query`, or `req.headers` flows into `process.env[...]`, `config.util.extendDeep()`, `logger.level =`, CORS options, or `fs.readFileSync()`/`require()` with a path argument

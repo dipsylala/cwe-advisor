@@ -12,6 +12,10 @@ Java's `java.util.Random` and `Math.random()` are predictable and unsuitable for
 - Never seed `SecureRandom` with predictable values (timestamps, constants)
 - Ensure sufficient entropy by relying on OS-level random sources
 
+## Taint Sinks
+
+`new Random()`, `Math.random()`
+
 ## Remediation Steps
 
 - Identify all random number generation in security-sensitive code (tokens, keys, salts, IVs, nonces)

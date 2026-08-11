@@ -12,6 +12,10 @@ In Python apps using the Anthropic `anthropic` SDK (or the OpenAI SDK, which fol
 - Keep tool implementations narrow and parameterized; do not give the model a general-purpose shell or filesystem tool when a specific, validated action would do
 - Gate irreversible tool actions (refunds, deletions, sending messages) behind an explicit authorization check against the actual authenticated caller, not a value the model passed in `tool_use.input`
 
+## Taint Sinks
+
+`system` string built with untrusted content, `client.messages.create()`, tool handler executing on `tool_use.input` without re-authorization
+
 ## Remediation Steps
 
 - Locate every `client.messages.create()` / `client.beta.messages.create()` call and check whether `system` contains only developer-authored text, not interpolated user or retrieved content

@@ -13,6 +13,10 @@ In Flask, Django, and FastAPI applications this occurs when request data (`reque
 - Never pass a request-controlled path to `configparser.read()`/`open()` for config loading, and use `yaml.safe_load()` (never `yaml.load()`/`yaml.Loader`) for any uploaded YAML configuration
 - Log both accepted and rejected configuration changes with the acting user's identity
 
+## Taint Sinks
+
+`os.environ[key]=`, `app.config[key]=`, `setattr(settings, ...)`, `logging.getLogger().setLevel()`
+
 ## Remediation Steps
 
 - Locate - find where `request.form`, `request.args`, `request.json`, or `request.POST` flows into `os.environ[...]`, `app.config[...]`, `setattr(settings, ...)`, `logging.getLogger().setLevel()`, or `configparser.read()`/`yaml.load()` with a path or file argument

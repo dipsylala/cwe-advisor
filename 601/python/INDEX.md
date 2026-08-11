@@ -12,6 +12,10 @@ Open redirect vulnerabilities occur when user-controlled input determines redire
 - Reject any path containing a backslash (`\`) - browsers can normalize `/\evil.com` to `//evil.com`, bypassing a `//`-only check
 - Use framework-specific safe redirect utilities where available (Django's `url_has_allowed_host_and_scheme()`); Flask requires a custom helper using `urllib.parse` or Werkzeug patterns
 
+## Taint Sinks
+
+Flask `redirect()`, Django `HttpResponseRedirect()` / `redirect()`, FastAPI `RedirectResponse()` called with unvalidated input
+
 ## Remediation Steps
 
 - Parse the redirect URL using `urllib.parse.urlparse()` to extract scheme, netloc, and path components

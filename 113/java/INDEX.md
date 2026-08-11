@@ -12,6 +12,10 @@ HTTP Response Splitting occurs when attackers inject CRLF characters (`\r\n`) in
 - Avoid manual header construction: Never concatenate user input directly into headers
 - Use safe APIs: Prefer `UriComponentsBuilder` for URL construction with proper encoding
 
+## Taint Sinks
+
+`response.setHeader()`, `response.addHeader()`, `response.sendRedirect()`
+
 ## Remediation Steps
 
 - Replace manual `response.setHeader()` calls with Spring's `ResponseCookie.from()` builder for cookies

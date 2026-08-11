@@ -15,6 +15,10 @@ JavaScript deserialization vulnerabilities occur when `eval()`, `Function()`, `v
 - `JSON.parse()` itself is safe, but merging its output into an existing object with `Object.assign()`, bracket-notation assignment (`target[key] = value`), or a recursive deep-merge library can still cause prototype pollution if `__proto__`/`constructor`/`prototype` keys are not rejected - validate keys before merging, or use `Object.create(null)`/`Map` for untrusted data
 - Use Content Security Policy and strict input validation at API boundaries
 
+## Taint Sinks
+
+`eval()`, `Function()`, `vm.runInNewContext()`, `node-serialize.unserialize()`, `serialize-javascript` unsafe unserialize
+
 ## Remediation Steps
 
 - Audit codebase for `eval()`, `Function()`, `vm.runInNewContext()`, and unsafe deserialization libraries

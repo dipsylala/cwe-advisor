@@ -14,6 +14,10 @@ Cross-Site Scripting (XSS) occurs when untrusted data is rendered in web pages w
 - Apply Content Security Policy (CSP) headers as defence-in-depth
 - Encode data appropriately for context (HTML, JavaScript, URL)
 
+## Taint Sinks
+
+`innerHTML`, `outerHTML`, `document.write()`, `dangerouslySetInnerHTML`, `v-html`, `insertAdjacentHTML()`
+
 ## Remediation Steps
 
 - Replace `innerHTML` with `textContent` or framework-safe rendering

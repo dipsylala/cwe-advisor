@@ -12,6 +12,10 @@ Insecure temporary file creation occurs when applications create files with pred
 - Implement automatic cleanup using context managers or `delete=True` parameter
 - Avoid creating temporary files in world-writable directories like `/tmp` without proper protections
 
+## Taint Sinks
+
+`open('/tmp/...')` with a predictable name, `os.mktemp()` (deprecated, insecure), manual `open(f"/tmp/{name}")`
+
 ## Remediation Steps
 
 - Replace manual file creation with `tempfile.NamedTemporaryFile()` or `tempfile.mkstemp()`

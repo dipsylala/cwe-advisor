@@ -14,6 +14,10 @@ XML Injection occurs when untrusted input is used to construct XML documents wit
 - Apply whitelist validation for element names, attributes, and structural components
 - Disable external entity processing and DTD validation to prevent XXE attacks
 
+## Taint Sinks
+
+f-string/`.format()`/`%`-formatted XML strings, `+` concatenation into raw XML
+
 ## Remediation Steps
 
 - Replace string concatenation with `ElementTree.Element()` and `SubElement()` methods

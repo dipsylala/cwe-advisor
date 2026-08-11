@@ -12,6 +12,10 @@ In Express applications, improper authorization occurs when route handlers perfo
 - Apply a default-deny approach: unauthenticated or insufficiently privileged requests must be rejected before any business logic runs
 - Cover all HTTP verbs - GET endpoints that expose sensitive data need the same authorization checks as POST/DELETE
 
+## Taint Sinks
+
+`router.get/post/put/delete` handlers without authorization middleware, trusting `req.body.role`/query-string role values
+
 ## Remediation Steps
 
 - Identify unprotected routes - look for `router.get/post/put/delete` handlers that perform privileged operations without authorization middleware

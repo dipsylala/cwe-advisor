@@ -11,6 +11,10 @@ Using reference equality on object-typed values instead of value equality can co
 - Avoid culture-sensitive comparisons (`CurrentCulture`) in authentication, authorization, and security checks
 - Never rely on string interning for security decisions
 
+## Taint Sinks
+
+`==`/`!=` on `object`-typed string values, culture-sensitive `CompareTo()` or `string.Compare()` without `StringComparison.Ordinal`
+
 ## Remediation Steps
 
 - Identify string comparisons in security-sensitive code paths, especially where values are typed as `object` or comparison mode is implicit

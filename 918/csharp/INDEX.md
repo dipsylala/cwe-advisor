@@ -14,6 +14,10 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Resolve DNS and validate resulting IP addresses to prevent DNS rebinding attacks
 - Enforce HTTPS-only and implement request timeouts to prevent DoS
 
+## Taint Sinks
+
+`HttpClient.GetAsync()`, `HttpClient.SendAsync()`, `WebClient.DownloadString()`, `WebRequest.Create()`
+
 ## Remediation Steps
 
 - Create a URL validator that checks URLs against an allowlist of allowed domains/schemes

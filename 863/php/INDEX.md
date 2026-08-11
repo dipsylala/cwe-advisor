@@ -13,6 +13,10 @@ In Laravel and similar PHP frameworks, Incorrect Authorization commonly appears 
 - Register Policies via `Gate::policy()` (or auto-discovery) so authorization logic is centralized, not duplicated inline across controllers
 - Ensure Policy methods return `false` (denied) for any unmatched or unexpected role rather than omitting a `return`, which in PHP defaults to `null` and can be misinterpreted by custom authorization middleware
 
+## Taint Sinks
+
+`!=`/`!==` role comparisons, `$user->can('update', Order::class)` class-level checks, `$request->input('role')`
+
 ## Remediation Steps
 
 - Locate - Find Policy methods or inline controller checks using `!=`/`!==` role comparisons, and Policy calls that check only the model class rather than a loaded instance

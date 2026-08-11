@@ -13,6 +13,10 @@ External control of file names or paths occurs when untrusted input (HTTP reques
 - Never concatenate user input directly into file paths
 - Sanitize file names by removing directory traversal sequences
 
+## Taint Sinks
+
+`new File()`, `Files.readAllBytes()`, `Paths.get()`, `FileReader`/`FileWriter` with unvalidated input
+
 ## Remediation Steps
 
 - Identify untrusted sources - Locate where external data enters (`request.getParameter()`, `@PathVariable`, `MultipartFile.getOriginalFilename()`, headers, JSON/XML fields)

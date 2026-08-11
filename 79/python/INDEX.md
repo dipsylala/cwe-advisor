@@ -12,6 +12,10 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Sanitize rich content: Use `bleach.clean()` or `nh3.clean()` with strict allowlists for permitted HTML tags/attributes - prefer `nh3` for new code since `bleach` is in reduced maintenance
 - Validate input format: Reject unexpected formats early before rendering
 
+## Taint Sinks
+
+`mark_safe()`, `|safe` filter, `Markup()`, `render_template_string()` with concatenated HTML
+
 ## Remediation Steps
 
 - Enable and verify template auto-escaping is active (Django - `TEMPLATES['OPTIONS']['autoescape'] = True`)

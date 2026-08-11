@@ -13,6 +13,10 @@ In Go handlers, Incorrect Authorization typically appears as a denylist role com
 - If roles come from a JWT, re-verify the token signature and re-derive the role from the verified claims on every request; do not cache a role from a prior request
 - Default to denial: an unrecognized role, a missing claim, or an error resolving the resource must all result in a 403, not a fallthrough to success
 
+## Taint Sinks
+
+`role != "admin"` denylist comparisons, `r.Header.Get()` role/claim reads, handlers missing a shared `authorize...Access()`-style ownership check
+
 ## Remediation Steps
 
 - Locate - Find handlers that read a role or permission (`r.Header.Get(...)`, JWT claims, session values) and compare it inline, and note which sibling handlers for the same resource skip the check

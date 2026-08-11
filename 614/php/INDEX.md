@@ -12,6 +12,10 @@ In PHP, cookies set with `setcookie()` or `session_start()` without the `secure`
 - Never send sensitive cookies (session ID, authentication tokens) over HTTP
 - Enforce HTTPS site-wide to make the `Secure` flag effective
 
+## Taint Sinks
+
+`setcookie()` without `secure` option, `session_start()` with `session.cookie_secure` unset, `session_set_cookie_params()` without `secure`
+
 ## Remediation Steps
 
 - Find all `setcookie()` calls for session tokens, authentication cookies, and other sensitive values

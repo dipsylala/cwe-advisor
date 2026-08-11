@@ -13,6 +13,10 @@ In Django REST Framework, Incorrect Authorization commonly appears as a `permiss
 - Apply the permission class via the view's `permission_classes` attribute so it runs for every method (GET/PUT/PATCH/DELETE) on that view, rather than adding inline checks per view function
 - Return `False` explicitly for any unmatched role or failed ownership comparison; do not rely on falsy defaults from an incomplete conditional
 
+## Taint Sinks
+
+`has_permission()` implemented without `has_object_permission()`, `request.user.role != 'admin'`, `request.data.get('role')`
+
 ## Remediation Steps
 
 - Locate - Find `BasePermission` subclasses that implement `has_permission` only, and any inline `!=` role comparisons in views

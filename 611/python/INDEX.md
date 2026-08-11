@@ -14,6 +14,10 @@ Python XML parsing is risky for untrusted input because some parsers allow DTDs,
 - Avoid parsing untrusted XML with default configurations
 - Use secure parser configurations as defence-in-depth even with trusted sources
 
+## Taint Sinks
+
+`xml.etree.ElementTree.parse()`, `xml.dom.minidom.parse()`, `xml.sax.parse()`, `lxml.etree.parse()` with default settings
+
 ## Remediation Steps
 
 - Install `defusedxml` - `pip install defusedxml`

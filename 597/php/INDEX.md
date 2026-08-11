@@ -12,6 +12,10 @@ PHP's loose equality operator (`==`) performs type juggling before comparison, c
 - Never compare user-supplied values with `==` against numeric-looking strings, booleans, or `null`
 - Enable strict types (`declare(strict_types=1)`) at the file level to surface type mismatches early
 
+## Taint Sinks
+
+`==` loose comparison on strings, direct `==`/`===` comparison of password hashes, `==` on tokens instead of `hash_equals()`
+
 ## Remediation Steps
 
 - Search for `==` comparisons involving strings in authentication, token validation, and authorization logic

@@ -15,6 +15,10 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Only use subprocess as a last resort with argument lists and shell=False
 - An argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+## Taint Sinks
+
+`subprocess.run()`, `subprocess.call()`, `subprocess.Popen()`, `os.system()`, `os.popen()`
+
 ## Remediation Steps
 
 - Locate command execution - Identify all subprocess, os.system(), os.popen() instances

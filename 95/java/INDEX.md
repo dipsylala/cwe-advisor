@@ -12,6 +12,10 @@ Java eval injection occurs when untrusted input flows into dynamic code executio
 - Isolate execution contexts: Use separate processes/containers with resource limits; do not rely on Java SecurityManager for modern Java
 - Prefer safe alternatives: Use configuration files, domain-specific languages, or rule engines with declarative syntax
 
+## Taint Sinks
+
+`ScriptEngine.eval()`, `ExpressionParser.parseExpression()` (SpEL), `Ognl.getValue()`, reflective `Method.invoke()` with dynamic class/method names
+
 ## Remediation Steps
 
 - Identify all uses of ScriptEngine, expression evaluators (SpEL, OGNL), and reflection with user input

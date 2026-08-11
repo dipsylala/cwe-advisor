@@ -12,6 +12,10 @@ Inadequate Encryption Strength occurs when C# applications use weak algorithms (
 - Avoid deprecated algorithms - No DES, TripleDES, MD5, SHA1, RC2, or ECB mode
 - Separate keys per purpose - Don't reuse encryption keys for signing/authentication
 
+## Taint Sinks
+
+`DES.Create()`, `TripleDES.Create()`, `MD5.Create()`, `SHA1.Create()`, `RC2.Create()`, `RSA.Create(1024)`
+
 ## Remediation Steps
 
 - Search for weak algorithms - Grep for `DES`, `TripleDES`, `MD5`, `SHA1`, `RC2`, `RSA.Create(1024)`

@@ -15,6 +15,10 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Only use proc_open() as a last resort with bypass_shell option and argument arrays
 - An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+## Taint Sinks
+
+`exec()`, `system()`, `shell_exec()`, `passthru()`, `` `backticks` ``, `proc_open()`, `popen()`
+
 ## Remediation Steps
 
 - Locate command execution - Identify all exec(), system(), shell_exec(), passthru(), backtick, and proc_open() instances

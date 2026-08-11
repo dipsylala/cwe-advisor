@@ -13,6 +13,10 @@ The `jsonwebtoken` npm package is vulnerable to algorithm confusion when `jwt.ve
 - For `kid`-based key lookup (a `getKey` callback backed by `jwks-rsa` or similar), resolve the key from a trusted key store and still pass the same `algorithms` restriction to `verify()`
 - Use `crypto.timingSafeEqual()` for HMAC/signature comparisons, checking buffer lengths first since it throws on length mismatch instead of returning false
 
+## Taint Sinks
+
+`jwt.verify()` without `algorithms`, `jwt.decode()` used for authorization, `===`/`Buffer.equals()` on HMAC digests
+
 ## Remediation Steps
 
 - Locate - find `jwt.verify(...)`, `jwt.decode(...)`, and any custom HMAC comparison using `crypto.createHmac()`

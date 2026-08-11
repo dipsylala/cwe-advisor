@@ -14,6 +14,10 @@ Hard-coded credentials in Go typically appear as string literals or `const`/`var
 - Add secret-scanning tools (TruffleHog, git-secrets, GitHub secret scanning) to CI to catch reintroduced literals - `go vet` does not detect secrets, it only checks for suspicious constructs
 - Environment variables are a reasonable fallback, not a risk-free store - they remain readable via `/proc/<pid>/environ`, `ps eww <pid>` on BSD-style `ps`, or cloud metadata endpoints, so prefer a secrets manager for production credentials
 
+## Taint Sinks
+
+Hardcoded `const`/`var` string literals for passwords/keys, `sql.Open()`, `smtp.PlainAuth()`, `http.SetBasicAuth()`
+
 ## Remediation Steps
 
 - Locate - Search source, config files (`config.yaml`, `.env`), test helpers, and CLI/migration scripts for embedded credentials; check git history for previously committed values

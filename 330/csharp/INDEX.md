@@ -13,6 +13,10 @@
 - `Guid.NewGuid()` is not a cryptographically secure random source - do not use it as a security token
 - `Guid.CreateVersion7()` is useful for sortable non-secret identifiers, but it embeds a timestamp and must not be used as a security token
 
+## Taint Sinks
+
+`new Random()`, `Random.Shared`, `Guid.NewGuid()` used as a security token
+
 ## Remediation Steps
 
 - Locate `new Random()` or `Random.Shared.Next()` calls in token generation, key derivation, or nonce creation

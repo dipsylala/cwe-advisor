@@ -12,6 +12,10 @@ CWE-201 occurs when JavaScript/Node.js applications expose sensitive data (passw
 - Apply response filtering to remove sensitive fields like passwords, tokens, and internal IDs before sending
 - Log detailed errors server-side only; send sanitized messages to clients
 
+## Taint Sinks
+
+`res.json(err)`, `res.send(err.stack)`, `res.json(user)` on unfiltered model instances, logging full request/error objects to external services
+
 ## Remediation Steps
 
 - Review all API response handlers and remove sensitive fields using allowlists or field exclusion

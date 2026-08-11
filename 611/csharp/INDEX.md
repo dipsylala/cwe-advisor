@@ -14,6 +14,10 @@ XXE vulnerabilities in .NET occur when XML parsers process external entity refer
 - Keep DTD processing prohibited; if entity expansion is allowed for trusted XML, set a positive `MaxCharactersFromEntities` limit and consider `MaxCharactersInDocument`
 - Create reusable secure configuration helpers to ensure consistent protection across the codebase
 
+## Taint Sinks
+
+`XmlDocument.LoadXml()`, `XmlReader.Create()` without secure settings, `XmlSerializer.Deserialize()`, `DataContractSerializer`
+
 ## Remediation Steps
 
 - Identify all XML parsing locations (XmlDocument.LoadXml, XmlReader.Create, XmlSerializer.Deserialize, etc.)

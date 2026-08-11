@@ -13,6 +13,10 @@ In Go, TLS clients built with `crypto/tls` disable certificate validation when `
 - For `client-go` (Kubernetes) configs, never set `rest.TLSClientConfig.Insecure = true`; use `rest.InClusterConfig()` in-cluster, or a kubeconfig that does not set `insecure-skip-tls-verify: true`
 - Use `httptest.NewTLSServer` and `server.Client()` for HTTPS integration tests instead of disabling verification
 
+## Taint Sinks
+
+`tls.Config{InsecureSkipVerify: true}`, bypassing `VerifyPeerCertificate`/`VerifyConnection`, `rest.TLSClientConfig.Insecure`
+
 ## Remediation Steps
 
 - Locate - search for `InsecureSkipVerify`, custom `VerifyPeerCertificate`/`VerifyConnection` functions, and `rest.TLSClientConfig{Insecure: true}`

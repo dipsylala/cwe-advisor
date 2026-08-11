@@ -13,6 +13,10 @@
 - Use `CryptographicOperations.FixedTimeEquals()` (.NET Core 2.1+) for any raw signature/HMAC comparison - never `==`, `SequenceEqual()`, or `Array.Equals()`, none of which are constant-time
 - Set `ValidateIssuer`, `ValidateAudience`, and `ValidateLifetime` to `true` in addition to signature validation
 
+## Taint Sinks
+
+`JwtSecurityTokenHandler.ValidateToken()` without `ValidAlgorithms`, `IssuerSigningKeyResolver` keyed by header `alg`, `==`/`SequenceEqual()` on signature bytes
+
 ## Remediation Steps
 
 - Locate - find `TokenValidationParameters`, `JwtSecurityTokenHandler.ValidateToken()`, `JsonWebTokenHandler.ValidateTokenAsync()`, or custom `HMACSHA256`/`RSA` verification code

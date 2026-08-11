@@ -12,6 +12,10 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Use DNS resolution checks to prevent DNS rebinding attacks
 - Disable HTTP redirects or validate redirect destinations
 
+## Taint Sinks
+
+`requests.get()`, `requests.post()`, `urllib.request.urlopen()`, `httpx.get()`
+
 ## Remediation Steps
 
 - Parse and validate the URL scheme - reject anything other than `https://`

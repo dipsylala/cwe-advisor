@@ -12,6 +12,10 @@ CWE-183 occurs when input validation uses overly permissive patterns that fail t
 - Enforce strict length limits before validation
 - Validate normalized/canonical forms to prevent bypass techniques
 
+## Taint Sinks
+
+unanchored regex (missing `^`/`$`), loose `String.includes()`/`startsWith()` checks, missing length limits
+
 ## Remediation Steps
 
 - Replace unanchored regex with fully anchored patterns using `^` and `$`

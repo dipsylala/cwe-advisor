@@ -14,6 +14,10 @@ PHP's XML parsers can process external entities by default, leading to file disc
 - Prefer JSON over XML when possible to eliminate XXE risk entirely
 - Keep PHP updated (8.0+ has safer defaults with entity loader disabled by default)
 
+## Taint Sinks
+
+`simplexml_load_string()`, `DOMDocument::loadXML()`, `XMLReader::XML()`, `xml_parse()`
+
 ## Remediation Steps
 
 - Call `libxml_disable_entity_loader(true)` at application initialization for PHP < 8.0

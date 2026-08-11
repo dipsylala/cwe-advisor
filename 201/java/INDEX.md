@@ -12,6 +12,10 @@ Java applications commonly leak sensitive information through HTTP responses, er
 - Validate and sanitize all data before including in responses, especially user-controlled input
 - Apply principle of least privilege to error messages-only expose what users need
 
+## Taint Sinks
+
+`ResponseEntity.body(entity)` with unfiltered entities, `ex.getMessage()`/`ex.printStackTrace()` returned to clients, `server.error.include-stacktrace=always`
+
 ## Remediation Steps
 
 - Replace default exception handlers with custom handlers that log full details server-side but return generic messages to clients

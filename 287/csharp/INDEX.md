@@ -13,6 +13,10 @@ In ASP.NET Core, Improper Authentication commonly appears as `SignInManager.Pass
 - Set `ValidateIssuer`, `ValidateAudience`, and `ValidateLifetime` to `true` with explicit `ValidIssuer`/`ValidAudience` values, not wildcard acceptance.
 - Load the JWT signing key from configuration or a secret store (`IConfiguration`, Azure Key Vault), not a literal string in `TokenValidationParameters`.
 
+## Taint Sinks
+
+`PasswordSignInAsync(lockoutOnFailure: false)`, custom `SignatureValidator` delegate, `TokenValidationParameters` without `ValidAlgorithms`
+
 ## Remediation Steps
 
 - Locate - Find calls to `SignInManager.PasswordSignInAsync`/`CheckPasswordSignInAsync` and `AddJwtBearer`/`TokenValidationParameters` configuration

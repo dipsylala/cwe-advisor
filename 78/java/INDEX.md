@@ -14,6 +14,10 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Only use ProcessBuilder as a last resort with validated argument lists (no shell invocation)
 - A separate argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+## Taint Sinks
+
+`Runtime.exec()`, `ProcessBuilder()`, `ProcessBuilder.start()`
+
 ## Remediation Steps
 
 - Locate command execution - Identify all Runtime.exec() and ProcessBuilder instances

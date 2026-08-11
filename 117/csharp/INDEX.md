@@ -14,6 +14,10 @@ Log Injection occurs when untrusted data is written to log files without sanitiz
 - Validate and sanitize log inputs at application boundaries
 - Use parameterized logging with message templates instead of string interpolation
 
+## Taint Sinks
+
+`ILogger.LogInformation($"...")` with string interpolation, `Console.WriteLine()` with raw input, unescaped CR/LF written to a plain-text log
+
 ## Remediation Steps
 
 - Adopt structured logging with `Microsoft.Extensions.Logging` and JSON formatter or Serilog with JSON sinks

@@ -12,6 +12,10 @@ Inadequate Encryption Strength occurs when Python applications use weak cryptogr
 - Leverage the `cryptography` library's high-level recipes with secure defaults
 - Generate cryptographically secure random keys using `os.urandom()` or `secrets` module
 
+## Taint Sinks
+
+`Crypto.Cipher.DES`, `Crypto.Cipher.ARC4`, `hashlib.md5()`, `hashlib.sha1()`, `rsa.generate_private_key(key_size=1024)`
+
 ## Remediation Steps
 
 - Replace deprecated `PyCrypto` with the actively maintained `cryptography` library; PyCryptodome can be acceptable when configured with modern algorithms and modes

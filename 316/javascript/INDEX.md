@@ -12,6 +12,10 @@ Storing sensitive data (passwords, cryptographic keys, tokens) in memory as clea
 - Avoid string operations: Never convert sensitive buffers to strings or log them
 - Secure comparison: Use `crypto.timingSafeEqual()` for comparing sensitive values
 
+## Taint Sinks
+
+`string` variables holding passwords/keys/tokens, `JSON.stringify()` of credential objects
+
 ## Remediation Steps
 
 - Replace string variables holding passwords/keys with `Buffer.from()` or `Buffer.alloc()`

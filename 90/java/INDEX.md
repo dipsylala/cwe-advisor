@@ -14,6 +14,10 @@ LDAP Injection occurs when untrusted data is used to construct LDAP queries with
 - Apply principle of least privilege to LDAP service accounts
 - Sanitize special LDAP characters: `*()|\&` for filters, `,=+<>#;` for DNs
 
+## Taint Sinks
+
+`DirContext.search()` with concatenated filter, `NamingEnumeration ctx.search()` with concatenated filter
+
 ## Remediation Steps
 
 - Replace string concatenation with OWASP ESAPI encoding methods

@@ -12,6 +12,10 @@ Process control vulnerabilities occur when untrusted input influences process cr
 - Implement resource limits and monitoring to detect abnormal process spawning or termination patterns
 - Prefer built-in APIs over shell execution; avoid shell=True in subprocess calls
 
+## Taint Sinks
+
+`subprocess.run()`/`Popen()` with `shell=True`, `os.system()`, `os.kill()`, `os.exec*()` family
+
 ## Remediation Steps
 
 - Identify all code paths where user input affects process control (subprocess, os.kill, signal operations)

@@ -13,6 +13,10 @@ ASP.NET Core receives uploads as `IFormFile` on an action method. The common mis
 - Store files outside `wwwroot` (or any directory served by `UseStaticFiles`); serve them back through an authorized action that streams from private storage
 - Re-encode images (e.g., via `System.Drawing` alternatives like `SixLabors.ImageSharp`, decode then re-save) before persisting, to strip embedded active content
 
+## Taint Sinks
+
+`IFormFile.FileName`, `IFormFile.ContentType`, writes into `wwwroot`
+
 ## Remediation Steps
 
 - Locate - Find the action method with an `IFormFile` (or `IFormFileCollection`) parameter that accepts the upload

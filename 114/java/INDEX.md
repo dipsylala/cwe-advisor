@@ -11,6 +11,10 @@ In Java, CWE-114 occurs when loading native libraries or executing processes wit
 - Set `java.library.path` explicitly and restrict to trusted directories
 - Avoid constructing library names or process commands from user input
 
+## Taint Sinks
+
+`System.loadLibrary()`, `System.load()` with unvalidated path, `Runtime.exec()`, `ProcessBuilder` with untrusted args
+
 ## Remediation Steps
 
 - Replace `System.loadLibrary(userInput)` with `System.load(ABSOLUTE_TRUSTED_PATH)`

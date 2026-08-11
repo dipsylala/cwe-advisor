@@ -13,6 +13,10 @@ Go's `database/sql` supports safe parameterization through placeholders (`?` for
 - Scan results with typed `Scan()`/`StructScan()` destinations rather than feeding returned data into further queries without revalidation
 - Apply least-privilege database credentials as defence-in-depth
 
+## Taint Sinks
+
+`db.Query()`, `db.Exec()`, `db.QueryRow()`, `gormDB.Raw()`, `sqlx.NamedQuery()` with concatenated SQL
+
 ## Remediation Steps
 
 - Locate - find query construction: `db.Query`, `db.Exec`, `db.QueryRow`, `gormDB.Raw`, `sqlx` `NamedQuery`

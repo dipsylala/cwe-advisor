@@ -13,6 +13,10 @@ In Django and Django REST Framework, Missing Authorization typically appears as 
 - Use `@permission_required('app.change_order', raise_exception=True)`, not the default redirect-to-login behavior, so an authenticated but unauthorized user gets a 403, not a login prompt
 - Centralize permission classes and Django permission checks in reusable modules so new views import consistent rules rather than reimplementing checks inline
 
+## Taint Sinks
+
+Django view functions, DRF `ViewSet` methods, `@api_view` functions lacking `permission_classes`/`has_object_permission()`
+
 ## Remediation Steps
 
 - Locate - Identify Django views, DRF `ViewSet`/`APIView` methods, and Celery task entry points that perform sensitive actions or return sensitive data

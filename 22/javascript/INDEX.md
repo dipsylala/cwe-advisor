@@ -14,6 +14,10 @@ Path Traversal in JavaScript/Node.js occurs when applications use unsanitized us
 - Reject inputs containing path traversal sequences (`../`, `..\\`, encoded variants)
 - Apply principle of least privilege to file system permissions
 
+## Taint Sinks
+
+`fs.readFile()`, `fs.createReadStream()`, `path.join()` with unvalidated input, archive entry paths from `adm-zip`/`unzipper`/`yauzl`/`tar` (Zip Slip)
+
 ## Remediation Steps
 
 - Replace direct file path parameters with indirect references (database IDs, UUIDs)

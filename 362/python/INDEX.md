@@ -13,6 +13,10 @@ The GIL prevents two threads from executing Python bytecode simultaneously, but 
 - For database-backed shared state, use a transaction with `SELECT ... FOR UPDATE` or an atomic `UPDATE ... SET balance = balance - %s WHERE id = %s AND balance >= %s` rather than a Python-level lock
 - Keep locked/async-locked sections minimal but complete: acquire before the first read of shared state and release only after the final write
 
+## Taint Sinks
+
+`counter += 1` on shared state, `dict`/`list` mutation across threads without `Lock`, coroutine mutating shared state across an `await` without `asyncio.Lock`
+
 ## Remediation Steps
 
 - Locate - Find module-level variables, instance attributes, or shared dict/list objects read and written by more than one thread, task, or process

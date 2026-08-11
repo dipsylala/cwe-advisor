@@ -13,6 +13,10 @@ Go has no single dominant web framework, so Missing Authorization commonly appea
 - Keep authorization logic in one reusable package so role and ownership rules are defined once and unit-testable independent of HTTP
 - Fail closed - if the authorization check errors or the required claim/role is absent, deny the request rather than defaulting to allow
 
+## Taint Sinks
+
+`http.HandleFunc()`, `mux.HandleFunc()` routes, gRPC service methods registered without a shared authorization middleware wrapper
+
 ## Remediation Steps
 
 - Locate - Identify HTTP handlers, gRPC service methods, and background job entry points that perform sensitive actions or return sensitive data

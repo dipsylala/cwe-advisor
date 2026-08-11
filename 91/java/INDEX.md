@@ -14,6 +14,10 @@ XML Injection in Java occurs when untrusted user input is used to construct XML 
 - Use XML libraries that enforce proper encoding (JAXB, DOM4J with safe configurations)
 - Disable external entity processing to prevent XXE attacks
 
+## Taint Sinks
+
+String-concatenated XML via `+`/`String.format()`, `StringBuilder.append()` building XML tags
+
 ## Remediation Steps
 
 - Replace string concatenation with DOM API methods for XML construction

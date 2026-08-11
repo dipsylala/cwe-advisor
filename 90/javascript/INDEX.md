@@ -12,6 +12,10 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 - Implement least-privilege access controls on LDAP directory operations
 - Use framework-provided LDAP query builders instead of string concatenation
 
+## Taint Sinks
+
+`client.search()` (ldapjs) with a concatenated filter string
+
 ## Remediation Steps
 
 - Identify all LDAP query construction points that use user input

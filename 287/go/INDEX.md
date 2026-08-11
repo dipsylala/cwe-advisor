@@ -13,6 +13,10 @@ Go has no built-in authentication framework, so login, session, and token verifi
 - Since there is no framework-enforced auth layer, apply the authentication check as HTTP middleware wrapping every protected handler, not as an ad hoc check duplicated per handler.
 - Store JWT/HMAC signing secrets via environment variables or a secret manager, generated with sufficient entropy (32+ random bytes for HS256).
 
+## Taint Sinks
+
+`jwt.Parse()`/`ParseWithClaims()` with unchecked `keyFunc`, `==` plaintext password comparison
+
 ## Remediation Steps
 
 - Locate - Find `jwt.Parse`/`jwt.ParseWithClaims` calls and their `keyFunc` implementations, and password comparison code in login handlers

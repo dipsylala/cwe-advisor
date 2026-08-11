@@ -12,6 +12,10 @@ Insufficiently protected credentials in PHP commonly appear as database password
 - Add `.env` to `.htaccess` deny rules and to `.gitignore` to prevent exposure
 - Rotate any credentials that appear in version control history and treat them as compromised
 
+## Taint Sinks
+
+`md5($password)`, `sha1($password)`, hardcoded credentials in `config.php`
+
 ## Remediation Steps
 
 - Remove hardcoded credentials from PHP source files and configuration arrays

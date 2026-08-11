@@ -13,6 +13,10 @@ In Spring applications, Incorrect Authorization commonly appears as `@PreAuthori
 - Avoid negated role comparisons (`!role.equals("ADMIN")`) in custom filters; use Spring Security's role/authority matching, which treats unmatched authorities as denied by default
 - Enable method security explicitly (`@EnableMethodSecurity`) and verify `@PreAuthorize` is actually active - a missing annotation processor or disabled method security silently allows all calls through
 
+## Taint Sinks
+
+`@PreAuthorize("hasRole(...)")` role-only expressions, `!role.equals("ADMIN")` inline checks, repository calls reached without the service-layer authorization check
+
 ## Remediation Steps
 
 - Locate - Find `@PreAuthorize`/`@Secured` annotations that check role only, and any custom filters with inline `if` role comparisons

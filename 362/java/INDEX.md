@@ -13,6 +13,10 @@ Shared mutable state accessed from multiple threads - a field on a singleton bea
 - Do not assume a Spring `@Service` or `@Component` bean is race-free because a single instance handles all requests; singleton beans are shared across all concurrent threads
 - Keep synchronized blocks short and always release locks in a `finally` block when using explicit `Lock` objects
 
+## Taint Sinks
+
+`HashMap.put()`/`get()` shared across threads, `ArrayList.add()` without synchronization, instance/static field `+=` without `synchronized`
+
 ## Remediation Steps
 
 - Locate - Find instance or static fields, maps, or collections read and written by more than one thread (servlet/controller handler threads, executor tasks, scheduled jobs)

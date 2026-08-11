@@ -12,6 +12,10 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Implement Content Security Policy headers for defence-in-depth
 - Validate input format as secondary defence, never rely on it alone
 
+## Taint Sinks
+
+`@Html.Raw()`, `Response.Write()`, `Literal.Text`, `HttpResponse.WriteAsync()`
+
 ## Remediation Steps
 
 - Replace `@Html.Raw()`, `Response.Write()`, and Literal controls with Razor's `@variable` auto-encoding

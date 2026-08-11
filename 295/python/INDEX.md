@@ -12,6 +12,10 @@ Improper certificate validation occurs when Python applications disable SSL/TLS 
 - Keep dependencies updated - Ensure `requests`, `urllib3`, and `certifi` libraries are current
 - Use certificate pinning for critical connections - Pin specific certificates for high-security requirements
 
+## Taint Sinks
+
+`requests.get(..., verify=False)`, `urllib3` `cert_reqs='CERT_NONE'`
+
 ## Remediation Steps
 
 - Remove all instances of `verify=False` from `requests` calls

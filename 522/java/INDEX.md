@@ -13,6 +13,10 @@ Insufficiently Protected Credentials in Java occurs when passwords, API keys, or
 - Transmit credentials only over TLS/SSL; use char[] for passwords in memory and clear immediately after use
 - Implement credential rotation policies and audit access logs regularly
 
+## Taint Sinks
+
+hardcoded `String password = "..."`, `MessageDigest.getInstance("MD5")`, plaintext `.properties` files, `String` (not `char[]`) for passwords
+
 ## Remediation Steps
 
 - Remove hardcoded credentials from source code; scan with tools like git-secrets or TruffleHog

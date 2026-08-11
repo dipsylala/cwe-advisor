@@ -13,6 +13,10 @@ In Node.js/Express APIs, this weakness usually appears as the `cors` npm package
 - Send `Vary: Origin` when setting `Access-Control-Allow-Origin` dynamically, so shared caches do not serve one origin's response to another
 - Audit every route for a leftover default `app.use(cors())` alongside a route-specific, correctly configured instance - the default still applies to any route the newer configuration does not cover
 
+## Taint Sinks
+
+`cors({ origin: '*' })`, `cors({ origin: true })`, `res.setHeader('Access-Control-Allow-Origin', req.headers.origin)`
+
 ## Remediation Steps
 
 - Locate - Search for `Access-Control-Allow-Origin`, `cors(`, and any custom CORS middleware

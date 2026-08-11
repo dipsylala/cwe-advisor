@@ -14,6 +14,10 @@ SSRF occurs when attackers manipulate server-side requests to access internal re
 - Implement DNS resolution checks to detect rebinding attacks
 - Use network-level protections and egress filtering
 
+## Taint Sinks
+
+`URL.openConnection()`, `URL.openStream()`, `HttpClient.send()`, `RestTemplate.getForObject()`, `HttpURLConnection.connect()`
+
 ## Remediation Steps
 
 - Create an allowlist of permitted domains/hosts for outbound requests

@@ -12,6 +12,10 @@ In Python apps calling the Anthropic `anthropic` SDK (or OpenAI's, which follows
 - Treat any filename or path present in model output or a tool result as attacker-controlled: apply `os.path.basename()` and confirm the resolved path stays within the intended directory before any file write or read
 - A model claiming it "verified" or "checked" something in its text output is not evidence of anything - perform independent verification for security-relevant claims
 
+## Taint Sinks
+
+`eval()`/`exec()`, `subprocess` with `shell=True`, unchecked `tool_use.input` passed to a handler, `open()` with a model-provided filename
+
 ## Remediation Steps
 
 - Locate every point where a model's text response, `tool_use.input` value, or a filename from a tool result reaches `eval`/`exec`, a shell call, a SQL query, a file operation, or an HTML/template render

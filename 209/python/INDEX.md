@@ -11,6 +11,10 @@ Error Message Information Leak occurs when Python applications expose sensitive 
 - Sanitize all error responses: Never expose stack traces, file paths, or internal state in API/web responses
 - Use structured logging: Log exceptions with context to secure locations inaccessible to users
 
+## Taint Sinks
+
+`str(e)`/`traceback.format_exc()` in response, Django `DEBUG=True` error pages, Flask `app.run(debug=True)`
+
 ## Remediation Steps
 
 - Configure production settings to disable debug mode and detailed error pages

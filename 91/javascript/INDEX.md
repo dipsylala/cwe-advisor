@@ -14,6 +14,10 @@ XML Injection in JavaScript/Node.js applications occurs when untrusted user inpu
 - Use parameterized XML APIs or templating that separates data from structure
 - Implement input validation with allowlists for expected formats
 
+## Taint Sinks
+
+Template literals/string concatenation building XML, `+` into raw XML strings
+
 ## Remediation Steps
 
 - Replace string concatenation XML building with library-based approaches

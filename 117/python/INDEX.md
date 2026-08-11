@@ -12,6 +12,10 @@ Log injection occurs when untrusted data is written to logs without proper encod
 - Parameterize log messages using `%` or `{}` formatting
 - Treat all external input (user data, headers, API responses) as untrusted
 
+## Taint Sinks
+
+`logger.info()`/`logging.warning()` with f-string concatenation, `print()` with raw input
+
 ## Remediation Steps
 
 - Install structured logging library - `pip install python-json-logger` or `structlog`

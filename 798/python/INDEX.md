@@ -13,6 +13,10 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 - Implement secure defaults and fail securely when credentials are missing
 - Environment variables are a practical fallback but can still leak via process inspection (`/proc/<pid>/environ`), crash dumps, or cloud metadata endpoints, so prefer a secrets manager where available
 
+## Taint Sinks
+
+`psycopg2.connect(password=...)` with literal, hardcoded module-level `PASSWORD = "..."`, `boto3.client(aws_secret_access_key=...)`, `requests.auth.HTTPBasicAuth()`
+
 ## Remediation Steps
 
 - Identify all hard-coded credentials in source code using grep/scanning tools

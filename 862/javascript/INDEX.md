@@ -13,6 +13,10 @@ In Express and similar Node.js frameworks, Missing Authorization typically appea
 - Centralize role and permission definitions in one middleware module so route files import consistent checks instead of writing inline conditionals per handler
 - Return 403 for authenticated-but-unauthorized requests and 401 only when authentication itself is missing or invalid
 
+## Taint Sinks
+
+`router.get()`, `router.post()`, `router.put()`, `router.delete()` routes, GraphQL resolvers, `socket.on()` handlers lacking a role/ownership check
+
 ## Remediation Steps
 
 - Locate - Identify Express routes, GraphQL resolvers, and Socket.IO event handlers that perform sensitive actions or return sensitive data

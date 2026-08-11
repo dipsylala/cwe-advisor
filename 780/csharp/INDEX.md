@@ -12,6 +12,10 @@ In .NET, `RSACryptoServiceProvider` defaults to PKCS#1 v1.5 padding when `fOAEP 
 - Prefer `RSA.Create()` (CNG-backed) over `RSACryptoServiceProvider` (CAPI) for new code
 - Minimum key size: 2048 bits; prefer 4096 bits for long-lived keys
 
+## Taint Sinks
+
+`RSACryptoServiceProvider.Encrypt(data, false)`, `RSA.Encrypt()`/`Decrypt()` with `RSAEncryptionPadding.Pkcs1`
+
 ## Remediation Steps
 
 - Find `rsa.Encrypt(data, false)` calls - the `false` argument means PKCS#1 v1.5; migrate to `RSA.Create()` with OAEP-SHA256 where possible

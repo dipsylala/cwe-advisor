@@ -12,6 +12,10 @@ Insufficient entropy in PHP occurs when using `rand()`, `mt_rand()`, `uniqid()`,
 - Never use predictable functions for password resets, session tokens, CSRF tokens, or encryption keys
 - Ensure sufficient entropy length (minimum 16 bytes for tokens, 32 bytes for keys)
 
+## Taint Sinks
+
+`rand()`, `mt_rand()`, `uniqid()`, `srand()` used for tokens, keys, or nonces
+
 ## Remediation Steps
 
 - Identify all uses of `rand()`, `mt_rand()`, `uniqid()`, and similar functions in security-sensitive code

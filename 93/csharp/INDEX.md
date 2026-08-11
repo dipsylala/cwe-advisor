@@ -12,6 +12,10 @@ CRLF Injection occurs when attackers inject `\r\n` characters to manipulate HTTP
 - Use structured JSON logging, or explicitly encode CR/LF and other control characters for plain-text logs
 - Validate redirect URLs and Location headers to prevent header injection
 
+## Taint Sinks
+
+`Response.Headers.Append()` with unsanitized input, `Response.Redirect()`, `ILogger.LogInformation()` with unsanitized input
+
 ## Remediation Steps
 
 - Replace or remove `\r` and `\n` characters from user input before header usage

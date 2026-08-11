@@ -13,6 +13,10 @@ PHP's `unserialize()` can instantiate arbitrary classes and invoke magic methods
 - Phar deserialization is a distinct vector from direct `unserialize()` calls - on PHP versions before 8.0, any filesystem function (`file_exists()`, `fopen()`, `getimagesize()`, `is_dir()`, etc.) that accepts a user-controlled path could trigger object deserialization via the `phar://` stream wrapper against an attacker-uploaded archive; PHP 8.0+ only deserializes phar metadata on explicit `Phar` access (`new Phar()`, `Phar::getMetadata()`), not through general stream-wrapper file operations. Validate paths and reject uploads with a `.phar` signature regardless of version
 - Apply defence-in-depth: input validation, least privilege, code audits
 
+## Taint Sinks
+
+`unserialize()`, `phar://` stream wrapper access (`file_exists()`, `fopen()`, `getimagesize()`, `is_dir()`) on pre-8.0 PHP
+
 ## Remediation Steps
 
 - Search codebase for all `unserialize()` calls on external data

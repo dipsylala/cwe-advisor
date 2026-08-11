@@ -12,6 +12,10 @@ XSS occurs when untrusted data is rendered in web pages without proper encoding,
 - Implement Content Security Policy (CSP) headers as defence-in-depth
 - Validate and sanitize input at application boundaries
 
+## Taint Sinks
+
+`echo`/`print` unescaped, Blade `{!! !!}`, Twig `|raw`, `$_GET`/`$_POST` echoed directly
+
 ## Remediation Steps
 
 - Replace all unencoded output with `htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, 'UTF-8')`

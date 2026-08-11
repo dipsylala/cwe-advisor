@@ -14,6 +14,10 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Validate and sanitize all user input at entry points
 - Apply least privilege to database accounts
 
+## Taint Sinks
+
+`SqlCommand.ExecuteReader()`, `SqlCommand.ExecuteNonQuery()`, `SqlCommand.ExecuteScalar()`, `FromSqlRaw()`, `ExecuteSqlRaw()`, `SqlDataAdapter.Fill()`
+
 ## Remediation Steps
 
 - Review data flow from source (Request.QueryString, Request.Form, route parameters) to sink (ExecuteReader, FromSqlRaw, ExecuteSqlRaw)

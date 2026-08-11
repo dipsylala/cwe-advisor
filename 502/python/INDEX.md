@@ -12,6 +12,10 @@ Python's `pickle` module executes arbitrary code during deserialization, enablin
 - For pandas DataFrames, use CSV, Parquet, or Feather formats instead of pickle
 - If pickle is absolutely required, implement a restricted unpickler with class allowlisting
 
+## Taint Sinks
+
+`pickle.loads()`, `pickle.load()`, `marshal.loads()`, `shelve.open()`, `yaml.load()`, `yaml.unsafe_load()`, `pd.read_pickle()`
+
 ## Remediation Steps
 
 - Identify all deserialization calls (`pickle.loads()`, `pd.read_pickle()`, `yaml.load()`, etc.)

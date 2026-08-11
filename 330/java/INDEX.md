@@ -12,6 +12,10 @@
 - Generate at least 128 bits (16 bytes) for tokens; 256 bits (32 bytes) for cryptographic keys
 - Encode output in Base64URL or hex before storage or transmission
 
+## Taint Sinks
+
+`new Random()`, `Math.random()`
+
 ## Remediation Steps
 
 - Locate `new Random()` and `Math.random()` calls in security-sensitive paths (token generation, OTP, key derivation)
