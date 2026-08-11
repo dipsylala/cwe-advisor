@@ -2,60 +2,43 @@
 
 ## LLM Guidance
 
-CRLF Injection occurs when untrusted user input containing carriage return (`\r`) and line feed (`\n`) characters is used in HTTP headers, logs, or email headers without proper sanitization. Attackers exploit this to perform HTTP response splitting, header injection, log forgery, cache poisoning, and XSS attacks. Always strip or reject all newline characters (`\r`, `\n`, `\r\n`) and their URL-encoded equivalents (`%0d`, `%0a`) from user input before including in HTTP headers, logs, or protocol fields.
+In Python, the common concrete case of general CRLF injection (as opposed to CWE-113's HTTP-header-specific case) is email header injection: untrusted input placed into an email subject, recipient, or custom header lets an attacker inject `\r\n`-delimited headers to add BCC recipients, forge the sender, or append a second message. The `email` package's `EmailMessage` object rejects or folds embedded newlines when headers are set through it, but building the raw message as a formatted string (`f"Subject: {user_input}\r\n\r\n{body}"`) and handing it to `smtplib.SMTP.sendmail()` bypasses that protection entirely, since `sendmail()` sends whatever raw string it is given. Always build the message with `email.message.EmailMessage` and let it construct the raw payload.
 
 ## Key Principles
 
-- Strip all CRLF characters (literal and encoded: `\r`, `\n`, `%0d`, `%0a`) from user input before use in headers or logs
-- Validate input against strict allowlists using regex patterns (e.g., alphanumeric with specific symbols only)
-- Use framework-provided sanitization methods (Flask's `make_response()`, Django's `HttpResponse()`) which provide built-in protection
-- Implement structured logging (JSON format) to prevent log injection attacks
-- Apply length limits to header values and logged content to prevent DoS attacks
+- Never hand-build CRLF-delimited text for any line-oriented sink (mail header, HTTP header, log line, or other protocol command) by concatenating untrusted data into a raw string - use the sink's structured API instead
+- For mail, build the message with `email.message.EmailMessage` (or `email.mime.text.MIMEText`) and set headers via item assignment (`msg['Subject'] = value`), not by formatting a raw message string
+- For HTTP response headers, use Flask's/Django's redirect and header helpers, which validate values - see CWE-113's Python guidance for depth
+- For log statements, use structured (JSON) logging, or explicitly encode `\r`/`\n` before writing to a plain-text log - see CWE-117's guidance for depth
+- Strip or reject `\r` and `\n` from untrusted input as defense in depth, regardless of sink, even when using `EmailMessage`
+- Validate recipient/sender addresses with `email.utils.parseaddr()`/`getaddresses()` before use, since a crafted display name can also carry CRLF
 
 ## Taint Sinks
 
-`response.headers[...] =`, `HttpResponse()` header assignment, `redirect()` with unsanitized input, `logging.info()` with unsanitized input
+`smtplib.SMTP.sendmail()` fed a raw formatted message string, raw-concatenated email header assignment (not `EmailMessage`), `response.headers[...] =` with unsanitized input, `logging.info()`/`logger.warning()` with unsanitized input, raw text written to a `socket` for any line-oriented protocol
 
 ## Remediation Steps
 
-- Identify all locations where user input flows into HTTP headers, email headers, log messages, or response fields
-- Implement `sanitize_header_value()` function that removes `\r`, `\n`, URL-encoded variants (`%0d`, `%0a`, `%0D`, `%0A`), and all control characters (`\x00-\x1f`, `\x7f`)
-- Add input validation using strict allowlist regex patterns before sanitization (e.g., `^[a-zA-Z0-9._-]{3,50}$` for usernames)
-- Apply length limits (200-254 chars for headers, appropriate limits for log entries) to prevent resource exhaustion
-- Use validated/sanitized values in all header assignments, redirect calls, and logging statements
-- Test with CRLF payloads - `value%0d%0aInjected-Header -%20malicious` and verify they're neutralized
+- Identify the sink category - determine whether untrusted data reaches a mail header, an HTTP response header, a log statement, or a raw line-oriented protocol write (see Taint Sinks above)
+- For mail headers - replace raw string-formatted message construction with `email.message.EmailMessage`, setting headers via item assignment, and send it via `smtplib.send_message()` rather than a hand-built string
+- For HTTP response headers - see CWE-113's Python guidance for the framework-specific safe pattern
+- For log statements - use structured (JSON) logging, or strip/encode `\r`/`\n` before writing to a plain-text log; see CWE-117's guidance for depth
+- For any other line-oriented protocol - never hand-roll protocol commands by string concatenation with untrusted data; use a library that constructs and validates the protocol message, or strip/encode CRLF before writing to the socket
+- Strip `\r` and `\n` from untrusted input as defense in depth, regardless of sink category
+- Test with a payload containing `\r\nBcc: attacker@evil.com` (mail) or `\r\nX-Injected: true` (other sinks) and confirm no extra header or line is added
 
 ## Safe Pattern
 
 ```python
-from flask import Flask, request, redirect, abort
-import re
-from urllib.parse import urlparse
+from email.message import EmailMessage
+import smtplib
 
-app = Flask(__name__)
+msg = EmailMessage()
+msg['Subject'] = user_supplied_subject  # header folding/validation applied
+msg['From'] = 'noreply@example.com'
+msg['To'] = recipient_email
+msg.set_content(user_supplied_body)
 
-def sanitize_url(url):
-    if not url:
-        return None
-    # Remove CRLF (literal and encoded)
-    clean_url = url.replace('\r', '').replace('\n', '')
-    clean_url = clean_url.replace('%0d', '').replace('%0a', '')
-    clean_url = clean_url.replace('%0D', '').replace('%0A', '')
-    
-    # Validate URL structure
-    try:
-        parsed = urlparse(clean_url)
-        if parsed.scheme or parsed.netloc or not clean_url.startswith('/') or clean_url.startswith('//'):
-            return None
-        return clean_url
-    except:
-        return None
-
-@app.route('/redirect')
-def secure_redirect():
-    url = request.args.get('url', '')
-    clean_url = sanitize_url(url)
-    if not clean_url:
-        abort(400, "Invalid URL")
-    return redirect(clean_url)
+with smtplib.SMTP('smtp.example.com') as server:
+    server.send_message(msg)  # sends the validated message object, not a raw string
 ```

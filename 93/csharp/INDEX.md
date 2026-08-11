@@ -2,45 +2,42 @@
 
 ## LLM Guidance
 
-CRLF Injection occurs when attackers inject `\r\n` characters to manipulate HTTP headers, log files, or line-based formats, enabling HTTP Response Splitting, log forgery, or header manipulation. ASP.NET Core provides built-in header validation that automatically rejects invalid header values. Strip or reject newline characters from user input before using in headers or logs.
+In C#, the common concrete case of general CRLF injection (as opposed to CWE-113's HTTP-header-specific case) is email header injection: untrusted input placed into an email's subject, recipient, or custom header fields lets an attacker inject additional `\r\n`-delimited headers - adding BCC recipients, forging the From address, or appending a second message body. `System.Net.Mail.MailMessage`'s typed properties reject embedded CRLF, but custom headers added via `MailMessage.Headers` or any raw SMTP command construction bypass that protection. Always populate mail headers through the typed `MailMessage` properties and never build a raw SMTP payload by string concatenation.
 
 ## Key Principles
 
-- Never use raw user input in HTTP headers or log messages
-- Leverage ASP.NET Core's automatic header validation (rejects `\r\n` by default)
-- Sanitize input by removing or encoding `\r`, `\n`, and other control characters
-- Use structured JSON logging, or explicitly encode CR/LF and other control characters for plain-text logs
-- Validate redirect URLs and Location headers to prevent header injection
+- Never hand-build CRLF-delimited text for any line-oriented sink (mail header, HTTP header, log line, or other protocol command) by concatenating untrusted data into a raw string - use the sink's structured/typed API instead
+- For mail, populate headers through `MailMessage`'s typed properties (`Subject`, `To`, `Bcc`) and validate addresses via `MailAddress` construction rather than raw strings
+- For HTTP response headers, use ASP.NET's built-in header/cookie APIs, which validate values - see CWE-113's C# guidance for depth
+- For log statements, use structured (JSON) logging via `ILogger`, or explicitly encode `\r`/`\n` before writing to a plain-text log - see CWE-117's guidance for depth
+- Strip or reject `\r`, `\n`, and their percent-encoded forms (`%0d`, `%0a`) from untrusted input as defense in depth, regardless of sink
+- Keep the mail library and its dependencies current, since header-neutralization behavior has been hardened in past releases
 
 ## Taint Sinks
 
-`Response.Headers.Append()` with unsanitized input, `Response.Redirect()`, `ILogger.LogInformation()` with unsanitized input
+`MailMessage.Headers.Add()`/`.Subject`/`.To`/`.Bcc` from raw concatenation, `Response.Headers.Add()`/`AppendHeader()` with unsanitized input, `ILogger.LogInformation()`/`LogWarning()` etc. with unsanitized input, raw text written via `NetworkStream.Write()`/`StreamWriter.WriteLine()` for any line-oriented protocol
 
 ## Remediation Steps
 
-- Replace or remove `\r` and `\n` characters from user input before header usage
-- Use `Response.Headers.Append()` in ASP.NET Core which validates values
-- For logging, use structured JSON output or encode control characters before writing to plain-text logs
-- Validate and sanitize redirect URLs with `Uri.TryCreate()` and allowlists
-- For legacy code, use `Regex.Replace(input, @"[\r\n]", "")` to strip newlines
-- Test with payloads containing `%0d%0a` to verify protection
+- Identify the sink category - determine whether untrusted data reaches a mail header, an HTTP response header, a log statement, or a raw line-oriented protocol write (see Taint Sinks above)
+- For mail headers - replace raw string concatenation with `MailMessage`'s typed properties (`Subject`, `To`, `Bcc`), and validate addresses via `MailAddress` construction, which throws on malformed input, instead of a raw string
+- For HTTP response headers - see CWE-113's C# guidance for the framework-specific safe pattern
+- For log statements - use structured (JSON) logging, or strip/encode `\r`/`\n` before writing to a plain-text log; see CWE-117's guidance for depth
+- For any other line-oriented protocol - never hand-roll protocol commands by string concatenation with untrusted data; use a library that constructs and validates the protocol message, or strip/encode CRLF before writing to the stream
+- Strip `\r`, `\n`, and their percent-encoded forms (`%0d`, `%0a`) from untrusted input as defense in depth, regardless of sink category
+- Test with a payload containing `\r\nBcc: attacker@evil.com` (mail) or `\r\nX-Injected: true` (other sinks) and confirm no extra header or line is added
 
 ## Safe Pattern
 
 ```csharp
-// Safe header setting with validation
-public IActionResult SetCustomHeader(string userInput)
-{
-    // Remove CRLF characters
-    var sanitized = Regex.Replace(userInput, @"[\r\n]", "");
-    
-    // ASP.NET Core validates automatically, but explicit sanitization is defence-in-depth
-    Response.Headers.Append("X-Custom-Header", sanitized);
-    
-    return Ok();
-}
+using System.Net.Mail;
 
-// Safe logging with explicit control-character encoding for plain-text sinks
-var safeForLog = Regex.Replace(userInput, @"[\r\n\t]", " ");
-_logger.LogInformation("User action: {UserInput}", safeForLog);
+var message = new MailMessage();
+message.From = new MailAddress("noreply@example.com");
+message.To.Add(new MailAddress(recipientEmail)); // throws on malformed/CRLF input
+message.Subject = userSuppliedSubject;           // rejects embedded CRLF
+message.Body = userSuppliedBody;
+
+using var client = new SmtpClient("smtp.example.com");
+client.Send(message);
 ```

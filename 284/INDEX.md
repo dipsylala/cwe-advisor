@@ -2,21 +2,21 @@
 
 ## LLM Guidance
 
-Improper access control occurs when applications fail to restrict what authenticated users can access or do. While authentication verifies identity ("who you are"), authorization verifies permissions ("what you're allowed to access") - strong authentication doesn't prevent authenticated users from accessing unauthorized data. Fix by implementing deny-by-default, server-side authorization checks on every protected resource and operation.
+CWE-284 is the broad parent weakness for any failure to properly restrict access to a resource: authentication gaps, authorization logic errors, misconfigured access control lists (ACLs), leaked or over-broad capabilities, and resource-level permission models that don't map correctly to who should be allowed to do what. Where a finding names a more specific mechanism, remediate with that entry's targeted guidance instead: a missing or incorrect authorization check is CWE-285/862/863, missing authentication is CWE-306/287, and an object-reference bypass is CWE-639. Use this entry when the access-control failure doesn't fit a narrower category - for example, an ACL or capability model that grants access along the wrong dimension (by resource type instead of a specific resource, or via a capability the actor should no longer hold).
 
 ## Key Principles
 
-- Implement deny-by-default access control - explicitly grant access rather than blocking known threats
-- Validate authorization server-side on every request to protected resources
-- Never trust client-side controls, hidden fields, or user input for authorization decisions
-- Use role-based or attribute-based access control (RBAC/ABAC) frameworks
-- Apply principle of least privilege - grant minimum necessary permissions
+- Prefer the most specific applicable CWE for the actual failure mode (missing check, incorrect check, missing authentication, IDOR); use this entry's guidance when none of those fit precisely
+- Model access control as an explicit policy (ACL, RBAC, ABAC, capability list) evaluated for every resource and operation, not as scattered ad hoc checks
+- Grant access along the correct dimension - by specific resource and operation, not merely by resource type or role membership
+- Never allow a capability or permission to persist beyond the scope or duration it was granted for
+- Apply deny-by-default and re-evaluate access on every request rather than caching an authorization decision beyond its intended lifetime
 
 ## Remediation Steps
 
-- Identify the protected resource lacking authorization checks (admin panel, user data, API endpoint, sensitive operation)
-- Trace data flow to understand how the resource is accessed (direct URL, API call, parameter manipulation)
-- Implement server-side authorization checks before granting access to any protected resource
-- Validate user permissions against the requested operation and specific resource (not just resource type)
-- Apply authorization checks consistently across all entry points (UI, API, direct access, background jobs)
-- Test by attempting unauthorized access with different user roles and privilege levels
+- Identify the access-control failure - Determine whether this is a missing check, an incorrect check, a missing identity check, or a broader ACL/capability-model design flaw, and redirect to the matching narrower CWE if one applies
+- Map the resource and actor model - Identify every resource type, specific resource instance, and actor role or capability involved
+- Design or correct the policy - Define which actors may perform which operations on which specific resources, not just resource types
+- Implement server-side enforcement - Ensure the policy is evaluated on every access path (UI, API, background job, admin tool), not just the primary one
+- Constrain capability lifetime - Ensure granted permissions or capabilities expire or are revocable, and are not retained beyond their intended scope
+- Test - Attempt access using accounts with different roles and capabilities and confirm the policy is enforced consistently across every access path

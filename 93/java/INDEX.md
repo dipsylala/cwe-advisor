@@ -2,45 +2,42 @@
 
 ## LLM Guidance
 
-CRLF Injection occurs when attackers inject `\r\n` characters to manipulate HTTP headers, log files, or line-based formats, potentially enabling HTTP response splitting or log forgery. The core fix is to strip or reject newline characters (`\r`, `\n`, `\r\n`) from all user input before using it in HTTP headers or logs. Use framework header APIs as defense in depth, but still validate header values explicitly.
+In Java, the common concrete case of general CRLF injection (as opposed to CWE-113's HTTP-header-specific case) is email header injection through the JavaMail API: untrusted input placed into a `MimeMessage`'s subject, recipient, or custom headers lets an attacker inject `\r\n`-delimited headers to add BCC recipients, forge the sender, or append a second message. `InternetAddress` and `MimeMessage.setSubject()` apply MIME encoding when used correctly, but `MimeMessage.addHeader(name, value)` and raw SMTP socket writes do not neutralize embedded CRLF on their own. Always build addresses through `InternetAddress` and encode any user-controlled header text, never concatenate it into a raw header string.
 
 ## Key Principles
 
-- Input Sanitization: Remove or reject all CR/LF characters from user-controlled data before using in headers or logs
-- Framework Protection: Use Spring's `HttpHeaders` and `ResponseEntity` with explicit CR/LF validation
-- Structured Logging: Use JSON/ECS structured logging or encode CR/LF before writing to plain-text logs
-- Allowlist Validation: Validate header values against strict patterns (alphanumeric, specific safe characters only)
-- Avoid Direct Manipulation: Never directly construct HTTP headers or log entries from untrusted input
+- Never hand-build CRLF-delimited text for any line-oriented sink (mail header, HTTP header, log line, or other protocol command) by concatenating untrusted data into a raw string - use the sink's structured/typed API instead
+- For mail, build addresses with `InternetAddress`, which validates and encodes the address, and set the subject via `MimeMessage.setSubject(value, charset)` rather than a raw header string
+- For HTTP response headers, use Spring's `HttpHeaders`/`ResponseEntity` APIs with explicit validation - see CWE-113's Java guidance for depth
+- For log statements, use structured (JSON/ECS) logging, or explicitly encode `\r`/`\n` before writing to a plain-text log - see CWE-117's guidance for depth
+- Strip or reject `\r` and `\n` from untrusted input as defense in depth, regardless of sink
+- Validate display names and free-text fields separately from the address itself, since a crafted display name can also carry CRLF
 
 ## Taint Sinks
 
-`HttpServletResponse.setHeader()`, `HttpServletResponse.addHeader()`, `HttpServletResponse.sendRedirect()`, `Logger.info()` with unsanitized input
+`MimeMessage.addHeader()`/`setHeader()`/`setSubject()` from raw concatenation, `new InternetAddress(rawString, false)` with validation disabled, `HttpServletResponse.setHeader()`/`addHeader()` with unsanitized input, `Logger.info()`/`log.warn()` with unsanitized input, raw text written to a `Socket`/`OutputStream` for any line-oriented protocol
 
 ## Remediation Steps
 
-- Identify all locations where user input flows into HTTP headers or log statements
-- Replace direct header manipulation with Spring's `HttpHeaders` API
-- Sanitize input by removing `\r` and `\n` characters - `value.replaceAll("[\\r\\n]", "")`
-- Implement regex validation for expected header value formats before use
-- Convert log statements to structured logging or encode control characters before parameterized plain-text logging
-- Test with CRLF payloads (`%0d%0a`, `\r\n`) to verify protection
+- Identify the sink category - determine whether untrusted data reaches a mail header, an HTTP response header, a log statement, or a raw line-oriented protocol write (see Taint Sinks above)
+- For mail headers - replace raw string concatenation with `MimeMessage.setSubject()`/`setRecipients()` and `InternetAddress` construction; avoid `new InternetAddress(value, false)` (validation disabled)
+- For HTTP response headers - see CWE-113's Java guidance for the framework-specific safe pattern
+- For log statements - use structured (JSON/ECS) logging, or strip/encode `\r`/`\n` before writing to a plain-text log; see CWE-117's guidance for depth
+- For any other line-oriented protocol - never hand-roll protocol commands by string concatenation with untrusted data; use a library that constructs and validates the protocol message, or strip/encode CRLF before writing to the stream
+- Strip `\r` and `\n` from untrusted input as defense in depth, regardless of sink category
+- Test with a payload containing `\r\nBcc: attacker@evil.com` (mail) or `\r\nX-Injected: true` (other sinks) and confirm no extra header or line is added
 
 ## Safe Pattern
 
 ```java
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
-public ResponseEntity<String> setCustomHeader(String userInput) {
-    // Sanitize input - remove CRLF characters
-    String sanitized = userInput.replaceAll("[\\r\\n]", "");
-    
-    // Use Spring's HttpHeaders after explicit validation
-    HttpHeaders headers = new HttpHeaders();
-    headers.add("X-Custom-Header", sanitized);
-    
-    return ResponseEntity.ok()
-        .headers(headers)
-        .body("Response");
-}
+MimeMessage message = new MimeMessage(session);
+message.setFrom(new InternetAddress("noreply@example.com"));
+message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail)); // validates, throws on malformed input
+message.setSubject(userSuppliedSubject, "UTF-8"); // MIME-encodes, neutralizes embedded CRLF
+message.setText(userSuppliedBody);
+
+Transport.send(message);
 ```

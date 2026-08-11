@@ -2,23 +2,22 @@
 
 ## LLM Guidance
 
-Using weak cryptographic algorithms (MD5, SHA-1, DES, RC4, weak RSA keys) instead of strong modern alternatives exposes data to collision attacks, brute force, and cryptanalysis, compromising confidentiality and integrity. The core fix is replacing legacy algorithms with modern, secure primitives appropriate for each use case, with algorithm selection server-controlled via an approved allowlist.
+CWE-757 occurs when a protocol's algorithm-negotiation process allows an attacker (often positioned as a man-in-the-middle) to steer the handshake toward a weaker algorithm or protocol version that both sides technically support, even though a stronger option was available - as in TLS cipher-suite downgrade, SSLv3 fallback (POODLE), or export-grade key-exchange forcing (FREAK, Logjam). Unlike simply using a weak algorithm outright (see CWE-327 for broken/risky algorithms or CWE-916 for weak password hashing), the flaw here is in the negotiation itself: the implementation accepts a weaker choice than it should have. The fix is to remove weak algorithms and protocol versions from the set the implementation will ever accept, not merely deprioritize them, and to reject any fallback or downgrade attempt.
 
 ## Key Principles
 
-- Use dedicated password hashing functions (bcrypt, Argon2, scrypt) instead of general hash functions for passwords
-- Use SHA-256 or SHA-512 for file integrity checks and non-password hashing needs
-- Use AES-256-GCM or ChaCha20-Poly1305 for symmetric encryption
-- Use RSA-2048+ with SHA-256 or ECDSA for digital signatures
-- Enforce server-controlled algorithm selection restricted to approved modern primitives
-- Disable weak negotiation, fallback modes, and client-selected downgrades in protocols
+- Configure the server/client to only offer and accept strong, modern algorithms and protocol versions - remove weak options from the negotiable set entirely rather than ranking them last
+- Disable protocol version fallback and insecure renegotiation (reject legacy protocol handshakes; disable fallback mechanisms that let a failed modern handshake retry at a lower version)
+- Do not let the client unilaterally dictate the selected algorithm - the server must enforce its own minimum-strength policy regardless of what the client offers or requests
+- Apply the same negotiation hardening to any protocol with algorithm agility, not just TLS - SSH key exchange, IPsec, and custom application-level negotiation handshakes are equally susceptible
+- Monitor and log negotiation attempts that request deprecated algorithms or protocol versions, since repeated attempts can indicate an active downgrade attack
 
 ## Remediation Steps
 
-- Identify weak algorithms in codebase (MD5, SHA-1, DES, RC4, weak RSA keys)
-- Select appropriate replacement based on use case - passwords → bcrypt/Argon2, integrity → SHA-256+, encryption → AES-256-GCM, signatures → RSA-2048+/ECDSA
-- Plan migration strategy for existing hashed or encrypted data
-- Update code to use strong algorithms with proper configuration
-- Disable weak protocol/cipher negotiation and reject downgrade attempts
-- Test thoroughly including security validation and compatibility
-- Monitor continuously for any continued use of weak algorithms
+- Identify the negotiation point - Locate where the protocol or library selects an algorithm or protocol version from a supported set (TLS cipher suite list, SSH key-exchange algorithm list, custom negotiation handshake)
+- Audit the accepted set - List every algorithm and protocol version the implementation will currently accept, not just what it prefers
+- Remove weak options entirely - Delete deprecated or broken algorithms and protocol versions from the accepted set rather than deprioritizing them
+- Disable fallback mechanisms - Turn off downgrade/fallback support so a failed handshake at the target strength does not retry at a lower one
+- Enforce server-side minimums - Configure the server to reject any negotiated result below its minimum acceptable strength, even if the client requested it
+- Test downgrade resistance - Attempt a handshake offering only weak or deprecated options and confirm the connection is rejected rather than negotiated
+- Monitor - Log and alert on negotiation attempts referencing deprecated algorithms or protocol versions

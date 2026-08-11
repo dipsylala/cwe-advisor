@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when user input dynamically modifies object attributes or properties, allowing attackers to alter application behavior or access unauthorized data. Mass assignment (CWE-915) controls which properties can be modified, while CWE-1174 validates the values of allowed properties. Never allow mass assignment of object attributes; allowlist permitted fields and enforce invariants server-side.
+This vulnerability occurs when user input dynamically modifies object attributes or properties, allowing attackers to alter application behavior or access unauthorized data. In ASP.NET applications specifically, this same failure mode is also covered under CWE-1174 (ASP.NET Misconfiguration: Improper Model Validation), where it is fixed via the framework's `[Bind]` allowlist and model-binding configuration. Never allow mass assignment of object attributes; allowlist permitted fields and enforce invariants server-side.
 
 ## Key Principles
 

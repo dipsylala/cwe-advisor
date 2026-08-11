@@ -61,6 +61,7 @@ Name, or Aliases columns.
 | 197 | Numeric Truncation Error | - |
 | 200 | Exposure of Sensitive Information to an Unauthorized Actor | information disclosure, info leak |
 | 201 | Insertion of Sensitive Information Into Sent Data | - |
+| 208 | Observable Timing Discrepancy | timing attack, timing side channel, timing oracle |
 | 209 | Generation of Error Message Containing Sensitive Information | verbose error message, stack trace disclosure |
 | 215 | Insertion of Sensitive Information Into Debugging Code | - |
 | 223 | Omission of Security-relevant Information | - |

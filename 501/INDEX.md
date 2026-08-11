@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Trust boundary violations occur when untrusted data (user input, HTTP requests) is stored in trusted contexts (sessions, internal objects) without validation, or when trusted data is exposed to untrusted contexts. This enables session poisoning, privilege escalation, and security control bypass. Core fix: explicitly validate and authorize all data crossing trust boundaries.
+Trust boundary violations occur when untrusted data (user input, HTTP requests) is mixed into the same data structure as trusted data - most commonly stored in a trusted context like a session object or internal object - without validation, so the two can no longer be reliably distinguished downstream. This enables session poisoning, privilege escalation, and security control bypass, since code that trusts the structure as a whole ends up trusting the untrusted portion too. Core fix: explicitly validate untrusted data before it is mixed into or stored in a trusted context, and keep trusted and untrusted data in clearly separate structures wherever possible.
 
 ## Key Principles
 
