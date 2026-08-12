@@ -1,4 +1,4 @@
-# CLAUDE.MD
+# CLAUDE.md
 
 This repository is a local CWE remediation knowledge base used by the `cwe-advisor` skill. Each entry teaches an LLM how to help a developer remediate one CWE, with optional language-specific guidance.
 
