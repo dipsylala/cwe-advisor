@@ -28,7 +28,7 @@ Name, or Aliases columns.
 | 89 | Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') | SQLi |
 | 90 | Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection') | - |
 | 91 | XML Injection (aka Blind XPath Injection) | XPath injection |
-| 93 | Improper Neutralization of CRLF Sequences ('CRLF Injection') | - |
+| 93 | Improper Neutralization of CRLF Sequences ('CRLF Injection') | email header injection, SMTP header injection |
 | 94 | Improper Control of Generation of Code ('Code Injection') | RCE, arbitrary code execution |
 | 95 | Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection') | - |
 | 98 | Improper Control of Filename for Include/Require Statement in PHP Program ('PHP Remote File Inclusion') | RFI |
@@ -124,8 +124,8 @@ Name, or Aliases columns.
 | 415 | Double Free | - |
 | 416 | Use After Free | UAF |
 | 421 | Race Condition During Access to Alternate Channel | - |
-| 426 | Untrusted Search Path | DLL hijacking, binary planting |
-| 427 | Uncontrolled Search Path Element | PATH manipulation |
+| 426 | Untrusted Search Path | PATH manipulation |
+| 427 | Uncontrolled Search Path Element | DLL hijacking, binary planting |
 | 434 | Unrestricted Upload of File with Dangerous Type | unrestricted file upload, malicious file upload |
 | 441 | Unintended Proxy or Intermediary ('Confused Deputy') | confused deputy |
 | 454 | External Initialization of Trusted Variables or Data Stores | - |
