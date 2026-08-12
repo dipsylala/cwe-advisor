@@ -2,45 +2,41 @@
 
 ## LLM Guidance
 
-LDAP Injection occurs when untrusted data is used to construct LDAP queries without proper encoding, allowing attackers to manipulate directory searches and access unauthorized data.
+LDAP Injection occurs when untrusted data is used to construct LDAP search filters or DN strings without proper encoding, allowing attackers to manipulate directory searches and access unauthorized data.
 
-**Primary Defence:** Use OWASP ESAPI's `encodeForLDAP()` and `encodeForDN()` methods, or Spring LDAP's query builder which provides automatic encoding.
+**Primary Defence:** For search filters, use JNDI's own parameterized `DirContext.search()` overload, which takes filter arguments separately and escapes them automatically - no extra dependency required. DN construction has no parameterized JNDI API, so encode with OWASP ESAPI's `encodeForDN()` or build DNs with Spring LDAP's `LdapNameBuilder` instead.
 
 ## Key Principles
 
-- Always encode user input before inserting into LDAP queries or DN strings
-- Use parameterized query builders (Spring LDAP) instead of string concatenation
+- Prefer JNDI's parameterized search filter overload over building filter strings by concatenation - the JDK escapes each argument for you
+- DNs have no parameterized construction API - encode user input with ESAPI's `encodeForDN()` or assemble DNs with Spring LDAP's `LdapNameBuilder`
+- Use Spring LDAP's `LdapQueryBuilder` instead of raw JNDI when the framework is already a dependency - it applies safe encoding automatically
 - Validate input against allowlists for expected characters and patterns
 - Apply principle of least privilege to LDAP service accounts
-- Sanitize special LDAP characters: `*()|\&` for filters, `,=+<>#;` for DNs
 
 ## Taint Sinks
 
-`DirContext.search()` with concatenated filter, `NamingEnumeration ctx.search()` with concatenated filter
+`DirContext.search()` with a concatenated filter string, string-concatenated DN construction, `InitialDirContext` lookups built from concatenated names
 
 ## Remediation Steps
 
-- Replace string concatenation with OWASP ESAPI encoding methods
-- For search filters - wrap user input with `Encoder.encodeForLDAP(input)`
-- For DN construction - wrap user input with `Encoder.encodeForDN(input)`
-- Alternatively, migrate to Spring LDAP's `LdapQueryBuilder` for automatic protection
+- Locate concatenated filter or DN strings feeding `DirContext.search()`, `InitialDirContext`, or similar JNDI calls
+- For search filters - replace concatenation with `{0}`-style placeholders and pass user input via the `filterArgs` parameter of `DirContext.search()`
+- For DN construction - encode user input with `ESAPI.encoder().encodeForDN(input)` before assembling the DN, or build it with Spring LDAP's `LdapNameBuilder`
+- Alternatively, migrate to Spring LDAP's `LdapQueryBuilder` for automatic protection on both filters and DNs
 - Add input validation to reject unexpected characters before encoding
 - Test with payloads like `*)(uid=*))(|(uid=*` to verify protection
 
 ## Safe Pattern
 
 ```java
-import org.owasp.esapi.ESAPI;
-import org.owasp.esapi.Encoder;
+// SAFE: JNDI parameterized filter - filterArgs are escaped automatically
+String filter = "(uid={0})";
+NamingEnumeration<SearchResult> results = ctx.search(
+        "ou=users,dc=example,dc=com", filter, new Object[]{username}, searchControls);
 
-public String searchUser(String username) {
-    Encoder encoder = ESAPI.encoder();
-    String safeName = encoder.encodeForLDAP(username);
-    String filter = "(uid=" + safeName + ")";
-    
-    // Use filter in LDAP search
-    NamingEnumeration results = ctx.search("ou=users,dc=example,dc=com", 
-                                           filter, searchControls);
-    return results;
-}
+// SAFE: ESAPI encoding for DN construction - no parameterized API exists for DNs
+import org.owasp.esapi.ESAPI;
+String safeName = ESAPI.encoder().encodeForDN(username);
+String dn = "uid=" + safeName + ",ou=users,dc=example,dc=com";
 ```
