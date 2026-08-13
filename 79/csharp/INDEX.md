@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-XSS occurs when untrusted data is included in web output without proper encoding, allowing attackers to inject malicious scripts into victim browsers. In C#/ASP.NET, leverage built-in auto-encoding features and context-specific encoders to prevent malicious content from executing.
+XSS occurs when untrusted data is included in web output without proper encoding, allowing attackers to inject malicious scripts into victim browsers. In C#/ASP.NET, use built-in auto-encoding features and context-specific encoders to prevent malicious content from executing.
 
 ## Key Principles
 

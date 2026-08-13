@@ -20,8 +20,3 @@ Calling System.exit() in J2EE applications terminates the entire application ser
 - Use container shutdown - If legitimate shutdown needed, use container management tools or JMX beans
 - Implement proper error handling - Return error responses, log failures, and set HTTP status codes appropriately
 - Verify fix - Test error paths to confirm server remains operational after handled failures
-
-## Wrong vs. Right Pattern
-
-- Wrong: `if (error) { System.exit(1); }` - kills entire application server
-- Right: `if (error) { throw new ServletException("Error message"); }` - terminates request, logs error, server continues

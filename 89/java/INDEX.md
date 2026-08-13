@@ -6,7 +6,7 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 
 ## Key Principles
 
-- Always use parameterized queries or prepared statements-never concatenate user input into SQL strings
+- Always use parameterized queries or prepared statements - never concatenate user input into SQL strings
 - Prefer ORM frameworks (JPA/Hibernate) with bound parameters over raw JDBC
 - In MyBatis, use `#{}` for bound parameters - `${}` performs raw text substitution and is as unsafe as string concatenation
 - Validate and sanitize input as a secondary defence layer

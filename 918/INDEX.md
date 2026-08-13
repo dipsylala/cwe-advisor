@@ -6,7 +6,7 @@ Server-Side Request Forgery (SSRF) occurs when an application fetches remote res
 
 ## Key Principles
 
-- Use URL allowlists - Maintain explicit allowlists of permitted domains/IPs and validate full URLs (scheme, host, port, path) against them-reject anything not on the list
+- Use URL allowlists - Maintain explicit allowlists of permitted domains/IPs and validate full URLs (scheme, host, port, path) against them - reject anything not on the list
 - Block private IP ranges - Prevent access to internal networks (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), loopback (127.0.0.0/8), link-local (169.254.0.0/16), and metadata endpoints
 - Perform DNS validation - Resolve URLs and check that resolved IPs don't point to internal resources
 - Never use denylists - Attackers will bypass them; allowlists are the only effective approach

@@ -2,9 +2,9 @@
 
 ## LLM Guidance
 
-SSRF occurs when attackers manipulate server-side requests to access internal resources, cloud metadata endpoints, or bypass network controls. Core fix: validate URLs against allowlists of permitted domains, block private IP ranges (RFC 1918, loopback, link-local), and restrict protocols to HTTPS only.
+SSRF occurs when attackers manipulate server-side requests to access internal resources, cloud metadata endpoints, or bypass network controls.
 
-**Primary Defence:** Validate URLs against an allowlist of permitted domains/IPs, block private IP ranges (RFC 1918, loopback, link-local), and restrict protocols to `https://` only.
+The primary defence is to validate URLs against an allowlist of permitted domains/IPs, block private IP ranges (RFC 1918, loopback, link-local), and restrict protocols to `https://` only.
 
 ## Key Principles
 

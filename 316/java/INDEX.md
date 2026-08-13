@@ -10,7 +10,7 @@ Storing sensitive data (passwords, cryptographic keys, tokens) in memory as clea
 - Clear immediately after use: Zero out arrays in `finally` blocks to ensure cleanup
 - Minimize lifetime: Process and discard sensitive data as quickly as possible
 - Avoid string conversions: Never call `new String(charArray)` or similar on credentials
-- Use secure APIs: Leverage `javax.crypto.SecretKey`, `java.security.KeyStore`, and `Destroyable` interfaces
+- Use secure APIs such as `javax.crypto.SecretKey`, `java.security.KeyStore`, and `Destroyable` interfaces
 
 ## Taint Sinks
 

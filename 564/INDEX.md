@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Hibernate injection occurs when user input is concatenated into HQL (Hibernate Query Language) or native SQL queries without parameterization, enabling SQL injection attacks despite using an ORM framework. This allows attackers to steal data, gain unauthorized access, and manipulate databases. Never build Hibernate/ORM queries by concatenation; use parameter binding and avoid dynamic query fragments from untrusted input.
+Hibernate injection occurs when user input is concatenated into HQL (Hibernate Query Language) or native SQL queries without parameterization, enabling SQL injection attacks despite using an ORM framework. Never build Hibernate/ORM queries by concatenation; use parameter binding and avoid dynamic query fragments from untrusted input.
 
 ## Key Principles
 

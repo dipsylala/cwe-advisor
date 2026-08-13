@@ -9,7 +9,7 @@ Applications fail to validate that required input parameters are present before 
 - Validate parameter existence: Check all required parameters are present before accessing their values
 - Fail securely: Reject requests with missing required parameters rather than using unsafe defaults
 - Validate authentication/authorization params: Never proceed with security operations when tokens or credentials are missing
-- Use framework validation: Leverage built-in parameter validation in frameworks (schema validators, required field annotations)
+- Use framework validation: Apply built-in parameter validation in frameworks (schema validators, required field annotations)
 - Handle optionals explicitly: Distinguish between required and optional parameters with clear default behaviors
 
 ## Remediation Steps

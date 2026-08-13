@@ -9,7 +9,7 @@ Inadequate Encryption Strength occurs when Python applications use weak cryptogr
 - Use AES-256-GCM for symmetric encryption, never DES/3DES/RC4
 - Use RSA-2048+ or elliptic curve cryptography (Ed25519, secp256r1) for asymmetric operations
 - Use SHA-256 or SHA-3 for hashing, never MD5 or SHA-1
-- Leverage the `cryptography` library's high-level recipes with secure defaults
+- Use the `cryptography` library's high-level recipes with secure defaults
 - Generate cryptographically secure random keys using `os.urandom()` or `secrets` module
 
 ## Taint Sinks

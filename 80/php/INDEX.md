@@ -8,7 +8,7 @@ XSS occurs when untrusted data is included in web output without proper encoding
 
 - Apply output encoding at the point of rendering, not at input
 - Use context-appropriate encoding (HTML, JavaScript, URL, CSS)
-- Leverage framework auto-escaping (Laravel Blade `{{ }}`, Twig `{{ }}`)
+- Use framework auto-escaping (Laravel Blade `{{ }}`, Twig `{{ }}`)
 - Set Content-Security-Policy headers to limit script execution
 - Never trust user input, even if previously validated
 

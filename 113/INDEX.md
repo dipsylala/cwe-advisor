@@ -18,5 +18,5 @@ HTTP Response Splitting occurs when untrusted user input is included in HTTP hea
 - Trace to sinks. Find where data is set in HTTP response headers (Location, Set-Cookie, custom headers)
 - Review data flow. Check each step in the data path for missing sanitization
 - Remove CRLF and Unicode line terminators. Strip or encode `\r` (U+000D), `\n` (U+000A), U+0085 (NEL), U+2028 (LINE SEPARATOR), and U+2029 (PARAGRAPH SEPARATOR) from all untrusted input before header insertion
-- Use safe APIs. Leverage framework functions that automatically prevent header injection
+- Use safe APIs. Prefer framework functions that automatically prevent header injection
 - Validate header values. Ensure values match expected format before setting headers

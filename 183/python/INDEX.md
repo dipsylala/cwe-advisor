@@ -7,7 +7,7 @@ CWE-183 occurs when input validation uses overly permissive patterns that fail t
 ## Key Principles
 
 - Use `re.fullmatch()` or anchor patterns with `^...$` to ensure complete string matching
-- Leverage Python's specialized validation libraries (`pathlib`, `ipaddress`, `urllib.parse`) instead of custom regex
+- Use Python's specialized validation libraries (`pathlib`, `ipaddress`, `urllib.parse`) instead of custom regex
 - Validate against strict allowlists of permitted values using sets or enums
 - Enforce input length limits before pattern matching
 - Fail closed on validation errors with explicit rejection

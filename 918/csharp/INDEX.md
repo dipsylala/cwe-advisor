@@ -1,4 +1,4 @@
-# CWE-918: Server-Side Request Forgery (SSRF) - C\#
+# CWE-918: Server-Side Request Forgery (SSRF) - C#
 
 ## LLM Guidance
 

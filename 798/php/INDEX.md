@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Hard-coded credentials (passwords, API keys, database credentials, encryption keys) in PHP code or configuration files create critical security vulnerabilities. The core fix is to externalize all secrets using environment variables, secure configuration files outside version control, or dedicated secrets managers. Use `getenv()`, `$_ENV`, vlucas/phpdotenv for development, or cloud secrets managers for production.
+Hard-coded credentials (passwords, API keys, database credentials, encryption keys) in PHP code or configuration files create security vulnerabilities. The core fix is to externalize all secrets using environment variables, secure configuration files outside version control, or dedicated secrets managers. Use `getenv()`, `$_ENV`, vlucas/phpdotenv for development, or cloud secrets managers for production.
 
 ## Key Principles
 

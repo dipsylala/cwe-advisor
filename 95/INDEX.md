@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Eval Injection occurs when untrusted input (from HTTP requests, external APIs, databases, files, or message queues) is passed to an eval-style dynamic code evaluation function - one that compiles and executes a string as code - allowing attackers to execute arbitrary code within the application context. The core fix is to never evaluate dynamically generated code from untrusted sources-eliminate eval-style functions entirely and replace them with safe parsers or allowlisted interpreters.
+Eval Injection occurs when untrusted input (from HTTP requests, external APIs, databases, files, or message queues) is passed to an eval-style dynamic code evaluation function - one that compiles and executes a string as code - allowing attackers to execute arbitrary code within the application context. The core fix is to never evaluate dynamically generated code from untrusted sources - eliminate eval-style functions entirely and replace them with safe parsers or allowlisted interpreters.
 
 ## Key Principles
 

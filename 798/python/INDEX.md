@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Hard-coded credentials (passwords, API keys, database credentials, encryption keys) in Python source code create critical security vulnerabilities by exposing secrets in version control and making rotation impossible. Always externalize credentials using environment variables, configuration files outside version control, or dedicated secrets managers. For production systems, use cloud-native solutions like AWS Secrets Manager or Azure Key Vault.
+Hard-coded credentials (passwords, API keys, database credentials, encryption keys) in Python source code create security vulnerabilities by exposing secrets in version control and making rotation impossible. Always externalize credentials using environment variables, configuration files outside version control, or dedicated secrets managers. For production systems, use cloud-native solutions like AWS Secrets Manager or Azure Key Vault.
 
 ## Key Principles
 

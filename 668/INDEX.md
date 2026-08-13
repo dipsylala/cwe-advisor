@@ -6,10 +6,10 @@ Exposing resources (files, database connections, memory) to the wrong sphere of 
 
 ## Key Principles
 
-- Properly scope resources: Use local variables, context managers, and request-scoped objects instead of global/static resources
-- Close file descriptors after fork(): Prevent child processes from inheriting sensitive resources from parent processes
-- Isolate by security context: Use thread-local storage, connection-per-request patterns, and per-user resource allocation
-- Implement explicit cleanup: Close/clear resources when crossing security boundaries (connection pool returns, thread completion, process transitions)
+- Use local variables, context managers, and request-scoped objects instead of global or static resources
+- Close file descriptors after fork() so child processes do not inherit sensitive resources from the parent
+- Use thread-local storage, connection-per-request patterns, and per-user resource allocation to isolate by security context
+- Close or clear resources explicitly when crossing security boundaries: connection pool returns, thread completion, process transitions
 
 ## Remediation Steps
 

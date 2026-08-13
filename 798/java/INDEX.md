@@ -2,13 +2,13 @@
 
 ## LLM Guidance
 
-Hard-coded credentials in source code create severe security risks as they are exposed in version control, decompiled bytecode, and configuration files. Attackers gaining access to the codebase can extract these credentials to compromise systems. Store credentials externally using environment variables, secrets management services (AWS Secrets Manager, Azure Key Vault), or encrypted configuration files with restricted access.
+Hard-coded credentials in source code are exposed in version control, decompiled bytecode, and configuration files. Attackers gaining access to the codebase can extract these credentials to compromise systems. Store credentials externally using environment variables, secrets management services (AWS Secrets Manager, Azure Key Vault), or encrypted configuration files with restricted access.
 
 ## Key Principles
 
 - Never embed passwords, API keys, tokens, or secrets directly in source code or properties files committed to version control
 - Use environment variables or system properties for runtime credential injection
-- Leverage cloud-native secrets managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault) for production environments
+- Use cloud-native secrets managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault) for production environments
 - Implement proper access controls and encryption for configuration files containing sensitive data
 - Rotate credentials regularly and revoke any previously hard-coded credentials immediately
 - Environment variables are a reasonable fallback but not immune to leakage - they can be read via process inspection, crash dumps, or cloud metadata services, so prefer a secrets manager for production

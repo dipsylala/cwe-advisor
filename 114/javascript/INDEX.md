@@ -4,16 +4,6 @@
 
 Process control vulnerabilities in JavaScript/Node.js applications occur when untrusted user input controls process execution, lifecycle, or module/library loading. Node.js's `child_process` module makes command-injection-style process control dangerous, while its CommonJS module resolution and native addon loading make dynamic `require()` calls and `NODE_OPTIONS`/native `.node` addons a library-loading equivalent of DLL hijacking. Always validate and sanitize input before using it in process-related or module-loading operations, and use allowlists to restrict what can be spawned or loaded.
 
-Key Security Issues:
-
-- User input directly controls `child_process.spawn()`, `exec()`, or `fork()` parameters
-- Unsanitized input used in process arguments, environment variables, or working directories
-- Allowing process termination via user-controlled PID values
-- Command injection through shell metacharacters in process execution
-- `require()` called with a path built from untrusted input, loading an attacker-planted module
-- `NODE_OPTIONS`/`--require` environment injection forcing arbitrary code to load at startup
-- Untrusted native addons (`.node` files) loaded via `process.dlopen()` or `require()`
-
 ## Key Principles
 
 - Use strict allowlists for executable paths and process arguments

@@ -6,7 +6,7 @@ Assumed-immutable parameter vulnerabilities occur when applications trust that c
 
 ## Key Principles
 
-- Never trust client-side data as immutable-always validate server-side
+- Never trust client-side data as immutable - always validate server-side
 - Recompute critical values (prices, permissions, quotas) from authoritative sources
 - Store authoritative state server-side (sessions, databases), not in client parameters
 - Validate all inputs even if marked "disabled" or "hidden" in UI

@@ -6,11 +6,11 @@ Security through obscurity relies on hiding implementation details (secret URLs,
 
 ## Key Principles
 
-- Implement proper authentication and authorization: Use role-based access control and session management instead of hidden URLs or obfuscated endpoints
-- Use encryption, not encoding: Replace base64, XOR, or custom encoding with proper cryptographic algorithms (AES, RSA)
-- Enforce server-side validation: Move security checks from client-side obfuscation to server-side enforcement
-- Apply defence-in-depth: Layer multiple security controls rather than relying on single obscurity measures
-- Validate with attacker's perspective: Test security assuming all obscured information is discovered
+- Use role-based access control and session management instead of hidden URLs or obfuscated endpoints
+- Encryption is not encoding: replace base64, XOR, or custom encoding with proper cryptographic algorithms (AES, RSA)
+- Move security checks from client-side obfuscation to server-side enforcement
+- Layer multiple security controls (defence-in-depth) rather than relying on a single obscurity measure
+- Test security assuming the attacker has already discovered all obscured information
 
 ## Remediation Steps
 

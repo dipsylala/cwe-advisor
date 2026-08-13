@@ -7,7 +7,7 @@ This vulnerability occurs when Struts form beans do not extend the proper valida
 ## Key Principles
 
 - Enforce validation at the framework level - extend ValidatorForm or DynaValidatorForm to automatically integrate with Struts validation
-- Use declarative validation - leverage validation.xml rather than manual input checking
+- Use declarative validation - define constraints in validation.xml rather than manual input checking
 - Fail securely - validation should reject invalid input by default, not warn
 - Enforce through APIs and tooling - make improper usage difficult or impossible, not just documented
 

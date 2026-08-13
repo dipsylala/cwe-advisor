@@ -1,4 +1,4 @@
-# CWE-863: Incorrect Authorization - C\#
+# CWE-863: Incorrect Authorization - C#
 
 ## LLM Guidance
 

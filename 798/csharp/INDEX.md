@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Hard-coded credentials (passwords, API keys, connection strings, encryption keys) in C# source code create critical security vulnerabilities by exposing secrets in version control and compiled assemblies. Never embed credentials directly in code or configuration files. Use environment variables, .NET User Secrets for development, Azure Key Vault for production, or secure `IConfiguration` providers to externalize and protect sensitive data.
+Hard-coded credentials (passwords, API keys, connection strings, encryption keys) in C# source code create security vulnerabilities by exposing secrets in version control and compiled assemblies. Never embed credentials directly in code or configuration files. Use environment variables, .NET User Secrets for development, Azure Key Vault for production, or secure `IConfiguration` providers to externalize and protect sensitive data.
 
 ## Key Principles
 

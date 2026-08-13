@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Permissive input validation occurs when regex patterns or validation logic fails to match the complete input, allowing malicious data to bypass checks. In Java, use fully anchored regex patterns with `^` and `$` anchors and call `matches()` instead of `find()` to ensure complete input validation. Leverage secure APIs like `URI`, `Path`, and `InetAddress` for complex validation scenarios and always enforce length limits to prevent injection attacks.
+Permissive input validation occurs when regex patterns or validation logic fails to match the complete input, allowing malicious data to bypass checks. In Java, use fully anchored regex patterns with `^` and `$` anchors and call `matches()` instead of `find()` to ensure complete input validation. Use secure APIs like `URI`, `Path`, and `InetAddress` for complex validation scenarios and always enforce length limits to prevent injection attacks.
 
 ## Key Principles
 

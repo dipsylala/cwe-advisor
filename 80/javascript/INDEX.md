@@ -7,7 +7,7 @@ Cross-Site Scripting (CWE-80) occurs when untrusted data is inserted into web pa
 ## Key Principles
 
 - Use `textContent` or `innerText` instead of `innerHTML` for displaying user-controlled data
-- Leverage framework built-in escaping (React JSX, Vue templates, Angular bindings)
+- Use framework built-in escaping (React JSX, Vue templates, Angular bindings)
 - Apply context-aware output encoding (HTML, JavaScript, URL, CSS contexts)
 - Implement Content Security Policy (CSP) headers to restrict script execution
 - Sanitize HTML content with libraries like DOMPurify when rich content is required

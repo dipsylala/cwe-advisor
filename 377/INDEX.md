@@ -9,7 +9,7 @@ Insecure temporary files occur when applications create predictable filenames, u
 - Use platform-native secure APIs that generate cryptographically random filenames
 - Create files with exclusive access (O_EXCL flag) and restrictive permissions (0600)
 - Avoid shared directories like /tmp when possible; use user-specific temp directories
-- Always delete temporary files after use; leverage auto-cleanup mechanisms
+- Always delete temporary files after use; use auto-cleanup mechanisms where available
 - Never use predictable patterns (timestamps, PIDs, sequential numbers) in filenames
 
 ## Remediation Steps

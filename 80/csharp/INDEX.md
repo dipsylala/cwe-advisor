@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-XSS occurs when untrusted data is included in web output without proper encoding, allowing attackers to inject malicious scripts that execute in victims' browsers. In C#/ASP.NET applications, leverage Razor's automatic HTML encoding and avoid raw HTML output. Always encode dynamic content using `HttpUtility.HtmlEncode()` or `System.Net.WebUtility.HtmlEncode()`, implement Content Security Policy headers, and validate input using allowlists.
+XSS occurs when untrusted data is included in web output without proper encoding, allowing attackers to inject malicious scripts that execute in victims' browsers. In C#/ASP.NET applications, use Razor's automatic HTML encoding and avoid raw HTML output. Always encode dynamic content using `HttpUtility.HtmlEncode()` or `System.Net.WebUtility.HtmlEncode()`, implement Content Security Policy headers, and validate input using allowlists.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CSRF attacks force authenticated users to perform unwanted actions by exploiting the website's trust in the user's browser. Attackers craft malicious requests that leverage the victim's active session to execute state-changing operations. The core fix is verifying request origin and authenticity using server-controlled CSRF tokens.
+CSRF attacks force authenticated users to perform unwanted actions by exploiting the website's trust in the user's browser. Attackers craft malicious requests that abuse the victim's active session to execute state-changing operations. The core fix is verifying request origin and authenticity using server-controlled CSRF tokens.
 
 ## Key Principles
 

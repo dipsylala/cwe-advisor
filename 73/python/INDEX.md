@@ -10,7 +10,7 @@ External control of file names or paths occurs when user-supplied input construc
 - Validate resolved paths stay within the intended base directory using `relative_to()`
 - Decode and Unicode-normalise before filtering: use `urllib.parse.unquote()` and `unicodedata.normalize('NFC', ...)` - percent-encoded and full-width Unicode path separators bypass checks on raw strings
 - Use allowlists for permitted filenames/extensions, never blocklists for dangerous patterns
-- Leverage framework-provided safe functions like Flask's `send_from_directory()` with `safe_join()`
+- Use framework-provided safe functions like Flask's `send_from_directory()` with `safe_join()`
 - Never directly concatenate user input into file paths without validation
 
 ## Taint Sinks

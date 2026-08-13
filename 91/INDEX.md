@@ -18,5 +18,5 @@ XML Injection occurs when untrusted user input is incorporated into XML document
 - Replace string concatenation - Use safe XML APIs (e.g., `DocumentBuilder`, `XMLStreamWriter`, `lxml.etree`) that treat input as data
 - Escape special characters - If concatenation is unavoidable, escape `<`, `>`, `&`, `"`, `'` using library functions
 - Validate input format - Apply strict allowlist validation on data that determines XML structure
-- Use parameterized APIs - Leverage DOM methods like `createElement()` and `createTextNode()` to safely build XML
+- Use parameterized APIs - build XML with DOM methods like `createElement()` and `createTextNode()` instead of string concatenation
 - Test edge cases - Verify fix with malicious payloads containing XML metacharacters

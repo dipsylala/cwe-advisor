@@ -10,7 +10,7 @@ Leftover debug code in production (print statements, test backdoors, disabled au
 - Gate debug features: If debug functionality is needed, protect it behind authentication, authorization, and environment checks
 - Disable by default: Ensure DEBUG flags, verbose logging, and development modes are off in production configurations
 - Sanitize error output: Replace detailed error messages with generic responses; log details server-side only
-- Use build-time removal: Leverage build tools to automatically strip debug code from production artifacts
+- Use build-time removal: Configure build tools to automatically strip debug code from production artifacts
 
 ## Remediation Steps
 
