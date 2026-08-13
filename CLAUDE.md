@@ -21,8 +21,8 @@ This repository is a local CWE remediation knowledge base used by the `cwe-advis
 
 SKILL.md is loaded in full on every invocation, so keep it a thin workflow driver rather than a repository for procedural detail.
 
-- Keep guidance that applies on every invocation (e.g. the Tone section) inline in SKILL.md - moving it out would mean it's sometimes skipped.
-- Move step-specific procedural detail and data that a step's happy path never touches into `references/*.md`, and link to it from the step - see [references/data-flow-trace.md](references/data-flow-trace.md) for the Step 4 fallback and [references/cwe-identifier.md](references/cwe-identifier.md) for Step 1's no-CWE-number path. The deciding factor is whether a single invocation needs it, not how often the branch is taken in aggregate across invocations.
+- Keep guidance that applies on every invocation (e.g. the Operating Mode determination) inline in SKILL.md - moving it out would mean it's sometimes skipped.
+- Move step-specific procedural detail and data that a step's happy path never touches into `references/*.md`, and link to it from the step - see [references/data-flow-trace.md](references/data-flow-trace.md) for the Step 4 fallback, [references/cwe-identifier.md](references/cwe-identifier.md) for Step 1's no-CWE-number path, [references/tone.md](references/tone.md) for Step 5's interactive-mode presentation guidance, and [references/autonomous-output.md](references/autonomous-output.md) for Step 5's autonomous-mode output format. The deciding factor is whether a single invocation needs it, not how often the branch is taken in aggregate across invocations.
 - When a `references/*.md` file is added, removed, or renamed, update the link in SKILL.md and rerun `python scripts/lint.py` to catch broken links.
 
 ## Authoring Principles

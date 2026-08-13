@@ -7,7 +7,16 @@ description: Educate developers about CWE vulnerabilities and guide remediation 
 
 ## Workflow
 
-When a developer reports a CWE issue, follow the steps below.
+When a CWE issue is raised, follow the steps below.
+
+### Operating Mode
+
+Default to **interactive mode**: a developer is present to answer questions and confirm fixes, so follow every step as written.
+
+Switch to **autonomous mode** when the invocation makes clear no human is available to respond - a batch of findings, a CI/pipeline run, or an explicit instruction to process without confirmation. In autonomous mode:
+
+- Resolve ambiguities that would otherwise prompt a question (Step 1's CWE/description mismatch, Step 3's uncertain language inference) using the best-supported interpretation, and record the assumption in the output instead of asking.
+- Skip Step 5's Tone guidance and confirmation gate - see Step 5 for the autonomous output format.
 
 ### Step 1: Identify the CWE ID
 
@@ -66,24 +75,12 @@ When a fix validates untrusted input against an allowlist, treat the validation 
 
 ### Step 5: Offer a Fix
 
-#### Tone
+Summarise the vulnerability and the data flow findings.
 
-Security findings often arrive as unexpected mandatory blockers. Developers may feel defensive, sceptical about exploitability, or daunted by the migration effort involved. When presenting findings and fixes:
+- **Interactive mode**: read [references/tone.md](references/tone.md) and follow it when presenting the findings and fix. Ask the developer if they would like a fix applied before making any code changes. If they decline, summarise the risk and the recommended safe pattern for their reference, then ask if they have questions about the finding. Only proceed with a fix once they confirm.
+- **Autonomous mode**: skip the confirmation and do not modify code. Emit the structured proposal described in [references/autonomous-output.md](references/autonomous-output.md) instead of presenting steps 1-4 below.
 
-- **Lead with the path forward**, not the severity. The developer knows it must be addressed; focus on how.
-- **Acknowledge migration cost** - replacing a serializer, refactoring an auth flow, or switching a crypto primitive is real work. Say so plainly rather than making it sound trivial.
-- **Use calm, precise language** - avoid alarm phrasing like "DANGEROUS" or "critical vulnerability". Prefer: "this pattern is unsafe because X, and the fix is Y."
-- **Validate pushback on exploitability** - if a developer argues their context reduces risk ("this is internal-only"), acknowledge the point before explaining why the safe pattern is still the right path regardless.
-- **Handle false-positive claims** - if the developer provides evidence that the finding is a false positive (e.g., the input is already validated upstream, the sink is unreachable), re-examine the data flow with that context. If the trace confirms no exploitable path, acknowledge the false positive and suggest the developer suppress the finding with a documented justification.
-- **Don't assign blame** - frame findings as patterns to update, not mistakes to own.
-
----
-
-Summarise the vulnerability and the data flow findings, then **ask the developer if they would like a fix applied** before making any code changes.
-
-If the developer declines, summarise the risk and the recommended safe pattern for their reference, then ask if they have questions about the finding.
-
-Only proceed with a fix once they confirm. Present the fix in this order:
+Present the fix (interactive mode) or populate the proposal's fix fields (autonomous mode) in this order:
 
 1. **Library recommendation** (if the guidance names a specific library for the fix):
    - Name the minimum version known to carry the fix (from the guidance or your general knowledge), not just the library itself. Never recommend a library or version you have reason to believe is vulnerable.
@@ -98,7 +95,7 @@ If the fix uses an allowlist, apply the canonical-value substitution described i
 
 Always prefer the language-specific safe pattern over the general one when both are available.
 
-#### After the Fix
+#### After the Fix (interactive mode only)
 
 After the fix is applied, suggest the developer:
 1. Re-run their scanner (and SCA tool, if a library recommendation was part of the fix) to verify the finding is closed.
