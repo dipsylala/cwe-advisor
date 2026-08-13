@@ -17,6 +17,15 @@ This repository is a local CWE remediation knowledge base used by the `cwe-advis
 - Language-specific files supplement the root guidance; they do not replace it.
 - [aliases.md](aliases.md) at the repository root maps vulnerability names and common industry synonyms (e.g. "SQLi", "XSS", "SSRF") to CWE IDs, so SKILL.md Step 1 can resolve a description without asking the developer to look up the number.
 
+## SKILL.md Maintenance
+
+SKILL.md is loaded in full on every invocation, so keep it a thin workflow driver rather than a repository for procedural detail.
+
+- Keep guidance that applies on every invocation (e.g. the Tone section) inline in SKILL.md - moving it out would mean it's sometimes skipped.
+- Move step-specific procedural detail that's only needed on a rare or fallback path into `references/*.md`, and link to it from the step - see [references/data-flow-trace.md](references/data-flow-trace.md) for the Step 4 fallback. Only extract a step this way if it's genuinely conditional; don't split out detail that's read on every pass just to shrink the file.
+- Keep frequently-read lookups that aren't step-specific procedural detail, such as [aliases.md](aliases.md), at the repository root rather than under `references/` - they're already lazily loaded on demand, and moving them would require updating the paths hardcoded elsewhere (e.g. `scripts/lint.py`'s `parse_alias_ids`).
+- When a `references/*.md` file is added, removed, or renamed, update the link in SKILL.md and rerun `python scripts/lint.py` to catch broken links.
+
 ## Authoring Principles
 
 Write to teach the LLM what to do, not what it already knows - every sentence should add information it cannot reliably infer on its own.

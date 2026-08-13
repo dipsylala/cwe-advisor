@@ -20,11 +20,7 @@ If the user provides a CWE number and a description that don't match, flag the d
 
 ### Step 2: Load General Guidance
 
-Read the top-level index:
-
-```
-{CWE_ID}/INDEX.md
-```
+Read the top-level index: `{CWE_ID}/INDEX.md`
 
 (Paths are relative to the directory containing this SKILL.md.)
 
@@ -49,82 +45,27 @@ If the language is not listed above, check whether a matching lowercase subfolde
 
 Some findings are rooted in a platform manifest or configuration file rather than in program source code - for example, an Android component-export finding (CWE-926) lives in `AndroidManifest.xml`, not in the Kotlin/Java source that happens to sit alongside it. When the finding concerns a platform configuration file, check for a platform-named subfolder under the CWE directory (e.g., `android/`) instead of the inferred source-language subfolder. Keep platform guidance under its own platform name rather than folding it into a language subfolder. If guidance exists for both the platform (the manifest/config fix) and the language (any code-level handling) for the same CWE, load both.
 
-Check whether the subfolder exists, then read it:
-
-```
-{CWE_ID}/{language}/INDEX.md
-```
+Check whether the subfolder exists, then read it: `{CWE_ID}/{language}/INDEX.md`
 
 If no language or platform subfolder exists, rely solely on the general guidance from Step 2.
 
-### Step 4: Check Library Dependencies
-
-After loading the guidance, check whether the loaded guidance (Steps 2–3) references any specific third-party library by name (e.g. SnakeYAML, Jackson, Log4j, OpenSSL, Newtonsoft.Json). If it does, **you must offer** to run an SCA scan or read existing SCA results for that library before proceeding.
-
-**Ask:** *"The guidance references [library name]. Would you like me to check whether the version in use is safe - either by running an SCA scan or reading any existing SCA results?"*
-
-**When to skip this step:** If the developer indicates they have already verified the dependency version, or if the guidance mentions a library as a general example (not a specific recommendation for their stack), you can skip the detailed SCA check.
-
-If the guidance does not name a specific library, skip the rest of this step and proceed to Step 5.
-
-If the developer agrees, gather dependency information in this order:
-
-**Option A - Use an available SCA skill (preferred)**
-
-1. Check the list of loaded skills and available MCP servers. If any skill or server provides SCA or dependency-analysis capabilities (e.g. Veracode, Snyk, Trivy), invoke it to retrieve dependency findings relevant to the libraries mentioned in the guidance. Extract:
-   - Library name and version currently in use
-   - Whether the version is flagged as vulnerable (CVE or advisory)
-   - The minimum safe version recommended by the tool
-   - If the SCA skill returns an error or no results, fall back to Option B below and note that the SCA scan was unavailable.
-
-**Option B - Read manifest files (fallback)**
-
-Search the workspace for dependency manifests and read the relevant library versions:
-
-| Ecosystem   | Files to check                                          |
-|-------------|---------------------------------------------------------|
-| Java        | `pom.xml`, `build.gradle`, `build.gradle.kts`           |
-| JavaScript  | `package.json`, `package-lock.json`, `yarn.lock`        |
-| Python      | `requirements.txt`, `pyproject.toml`, `Pipfile`         |
-| C#          | `*.csproj`, `packages.config`, `Directory.Packages.props` |
-| PHP         | `composer.json`, `composer.lock`                        |
-| C / C++     | `vcpkg.json`, `conanfile.txt`, `CMakeLists.txt`         |
-| Go          | `go.mod`, `go.sum`                                      |
-
-Extract the declared version of any library referenced in the guidance. If multiple manifests exist, prefer lock files over loose version ranges. If a lock file and a manifest declare different versions for the same library, use the lock file version and note the discrepancy to the user.
-
-**After gathering dependency information:**
-
-1. Note which libraries are relevant to the finding.
-2. If a vulnerable version is detected, record the vulnerable version and the safe upgrade target. Carry this into Step 6 so the fix includes both the library upgrade and the code-level remediation.
-3. If a library upgrade is required but the developer indicates it is blocked by broader dependency constraints, acknowledge this directly. Note that a code-level workaround might be possible (or might not, depending on the vulnerability), so the developer can plan escalation early.
-4. If the version cannot be determined (no manifest found, no SCA output), flag this and recommend the developer verify it manually.
-
-### Step 5: Trace the Data Flow
+### Step 4: Trace the Data Flow
 
 Before proposing a fix, trace the data flow from source to sink. Use the best available method:
 
-**Option A - Use available tooling (preferred)**
+**Option A - SAST/DAST-provided data path (preferred)**
 
-If any of the following are available, use them first:
-- A SAST/DAST report that includes a call path or taint trace for the finding
-- Code navigation tools (e.g. `find_all_references`, `go_to_definition`, symbol search) to follow the variable through the call graph
-- An existing data-flow or call-graph result attached to the conversation
+If a SAST/DAST report includes a call path or taint trace for the finding, or the tool can be queried to retrieve one, use it directly - this also covers an existing data-flow or call-graph result already attached to the conversation. Extract the source, sink, and any intermediate steps directly from that output. Skip to Step 5 once you have a clear picture.
 
-If any of these are available, extract the source, sink, and any intermediate steps directly from that output. Skip to Step 6 once you have a clear picture.
+**Option B - LLM-navigated trace (fallback)**
 
-**Option B - Manual trace (fallback)**
+If no SAST/DAST-provided path is available, trace the flow yourself. Follow the steps in [references/data-flow-trace.md](references/data-flow-trace.md), using code navigation tooling (e.g. `find_all_references`, `go_to_definition`, symbol search) to speed things up where available, or reading the code directly otherwise.
 
-If no tooling or results are available, trace the flow by hand:
+**Allowlist fix points (either option)**
 
-1. **Start at the sink** - locate the exact operation the scanner flagged (e.g. SQL query, shell exec, file write). This is your fixed reference point.
-2. **Trace backwards** - follow the data through function calls, assignments, and transformations back towards the entry point. Note every place the value passes through without validation or sanitisation - these are candidate fix points.
-3. **Identify the source** - where does the untrusted input originally enter the application (HTTP request, file, environment variable, IPC, etc.)?
-4. **Find the best fix point** - the first trust boundary the data crosses (e.g., HTTP handler, CLI parser, file reader) where input can be validated before reaching any sink. If no clear trust boundary exists, choose the earliest function in the call chain where the raw input is available in a form that can be validated.
-5. **Break taint after allowlist validation** - when a fix validates untrusted input against an allowlist, treat the validation as a transformation, not only a gate. Do not keep passing the original tainted value downstream after a successful check; select the matching canonical value from the allowlist or a server-controlled map, assign it to a fresh variable, and use that trusted value for later sinks.
-6. **Forward pass for other sinks** - from that fix point, briefly check whether the same input flows to any other dangerous operations that would also need covering.
+When a fix validates untrusted input against an allowlist, treat the validation as a transformation, not only a gate. Do not keep passing the original tainted value downstream after a successful check; select the matching canonical value from the allowlist or a server-controlled map, assign it to a fresh variable, and use that trusted value for later sinks.
 
-### Step 6: Offer a Fix
+### Step 5: Offer a Fix
 
 #### Tone
 
@@ -145,22 +86,23 @@ If the developer declines, summarise the risk and the recommended safe pattern f
 
 Only proceed with a fix once they confirm. Present the fix in this order:
 
-1. **Library upgrade** (if a vulnerable library version was identified in Step 4):
-   - State the current version, the vulnerability (CVE or advisory if known), and the minimum safe version.
+1. **Library recommendation** (if the guidance names a specific library for the fix):
+   - Name the minimum version known to carry the fix (from the guidance or your general knowledge), not just the library itself. Never recommend a library or version you have reason to believe is vulnerable.
    - Show the exact change needed in the manifest file (e.g. updated version string in `pom.xml` or `package.json`).
+   - This is guidance, not a live vulnerability scan - tell the developer to confirm the resolved version against SCA/dependency-check tooling before merging.
 2. **Vulnerable code** - show the code with a comment marking the problem.
-3. **Fixed code** - show the code using the safe pattern from the guidance, applied at the point identified in Step 5.
+3. **Fixed code** - show the code using the safe pattern from the guidance, applied at the point identified in Step 4.
    - When applying the fix, match the existing codebase's indentation, naming conventions, import organization, and formatting - unless the style itself introduces a security issue.
-4. **Explanation** - one paragraph explaining what changed and why it eliminates the weakness. If both a library upgrade and a code change are required, clarify which part each fix addresses - the library upgrade may close the CVE but the code-level safe pattern is still needed to enforce correct usage.
+4. **Explanation** - one paragraph explaining what changed and why it eliminates the weakness. If both a library recommendation and a code change are required, clarify which part each fix addresses - the library version may close the CVE but the code-level safe pattern is still needed to enforce correct usage.
 
-If the fix uses an allowlist, apply the canonical-value substitution from Step 5 #5 - the fixed code must use the value selected from the allowlist, not the original tainted input, downstream.
+If the fix uses an allowlist, apply the canonical-value substitution described in Step 4 - the fixed code must use the value selected from the allowlist, not the original tainted input, downstream.
 
 Always prefer the language-specific safe pattern over the general one when both are available.
 
 #### After the Fix
 
 After the fix is applied, suggest the developer:
-1. Re-run their scanner (and SCA tool, if a library upgrade was part of the fix) to verify the finding is closed.
+1. Re-run their scanner (and SCA tool, if a library recommendation was part of the fix) to verify the finding is closed.
 2. If possible, test the fixed code locally (unit tests, integration tests, or manual testing) to confirm it works as intended and does not introduce regressions.
 
 ## Notes
