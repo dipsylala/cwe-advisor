@@ -44,4 +44,4 @@ should point at the specific fix rather than a general essay on the vulnerabilit
 
 After cloning, run `git config core.hooksPath .githooks` once to enable the pre-commit structural
 lint (`scripts/lint.py`) - it checks required headings, root-file code fences, broken links, and
-that `aliases.md` stays in sync with the CWE directories.
+that `references/cwe-identifier.md` stays in sync with the CWE directories.

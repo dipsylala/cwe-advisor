@@ -15,15 +15,14 @@ This repository is a local CWE remediation knowledge base used by the `cwe-advis
 - The root `{CWE_ID}/INDEX.md` is language-agnostic guidance.
 - Language folders are lowercase ecosystem names. Existing folders include `c`, `csharp`, `java`, `android`, `javascript`, `perl`, `php`, `python`, `go`, and `ruby`.
 - Language-specific files supplement the root guidance; they do not replace it.
-- [aliases.md](aliases.md) at the repository root maps vulnerability names and common industry synonyms (e.g. "SQLi", "XSS", "SSRF") to CWE IDs, so SKILL.md Step 1 can resolve a description without asking the developer to look up the number.
+- [references/cwe-identifier.md](references/cwe-identifier.md) maps vulnerability names and common industry synonyms (e.g. "SQLi", "XSS", "SSRF") to CWE IDs, so SKILL.md Step 1 can resolve a description without asking the developer to look up the number.
 
 ## SKILL.md Maintenance
 
 SKILL.md is loaded in full on every invocation, so keep it a thin workflow driver rather than a repository for procedural detail.
 
 - Keep guidance that applies on every invocation (e.g. the Tone section) inline in SKILL.md - moving it out would mean it's sometimes skipped.
-- Move step-specific procedural detail that's only needed on a rare or fallback path into `references/*.md`, and link to it from the step - see [references/data-flow-trace.md](references/data-flow-trace.md) for the Step 4 fallback. Only extract a step this way if it's genuinely conditional; don't split out detail that's read on every pass just to shrink the file.
-- Keep frequently-read lookups that aren't step-specific procedural detail, such as [aliases.md](aliases.md), at the repository root rather than under `references/` - they're already lazily loaded on demand, and moving them would require updating the paths hardcoded elsewhere (e.g. `scripts/lint.py`'s `parse_alias_ids`).
+- Move step-specific procedural detail and data that a step's happy path never touches into `references/*.md`, and link to it from the step - see [references/data-flow-trace.md](references/data-flow-trace.md) for the Step 4 fallback and [references/cwe-identifier.md](references/cwe-identifier.md) for Step 1's no-CWE-number path. The deciding factor is whether a single invocation needs it, not how often the branch is taken in aggregate across invocations.
 - When a `references/*.md` file is added, removed, or renamed, update the link in SKILL.md and rerun `python scripts/lint.py` to catch broken links.
 
 ## Authoring Principles
@@ -95,8 +94,8 @@ Content expectations:
 6. Keep code samples short, syntactically valid, and focused on safe remediation.
 7. For entries that mention third-party libraries, check that the guidance supports a future dependency version review.
 8. Review for duplicated generic explanation, missing source/sink tracing, vague validation advice, and unsupported framework claims.
-9. Add or update the corresponding row in [aliases.md](aliases.md): CWE ID, official name, and any common industry synonyms a developer might type instead of the number. Leave the aliases column as `-` if the official name has no common shorthand - do not restate words already in the name.
-10. Run `python scripts/lint.py` and fix any reported errors before finishing. It is a deterministic, non-LLM check for required headings, root-file code-fence violations, broken Markdown links, and `aliases.md` staying in sync with the CWE directories - it does not check writing quality or technical accuracy.
+9. Add or update the corresponding row in [references/cwe-identifier.md](references/cwe-identifier.md): CWE ID, official name, and any common industry synonyms a developer might type instead of the number. Leave the aliases column as `-` if the official name has no common shorthand - do not restate words already in the name.
+10. Run `python scripts/lint.py` and fix any reported errors before finishing. It is a deterministic, non-LLM check for required headings, root-file code-fence violations, broken Markdown links, and `references/cwe-identifier.md` staying in sync with the CWE directories - it does not check writing quality or technical accuracy.
 
 ## Quality Checklist
 

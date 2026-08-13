@@ -96,11 +96,11 @@ def check_links(path):
             errors.append(f"{rel(path)}: broken link -> {target}")
 
 
-def parse_alias_ids():
-    path = ROOT / "aliases.md"
+def parse_identifier_ids():
+    path = ROOT / "references" / "cwe-identifier.md"
     ids = set()
     if not path.exists():
-        errors.append("aliases.md is missing")
+        errors.append("references/cwe-identifier.md is missing")
         return ids
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.startswith("|"):
@@ -131,11 +131,11 @@ def main():
             continue
         check_links(md_file)
 
-    alias_ids = parse_alias_ids()
-    for cwe_id in sorted(cwe_ids - alias_ids, key=int):
-        errors.append(f"aliases.md: missing row for CWE-{cwe_id}")
-    for cwe_id in sorted(alias_ids - cwe_ids, key=int):
-        errors.append(f"aliases.md: row for CWE-{cwe_id} has no matching directory")
+    identifier_ids = parse_identifier_ids()
+    for cwe_id in sorted(cwe_ids - identifier_ids, key=int):
+        errors.append(f"references/cwe-identifier.md: missing row for CWE-{cwe_id}")
+    for cwe_id in sorted(identifier_ids - cwe_ids, key=int):
+        errors.append(f"references/cwe-identifier.md: row for CWE-{cwe_id} has no matching directory")
 
     print(f"Checked {len(cwe_dirs)} CWE directories.")
 
