@@ -8,12 +8,12 @@ Code injection in Java occurs when untrusted input is evaluated through scriptin
 
 - Remove or disable `ScriptEngine` access to untrusted input entirely - there is no safe way to sandbox Nashorn/Rhino for arbitrary user expressions
 - Replace dynamic script evaluation with predefined logic: switch statements, strategy patterns, or configuration-driven dispatch tables
-- If a user-configurable expression language is required, use a purpose-built, sandboxed evaluator (e.g., Apache Commons JEXL with a restricted `JexlSandbox`, or SpEL with method-invocation disabled)
+- If a user-configurable expression language is required, use a purpose-built, sandboxed evaluator (e.g., Apache Commons JEXL with a restricted `JexlSandbox`, or a JEXL `JexlSandbox` built deny-by-default with `new JexlSandbox(false)`). SpEL is not the one to reach for: Spring states that `SimpleEvaluationContext`'s restriction is "provided on a best-effort basis and does not guarantee that expression evaluation is safe", and that evaluating an expression from an untrusted source "is inherently dangerous and should generally be avoided" whichever `EvaluationContext` is used
 - Never pass user input to Groovy's `GroovyShell.evaluate()`, `GroovyClassLoader.parseClass()`, or `GroovyScriptEngine`
 - Validate and allowlist all inputs strictly before any expression evaluation
 - For Spring Expression Language, evaluate against a `SimpleEvaluationContext` rather than a `StandardEvaluationContext`: the standard context permits type references (`T(java.lang.Runtime).getRuntime().exec(...)`), constructors and bean references, and the simple one exposes property access only
 - `ScriptEngineManager.getEngineByName("JavaScript")` returns `null` on JDK 15 and later unless a script engine was added back as a dependency, so a finding on that line may be dead code - confirm the runtime before treating it as live, and check whether the null is dereferenced
-- Where an engine is genuinely required, restrict what it can reach rather than filtering the script text, and give it its own class loader and no filesystem or process access
+- Where an engine is genuinely required, restrict what it can reach rather than filtering the script text, and be concrete about what enforces that - a class loader is not a permission boundary, and the SecurityManager that historically supplied one was deprecated for removal by JEP 411 and permanently disabled in JDK 24 by JEP 486. On a current JDK the containment has to come from outside the process: a separate JVM under OS-level limits, or a container
 
 ## Taint Sinks
 

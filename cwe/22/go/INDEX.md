@@ -2,21 +2,21 @@
 
 ## LLM Guidance
 
-Path Traversal in Go usually appears when request or config data reaches `os.Open`, `os.ReadFile`, or `http.ServeFile` via string concatenation or an unchecked `filepath.Join`. `filepath.Clean` and `filepath.Join` only normalize path syntax - they resolve `.`/`..` sequences but do not enforce that the result stays inside an allowed directory, so a boundary check is still required. Prefer indirect reference maps or Go 1.24+ `os.Root`/`os.OpenInRoot` for traversal-resistant access; otherwise clean, join against a fixed base, and verify containment before opening.
+Path Traversal in Go usually appears when request or config data reaches `os.Open`, `os.ReadFile`, or `http.ServeFile` via string concatenation or an unchecked `filepath.Join`. `filepath.Clean` and `filepath.Join` only normalize path syntax - they resolve `.`/`..` sequences but do not enforce that the result stays inside an allowed directory, so a boundary check is still required. Prefer indirect reference maps or Go 1.24+ `os.OpenRoot`/`os.Root`/`os.OpenInRoot` for traversal-resistant access; otherwise clean, join against a fixed base, and verify containment before opening.
 
 ## Key Principles
 
 - Never build file paths via string concatenation with user input; treat any `filepath.Join` result as untrusted until validated
 - `filepath.Clean`/`filepath.Join` normalize syntax only - do not mistake normalization for a security boundary check
 - After joining and cleaning, verify the resulting absolute path is contained within the base directory using `full == base || strings.HasPrefix(full, base+string(filepath.Separator))` - the separator is what stops a sibling directory matching, and the equality case is what still permits the base itself
-- Resolve symlinks with `filepath.EvalSymlinks` before opening when the directory may contain attacker-influenced links, or reject non-regular files with `os.Lstat`/`Mode().IsRegular()`. `EvalSymlinks` returns an error for a path that does not exist yet, so it cannot validate a file about to be created - fail closed on that error rather than falling back to the unresolved path
+- Resolve symlinks with `filepath.EvalSymlinks` before opening when the directory may contain attacker-influenced links, or reject non-regular files with `os.Lstat`/`Mode().IsRegular()`. `EvalSymlinks` fails for a path that does not exist yet - not part of its documented contract, so treat any error as "unresolved" rather than testing for a specific one - and so it cannot validate a file about to be created - fail closed on that error rather than falling back to the unresolved path
 - Prefer indirect references: map a user-supplied ID to a safe path through a Go `map` or database lookup instead of deriving any path from raw input
-- Where available, use Go 1.24+ `os.Root`/`os.OpenInRoot` for file access rooted at a directory, which resists traversal even through symlinks; `Root.Create`/`Root.OpenFile` cover the write case that `EvalSymlinks` cannot, since the destination does not exist to be resolved
+- Where available, use Go 1.24+ `os.OpenRoot`/`os.Root`/`os.OpenInRoot` for file access rooted at a directory, which resists traversal even through symlinks; `Root.Create`/`Root.OpenFile` cover the write case that `EvalSymlinks` cannot, since the destination does not exist to be resolved
 - Archive extraction (Zip Slip): treat `archive/zip` and `archive/tar` entry `Name` fields as untrusted - join with `filepath.Join`, clean, and apply the same base-directory containment check as any other path (or reject with Go 1.20+ `filepath.IsLocal`) before creating the file; reject entries with `..` or absolute paths
 
 ## Taint Sinks
 
-`os.Open()`, `os.ReadFile()`, `http.ServeFile()`, `os.Create()`, `archive/zip`/`archive/tar` entry `Name` field (Zip Slip)
+`os.Open()`, `os.ReadFile()`, `http.ServeFile()` given a `name` built from input (it already rejects a `..` element in `r.URL.Path`, so only the `name` argument is the sink), `os.Create()`, `archive/zip`/`archive/tar` entry `Name` field (Zip Slip)
 
 ## Remediation Steps
 
@@ -25,5 +25,5 @@ Path Traversal in Go usually appears when request or config data reaches `os.Ope
 - Replace the unsafe pattern - use an indirect lookup where feasible, otherwise `filepath.Clean` plus `filepath.Join` against a fixed base directory, making the base absolute with `filepath.Abs` first - an absolute candidate compared against a relative base never matches
 - Bind, encode, validate, or authorize - reject absolute paths (`filepath.IsAbs`) and inputs starting with `..` before joining
 - Break taint after allowlist validation - after the boundary check passes, use only the canonicalized path variable for the file operation, never the original input
-- Harden configuration - use `os.Lstat` plus `IsRegular()`, or `os.Root`/`os.OpenInRoot` (Go 1.24+), to avoid symlink-based escapes; restrict filesystem permissions on the served directory
+- Harden configuration - use `os.Lstat` plus `IsRegular()`, or `os.OpenRoot`/`os.Root`/`os.OpenInRoot` (Go 1.24+), to avoid symlink-based escapes; restrict filesystem permissions on the served directory
 - Test - verify with `../` sequences, absolute paths, encoded traversal, and symlink escape attempts

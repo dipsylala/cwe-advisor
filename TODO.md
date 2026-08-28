@@ -321,6 +321,54 @@ and "X does not do Y" is unreliable in a way that is invisible to rereading.
 Not yet done: ~467 unreviewed entries remain. At this hit rate a full sweep is the only way to trust
 the corpus, and it is a large job - roughly 60 batches of the shape run here.
 
+### Triage sweep - in progress
+
+Scope chosen after the sampling result: language files only, ordered by how often a SAST tool
+actually reports the CWE. Root files are excluded because `cwe/676` showed they carry almost nothing
+falsifiable - no APIs, no versions - so the exposure sits in language files, which is also where the
+value is. 287 untouched language files across 79 CWEs.
+
+**Method per batch** (repeatable from a cold start):
+
+1. One subagent per entry, briefed to return **evidence only** - claim quoted verbatim, vendor
+   sentence quoted verbatim with URL, when the behaviour was introduced and in which release, what
+   the vendor does *not* say, and whether a stated mechanism is vendor-supported or only its outcome.
+2. No verdicts from the agent. "Is this true?" answers yes for a claim that is true and still broken,
+   which is the dominant failure mode - so the judging stays with the main model.
+3. Re-verify directly any finding that will reverse a claim or delete a recommendation.
+4. Patch, `python scripts/lint.py`, commit per batch.
+
+Give each brief the language's own vendor sources and, where known, the specific trap to check. That
+targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief would not have.
+
+**Batches done:**
+
+- Batch 1 - CWE-89 and CWE-78, six languages each (12 entries). All 12 defective.
+- Batch 2 - CWE-611 and CWE-918 (11 entries). All 11 defective.
+
+**Running count: 31 of 287 language files reviewed, 31 carried at least one defect.**
+
+**Recurring defect shapes**, worth briefing future batches on explicitly:
+
+- *A helper offered as the safe one that the vendor says is not.* Go's `net.IP.IsPrivate` carries
+  "should not be used for access control" in its own doc and misses `169.254.169.254`; `span.subspan`
+  states bounds as preconditions, not checks; .NET strong-name verification is documented as not a
+  security control.
+- *Defaults never stated, where the default is the whole point.* `AllowAutoRedirect` is true;
+  `fetch` follows redirects; `CURLOPT_FOLLOWLOCATION` is already off; `mysql2`'s `?` binds under
+  `execute()` and escapes under `query()`.
+- *Version floors absent, or naming a superseded fix.* CWE-78/javascript cited Node's incomplete fix
+  and named exploitable versions as safe.
+- *Guidance that has dated.* CWE-611/python described an XXE that CPython closed in 3.6.8/3.7.1 and
+  prescribed a dependency last released in 2021 - a false-positive generator.
+- *The case the fix does not cover.* Identifiers in every CWE-89 entry; create in CWE-863/python.
+
+**Remaining, in the intended order:** the rest of the injection family (22, 94, 90, 943, 77, 91, 79,
+502, 41, 88, 93, 95, 113, 80), then authn/authz (862, 863, 287, 306, 285, 522, 566, personal 798),
+crypto and randomness (326, 330, 331, 338, 347, 295, 780, 316), web hygiene (352, 601, 614, 434, 942,
+209, 201), and last the memory/native and resource entries (125, 787, 121, 415, 416, 823, 824, 401,
+362, 367, 377), which are the least likely to be handed to this skill by a web-application scanner.
+
 ### Config-first remediation ordering - swept and fixed
 
 Run 4's one failure was arm B on `LogForgeOnFailure`: all three judges scored it `fix_quality` 1,

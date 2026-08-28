@@ -12,12 +12,17 @@ Path Traversal occurs when user input constructs file paths without validation, 
 - Do not re-decode: `request.getParameter()`, `@RequestParam` and model binding already return percent-decoded values, so a further `URLDecoder.decode()` turns the inert literal `%2e%2e%2f` into `../`; `URLDecoder` also maps `+` to a space, corrupting legitimate filenames
 - Validate canonical paths remain within the intended base directory
 - Compare `java.nio.file.Path` objects with `Path.startsWith(Path)` (or `File.getCanonicalPath()` against a separator-terminated base) - `canonicalPath.startsWith(baseDir)` on the *strings* accepts a sibling such as `/app/uploads-backup`
-- `Path.normalize()` is textual and `getAbsolutePath()` resolves nothing; only `toRealPath()`/`getCanonicalFile()` follow symbolic links
-- `toRealPath()` throws `NoSuchFileException` when the target does not exist, so it cannot validate an upload destination - canonicalize the parent directory instead, check that with `startsWith`, and require the supplied name to be a single component by rejecting anything where `Paths.get(name).getFileName().toString()` differs from `name`
+- `Path.normalize()` is textual and `getAbsolutePath()` resolves nothing; the Javadoc warns that
+  eliminating `..` "may result in the path that locates a different file than the original path" when
+  the preceding name is a symbolic link. Only `toRealPath()` and `getCanonicalFile()` follow links -
+  and note `getCanonicalPath()` documents link resolution on UNIX platforms specifically, while
+  `toRealPath()` stops following if `NOFOLLOW_LINKS` is passed, so neither is unconditional
+- `toRealPath()` fails when the target does not exist - the Javadoc specifies `IOException`, so catch
+  that rather than only `NoSuchFileException`, which is a subtype it does not contractually promise -, so it cannot validate an upload destination - canonicalize the parent directory instead, check that with `startsWith`, and require the supplied name to be a single component by rejecting anything where `Paths.get(name).getFileName().toString()` differs from `name`
 - Reject paths containing traversal sequences (`../`, `..\\`) or null bytes
 - Use allowlists for permitted file extensions and directories
 - Avoid constructing paths from untrusted input when possible
-- Archive extraction (Zip Slip): treat `ZipEntry.getName()` from `java.util.zip.ZipInputStream` (or Apache Commons Compress) as untrusted - resolve it against the destination directory and verify containment with `Path.startsWith()` after `toRealPath()`/normalization, the same pattern used above, before extracting
+- Archive extraction (Zip Slip): treat `ZipEntry.getName()` from `java.util.zip.ZipInputStream` (or Apache Commons Compress) as untrusted - resolve it against the destination directory and verify containment with `Path.startsWith()` after `toRealPath()`, before extracting - not after `normalize()`, which is the weaker option this entry rules out above and which leaves a symlinked entry in place
 
 ## Taint Sinks
 
