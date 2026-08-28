@@ -256,7 +256,14 @@ Top 25 and none previously recorded:
   with a signature on it - `jwt.verify()` succeeding says the token is ours, not that the claim was
   validated at issue time. Java's case with no visible write is Spring MVC `@SessionAttributes`, where
   data binding promotes a `@ModelAttribute` into the session with no `setAttribute` in the source.
-- Still to add for CWE-501: `go` and `php`.
+- **Both families are now complete** at six languages each (`csharp`, `go`, `java`, `javascript`,
+  `php`, `python`). Two more verified defaults came out of the last pair: Go's
+  `bcrypt.GenerateFromPassword` **rejects** a password over 72 bytes with `ErrPasswordTooLong` rather
+  than truncating - a deliberate divergence from the reference implementation - while
+  `CompareHashAndPassword` still accepts one and compares the first 72, so login keeps working for a
+  legacy password registration would now refuse. And PHP's `session.use_strict_mode` is **off by
+  default**, so until it is set PHP adopts any session id the client presents, meaning an attacker can
+  fix the session a validated value is then written into.
 
 None is a defect in existing guidance; they are absences. Recorded here rather than fixed, since
 adding entries is authoring work and a separate decision.
