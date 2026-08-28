@@ -11,7 +11,41 @@ stand on their own against current sources, which is how this pass verified them
 
 ## 1. Open
 
-Nothing outstanding.
+### Extend the graded review to the rest of the MITRE Top 25
+
+The first pass was described as covering ranks 1-15. Checked against the list, it actually covered
+**ranks 1-14**; CWE-269 was never touched. Two further entries look covered but are not: CWE-918
+received one `CURLPROTO_HTTPS` fix from the sweep audit, and CWE-306 gained language entries
+without its root being graded.
+
+Remaining, in rank order:
+
+| Rank | CWE | Entry | Language dirs | Note |
+|---|---|---|---|---|
+| 15 | CWE-269 Improper Privilege Management | yes | 0 | Missed by the first pass. Router-style entry, like CWE-20/119 |
+| 16 | CWE-502 Deserialization | yes | 6 | Full graded review |
+| 17 | CWE-200 Information Exposure | yes | 0 | Abstract; check it routes rather than remediates |
+| 18 | CWE-863 Incorrect Authorization | yes | 6 | Pairs with CWE-862, already reviewed - check they agree |
+| 19 | CWE-918 SSRF | yes | 6 | Only the sweep-audit fix so far; needs a graded pass |
+| 20 | CWE-119 Buffer bounds | yes | 0 | Router to 125/787/121; verify the mapping is complete |
+| 21 | CWE-476 NULL Pointer Dereference | yes | 0 | Warrants `c`/`cpp`/`java` entries |
+| 22 | CWE-798 Hard-coded Credentials | yes | 6 | Full graded review |
+| 23 | CWE-190 Integer Overflow | yes | 3 | Only c/cpp/java; likely needs go/csharp |
+| 24 | CWE-400 Uncontrolled Resource Consumption | **missing** | - | Not in the knowledge base at all |
+| 25 | CWE-306 Missing Authentication | yes | 6 | Language entries added this session; root not graded |
+
+Two things worth settling before starting:
+
+- **CWE-400 is absent.** It is the only Top 25 entry with no directory. Creating it is authoring
+  work rather than review work, so it is a separate decision from the rest of this list.
+- **MITRE rank is a proxy, not the real signal.** The Top 25 is derived from CVE/KEV data - what
+  gets exploited in the wild - whereas this skill receives whatever a SAST tool flags in
+  application code. If scanner output is available showing which CWEs actually arrive, that beats
+  MITRE ordering for prioritising this list. Absent it, rank order is consistent with the first
+  pass and defensible.
+
+Beyond rank 25 there are roughly 160 further entries whose prose has never been reviewed. The
+version-claim sweep covered all of them for that one error class only.
 ## Done this session (context)
 
 - `Safe Pattern` retired across all 307 language files; guidance is prose-only. Spec, template and
