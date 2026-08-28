@@ -12,7 +12,6 @@ stand on their own against current sources, which is how this pass verified them
 ## 1. Open
 
 Nothing outstanding.
-
 ## Done this session (context)
 
 - `Safe Pattern` retired across all 307 language files; guidance is prose-only. Spec, template and
@@ -36,6 +35,18 @@ Nothing outstanding.
   `proc_open` fix versions are 8.1.28/8.2.18/8.3.5 with a further bypass fixed in 8.1.29/8.2.20/8.3.8
   (CVE-2024-5585), `gorilla/csrf` has no fixed release for CVE-2025-47909, and ASP.NET Core does not
   execute uploaded `.aspx`/`.cshtml` at all - unknown content types 404.
+- Version-claim sweep completed across all 187 CWE directories: 110 version assertions in 61 files
+  extracted mechanically, routine standard-library floors taken as read, and the 13 specific enough
+  to be wrong verified against upstream sources. Two were wrong, both now fixed - `88/java` called
+  the `java.net.URL` constructors "deprecated for removal" when JDK 20 marked them
+  `@Deprecated(since="20")` without `forRemoval`, and `611/php` said
+  `libxml_disable_entity_loader()` was removed in 8.4 when it is deprecated since 8.0 and still
+  present in 8.5 (that bullet also described `LIBXML_NO_XXE` as disabling entity substitution when
+  it blocks external entity loading). Eleven checked out: Python 3.14 `\z`, Java 18
+  `Runtime.exec(String)`, Go 1.24 `crypto/rand` panic, PHP 8.4 `LIBXML_NO_XXE`, `tarfile` filter
+  default from 3.14, `closefrom` in glibc 2.34, XStream 1.4.7/1.4.18, AWS SDK for Java v1 end of
+  support, Node CVE-2016-2216, PHP 5.1.2 `header()`, and the Spring Security `sessionFixation()`
+  default. The `88/java` error was shared with `docs/` and is logged in `UPDATE_DOCS.md`.
 - `SKILL.md` hardened on two evidenced defects: Step 5 no longer licenses supplying a library
   version from model recall (the failure mode behind three wrong version claims found this
   session), and Step 4 now treats a non-exploitable trace as a valid outcome in *both* modes -

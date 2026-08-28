@@ -14,6 +14,8 @@ This is **not** a full audit of all 492 files. It covers three things:
    pass, checked in both directions - what `docs/` got wrong, and what it got right that the
    knowledge base did not.
 3. A mechanical link check over every relative link in `docs/`.
+4. A later sweep of every version assertion in the `cwe-advisor` knowledge base, with each claim
+   `docs/` also makes checked against the same source.
 
 Prose accuracy across the roughly 480 files not touched by those three passes was not reviewed.
 
@@ -84,6 +86,21 @@ version. As written it reads as a weak-but-available option rather than as code 
 
 **Impact:** low. Worth one clause.
 
+### 5. `java.net.URL` constructors described as "deprecated for removal"
+
+`docs/CWE-88/java/index.md:120-121`
+
+The text reads "the `URL` constructors are deprecated for removal as of Java 20". JDK-8294241 did
+deprecate them in Java 20, but the annotation is `@Deprecated(since="20")` **without**
+`forRemoval=true` - a soft deprecation. Verified against the JDK 21 javadoc for `URL(String spec)`.
+No removal is scheduled and existing code will not stop compiling.
+
+**Impact:** low. The recommendation to prefer `URI.create()` is right; only the justification
+overstates it. The stronger argument, which the same sentence already makes, is behavioural:
+`URL.equals`/`hashCode` perform DNS resolution.
+
+This error was shared with the `cwe-advisor` knowledge base, which has been corrected.
+
 ## Corrections to previously reported `docs/` problems
 
 Two items previously recorded against `docs/` are **not** defects in `docs/` at all - both were
@@ -119,6 +136,10 @@ accurate than the `cwe-advisor` entry covering the same ground.
 - **ASP.NET Core does not execute uploaded `.aspx`/`.ashx`/`.cshtml`** - correct and measured on
   .NET 10, including the Razor runtime-compilation path into the content root. `cwe-advisor`
   carried the IIS-classic threat model and has since been corrected from this page.
+- **`libxml_disable_entity_loader()` handling in `docs/CWE-611/php`** - correct. The samples guard
+  the call behind `PHP_VERSION_ID < 80000` and the note at :486 explains that on PHP 8.0+ there is
+  nothing for it to do. `cwe-advisor` wrongly claimed the function was *removed* in 8.4 (it is
+  deprecated but still present as of 8.5) and has been corrected from this page.
 - **`passlib` / `bcrypt` 5.0 breakage** - correct, and more precise than any public summary found:
   the distinction between the harmless trapped `bcrypt.__about__` probe under bcrypt 4.x and the
   hard `ValueError: password cannot be longer than 72 bytes` from the backend self-test under
@@ -127,11 +148,17 @@ accurate than the `cwe-advisor` entry covering the same ground.
 
 ## Summary
 
-Four errors, one of them (gorilla/csrf) worth fixing promptly because it recommends software with
-an unpatched bypass, and one (the PHP versions) worth fixing because it produces a false pass in a
-dependency check. The two previously reported link problems were not `docs/` problems.
+Five errors. Two are worth fixing promptly: gorilla/csrf, because it recommends software with an
+unpatched bypass, and the PHP `proc_open` versions, because they produce a false pass in a
+dependency check. The remaining three are lower-consequence wording or staleness. The two
+previously reported link problems were not `docs/` problems at all.
 
 The broader pattern from checking in both directions: `docs/` was **more** accurate than the
-knowledge base built from it on eight of the twelve overlapping claims examined. Its errors cluster
-in version and CVE metadata rather than in technical explanation, which suggests version assertions
-are the thing worth re-checking on a schedule.
+knowledge base built from it on almost every overlapping claim examined. Its errors cluster in
+version and CVE metadata rather than in technical explanation - four of the five above are version
+or advisory metadata - which is the same class of error the knowledge base's own version sweep
+turned up. Version assertions are the thing worth re-checking on a schedule; the prose has held up.
+
+Note the sample is not random: the claims examined were selected because a review had already
+flagged them or because the knowledge base asserted the same thing. It supports "`docs/` is a
+useful cross-check source", not an error rate for either tree.
