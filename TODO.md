@@ -245,8 +245,18 @@ Top 25 and none previously recorded:
   (326 and 780 have five each, 328 now has four), so authoring a parallel `327/{language}` set would
   duplicate them. 327 keeps direct guidance for what has no better child: an algorithm broken outright
   (DES, 3DES, RC4) and protocol or cipher-suite selection.
-- **CWE-501 has root guidance but no language directories.** Still open, and unrelated to the crypto
-  pair - it is about mixing trusted and untrusted data in one store, typically session attributes.
+- **CWE-501** now has `java`, `csharp`, `python` and `javascript` entries. It is an OWASP Benchmark
+  category (`trustbound`) with 83 true positives - more than the CWE-643 gap - and unlike CWE-327 it
+  genuinely needed them, because the trusted store differs per framework and so does what a bad write
+  exposes. The organising point across all four: **a signature proves origin, not trustworthiness.**
+  Flask's default session is a client-side signed cookie the user can read but not modify, so a bad
+  write there discloses as well as escalates; Django's is server-side unless `SESSION_ENGINE` says
+  otherwise. ASP.NET Core's authentication cookie is signed and encrypted by Data Protection, which
+  proves the server issued the claim rather than that anyone checked it. A JWT is the same weakness
+  with a signature on it - `jwt.verify()` succeeding says the token is ours, not that the claim was
+  validated at issue time. Java's case with no visible write is Spring MVC `@SessionAttributes`, where
+  data binding promotes a `@ModelAttribute` into the session with no `setAttribute` in the source.
+- Still to add for CWE-501: `go` and `php`.
 
 None is a defect in existing guidance; they are absences. Recorded here rather than fixed, since
 adding entries is authoring work and a separate decision.
