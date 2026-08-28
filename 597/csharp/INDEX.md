@@ -10,6 +10,9 @@ Using reference equality on object-typed values instead of value equality can co
 - Specify `StringComparison.Ordinal` for case-sensitive or `StringComparison.OrdinalIgnoreCase` for case-insensitive comparisons
 - Avoid culture-sensitive comparisons (`CurrentCulture`) in authentication, authorization, and security checks
 - Never rely on string interning for security decisions
+- `StartsWith`, `EndsWith`, `IndexOf(string)` and `String.Compare` are culture-sensitive by default too, so an explicit `StringComparison` belongs on every one of them, not only on `Equals`
+- Do not normalize with `ToLower()`/`ToUpper()` before comparing - those use the current culture, and `ToUpperInvariant()`/`OrdinalIgnoreCase` are the culture-free forms; a request-localization pipeline (`UseRequestLocalization`, `SupportedCultures`) lets the caller choose the culture a comparison runs under
+- For a secret - a token, an API key, an HMAC - correcting the comparison mode is only half the fix: use `CryptographicOperations.FixedTimeEquals()` so the comparison is also constant-time
 
 ## Taint Sinks
 
@@ -23,19 +26,3 @@ Using reference equality on object-typed values instead of value equality can co
 - Review authentication, authorization, token validation, and input validation logic
 - Add unit tests covering non-interned strings to verify correct comparison behavior
 - Use static analysis tools to flag `==` usage on string types
-
-## Safe Pattern
-
-```csharp
-// RISKY: implicit comparison mode and null handling
-if (userRole == "Admin") { /* grant access */ }
-
-// SAFE: Value comparison with explicit mode
-if (userRole.Equals("Admin", StringComparison.Ordinal)) { /* grant access */ }
-
-// SAFE: Null-safe static method
-if (String.Equals(userRole, "Admin", StringComparison.Ordinal)) { /* grant access */ }
-
-// SAFE: Case-insensitive when appropriate
-if (fileExtension.Equals(".exe", StringComparison.OrdinalIgnoreCase)) { /* block */ }
-```

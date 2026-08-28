@@ -11,6 +11,9 @@ Assumed-immutable parameter vulnerabilities occur when applications trust that c
 - Store authoritative state server-side (sessions, databases), not in client parameters
 - Validate all inputs even if marked "disabled" or "hidden" in UI
 - Use cryptographic signatures or HMACs for parameters that must round-trip to client
+- Recompute the value server-side rather than validating what the client returned: a price, a total, a discount, or a role read back from a hidden field is client state whatever the form said
+- Where the tampered parameter is an *identifier* and the missing control is an ownership check, the finding is CWE-639; this entry is a *value* the server acts on directly
+- A disabled input, a hidden field, and a cookie are all the same channel from the server's point of view - the browser is not a trust boundary
 
 ## Remediation Steps
 

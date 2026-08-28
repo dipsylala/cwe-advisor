@@ -13,6 +13,10 @@ LDAP Injection occurs when untrusted data is used to construct LDAP search filte
 - Use Spring LDAP's `LdapQueryBuilder` instead of raw JNDI when the framework is already a dependency - it applies safe encoding automatically
 - Validate input against allowlists for expected characters and patterns
 - Apply principle of least privilege to LDAP service accounts
+- Use the framework's own encoders rather than a hand-written escape: Spring LDAP's `LdapEncoder.filterEncode()` for a filter value and `LdapEncoder.nameEncode()`/`javax.naming.ldap.Rdn` for a DN component, or ESAPI's `encodeForLDAP()`/`encodeForDN()` where ESAPI is already present
+- Prefer the query builder (`LdapQueryBuilder.query().where(attr).is(value)`), which binds the value rather than pasting it into a filter string
+- ESAPI needs `ESAPI.properties` and `validation.properties` on the classpath or it throws `ConfigurationException` at first use - a dependency added for one encoder call that then fails at runtime is worse than the maintained framework encoder
+- Search by attribute and bind or look up with the DN the directory returned, rather than composing a DN from input and passing it to `lookup()`
 
 ## Taint Sinks
 
@@ -26,17 +30,3 @@ LDAP Injection occurs when untrusted data is used to construct LDAP search filte
 - Alternatively, migrate to Spring LDAP's `LdapQueryBuilder` for automatic protection on both filters and DNs
 - Add input validation to reject unexpected characters before encoding
 - Test with payloads like `*)(uid=*))(|(uid=*` to verify protection
-
-## Safe Pattern
-
-```java
-// SAFE: JNDI parameterized filter - filterArgs are escaped automatically
-String filter = "(uid={0})";
-NamingEnumeration<SearchResult> results = ctx.search(
-        "ou=users,dc=example,dc=com", filter, new Object[]{username}, searchControls);
-
-// SAFE: ESAPI encoding for DN construction - no parameterized API exists for DNs
-import org.owasp.esapi.ESAPI;
-String safeName = ESAPI.encoder().encodeForDN(username);
-String dn = "uid=" + safeName + ",ou=users,dc=example,dc=com";
-```

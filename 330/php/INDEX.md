@@ -11,6 +11,10 @@ Weak random number generation in PHP occurs when insecure functions like `rand()
 - Use `random_int()` for random integers within a specific range
 - Never use predictable PRNGs for authentication, authorization, cryptography, or session management
 - Verify token length is sufficient (at least 16-32 bytes for security tokens)
+- `random_bytes()`/`random_int()` throw rather than returning weak output, which is the property that makes them safe - never catch the exception and fall back to `mt_rand()` or `openssl_random_pseudo_bytes()`
+- `openssl_random_pseudo_bytes()` reports its own strength through a by-reference second argument that is easy to omit; prefer `random_bytes()`, which has no weak mode to detect
+- `array_rand()` and `str_shuffle()` use the non-cryptographic generator despite having nothing "random" in the risky part of their names
+- `password_hash()` generates its own CSPRNG salt - passing one is unnecessary and, done wrongly, harmful
 
 ## Taint Sinks
 
@@ -24,22 +28,3 @@ Weak random number generation in PHP occurs when insecure functions like `rand()
 - Ensure minimum token length of 32 characters (16 bytes) for session/CSRF tokens
 - Test that tokens are unpredictable and unique across multiple generations
 - Review and update any cryptographic operations to use secure randomness
-
-## Safe Pattern
-
-```php
-// Generate secure session token
-function generateSecureToken($length = 32) {
-    return bin2hex(random_bytes($length / 2));
-}
-
-// Generate secure random integer
-function generateSecurePin() {
-    return random_int(100000, 999999);
-}
-
-// Usage
-$sessionToken = generateSecureToken(32);  // 32-char hex token
-$resetToken = bin2hex(random_bytes(32));  // 64-char hex token
-$csrfToken = base64_encode(random_bytes(24)); // 32-char base64 token
-```

@@ -13,6 +13,10 @@ XML Injection in Java occurs when untrusted user input is used to construct XML 
 - Validate and sanitize all user input before XML processing
 - Use XML libraries that enforce proper encoding (JAXB, DOM4J with safe configurations)
 - Disable external entity processing to prevent XXE attacks
+- Use `XMLStreamWriter.writeCharacters()`/`writeAttribute()`, which escape the value; an element or attribute *name* built from input bypasses that entirely, since names are not escaped
+- For XPath, compile the expression once (`javax.xml.xpath.XPathExpression`) with a variable resolver and bind the value - concatenating it is the same shape as SQL injection and, unlike SQL, XPath 1.0 literals have no escape sequence for their delimiter
+- `escapeXml11()` (Commons Text) escapes text content; it does not make a value safe inside a CDATA section, where the sequence `]]>` still terminates early
+- A `Transformer` writing the result applies its own escaping - do not pre-escape the values you hand it, or the output is double-encoded
 
 ## Taint Sinks
 
@@ -25,24 +29,3 @@ String-concatenated XML via `+`/`String.format()`, `StringBuilder.append()` buil
 - Validate input against whitelist patterns before XML processing
 - Configure parsers to explicitly disable DOCTYPE declarations, external entities, and external schema/DTD access
 - Use parameterized XPath queries instead of string concatenation
-
-## Safe Pattern
-
-```java
-import org.w3c.dom.*;
-import javax.xml.parsers.*;
-
-// Safe: Using DOM API (auto-escapes)
-DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-DocumentBuilder builder = factory.newDocumentBuilder();
-Document doc = builder.newDocument();
-
-Element root = doc.createElement("user");
-Element name = doc.createElement("name");
-name.setTextContent(userInput); // Auto-escaped, safe
-root.appendChild(name);
-
-// Alternative: Explicit escaping for string-based XML
-String safe = StringEscapeUtils.escapeXml11(userInput);
-String xml = "<user><name>" + safe + "</name></user>";
-```

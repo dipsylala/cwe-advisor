@@ -10,6 +10,9 @@ Go has no built-in authentication framework, so login, session, and token verifi
 - Prefer the `jwt.WithValidMethods([]string{"HS256"})` parser option (`golang-jwt/jwt/v5`) in addition to the `keyFunc` check, so parsing fails before a key is even resolved for a disallowed algorithm.
 - Never accept `jwt.SigningMethodNone` (`alg: none`) - do not add it to any valid-methods list or unconditionally trust `token.Method.Alg()` from the header.
 - Compare passwords with a constant-time, salted hash function such as `golang.org/x/crypto/bcrypt` (`bcrypt.CompareHashAndPassword`), never `==` on plaintext or a fast unsalted hash.
+- Run `bcrypt.CompareHashAndPassword` on the lookup-miss branch too, against a dummy hash derived at start-up with `bcrypt.GenerateFromPassword` at the same cost: returning as soon as `lookupUser` fails answers in microseconds where a wrong password costs about 51 ms, which enumerates usernames.
+- Fall back to that dummy when the stored `PasswordHash` is empty (an SSO-only row) as well - `CompareHashAndPassword` returns `ErrHashTooShort` immediately for an empty or malformed hash, so a blank or pasted placeholder times that case instead of hiding it, and a literal at a different cost than `bcrypt.DefaultCost` is a timing gap of its own.
+- At login with `gorilla/sessions`, obtain the session with `store.New` rather than `store.Get` so a pre-login session cookie an attacker planted is discarded instead of promoted, and set `Secure`, `HttpOnly`, and `SameSite` on `sessions.Options` at the same point.
 - Since there is no framework-enforced auth layer, apply the authentication check as HTTP middleware wrapping every protected handler, not as an ad hoc check duplicated per handler.
 - Store JWT/HMAC signing secrets via environment variables or a secret manager, generated with sufficient entropy (32+ random bytes for HS256).
 
@@ -25,31 +28,4 @@ Go has no built-in authentication framework, so login, session, and token verifi
 - Bind, encode, validate, or authorize - Accept only the specific `SigningMethodHMAC`/`SigningMethodRSA` variant the issuer actually uses; reject all others, including `none`
 - Break taint after allowlist validation - Use only the `*jwt.Token` returned after `Parse`/`ParseWithClaims` succeeds and `token.Valid` is true for identity decisions; never read claims from a token that failed parsing
 - Harden configuration - Centralize the authentication check in HTTP middleware applied to every protected route
-- Test - Write a test that submits a token re-signed with `alg: none` or with the RS256 public key reused as an HS256 secret, and confirm `ParseWithClaims` returns an error
-
-## Safe Pattern
-
-```go
-// SAFE: keyFunc pins the expected signing method; alg:none and algorithm-swap attacks fail
-import (
-    "fmt"
-    "github.com/golang-jwt/jwt/v5"
-)
-
-var hmacSecret = []byte(mustGetEnv("JWT_SECRET"))
-
-func verifyToken(tokenString string) (*jwt.Token, error) {
-    claims := jwt.MapClaims{}
-    token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-        if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-            return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-        }
-        return hmacSecret, nil
-    }, jwt.WithValidMethods([]string{"HS256"}))
-
-    if err != nil || !token.Valid {
-        return nil, fmt.Errorf("invalid token: %w", err)
-    }
-    return token, nil
-}
-```
+- Test - Write a test that submits a token re-signed with `alg: none` or with the RS256 public key reused as an HS256 secret, and confirm `ParseWithClaims` returns an error; time a right password, a wrong password, an unknown username, and a row with an empty `PasswordHash` and assert all four are within noise of each other

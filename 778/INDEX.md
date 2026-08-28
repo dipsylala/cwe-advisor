@@ -12,6 +12,9 @@ Insufficient logging occurs when a security-relevant event, such as an authentic
 - Never log secrets, full credentials, session tokens, or other sensitive values in plaintext
 - Protect log integrity with restricted write and read permissions, and tamper-evident storage for high-value logs
 - Treat a failure to write a security log as an operational event to alert on, not a task that can fail silently
+- Fail loudly if the recording itself fails: a logging path that swallows its own errors turns the control into a decoration exactly when it matters
+- The fix writes attacker-controlled values (a submitted username, a requested path, a user agent) into the log, so neutralize newlines and control characters at the same time or a forged entry becomes the next finding (CWE-117)
+- Where the omitted information is in a warning, indicator, or audit report rather than an event log, the finding is CWE-223
 
 ## Remediation Steps
 

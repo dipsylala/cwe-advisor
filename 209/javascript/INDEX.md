@@ -13,6 +13,8 @@ Error Message Information Leak occurs when JavaScript applications expose sensit
 - Configure framework error handlers to distinguish between development and production environments
 - Sanitize database errors to remove query details, table names, and schema information
 - Disable debug mode and verbose logging in production deployments
+- `express-validator`'s `errors.array()` includes the submitted `value` for each failed field, so returning it echoes a rejected password back to the caller and into every access log on the way - build the response from field names and your own messages
+- Winston and Pino serialize an `Error`'s `message` and `stack` when it is passed as the log object; decide which transport carries that, and return only a correlation id to the client
 
 ## Taint Sinks
 
@@ -26,20 +28,3 @@ Error Message Information Leak occurs when JavaScript applications expose sensit
 - Remove or disable client-side `console.error()` calls exposing sensitive data
 - Set `NODE_ENV=production` in deployment environments
 - Test error responses to verify no stack traces or internals leak
-
-## Safe Pattern
-
-```javascript
-// Express production error handler
-app.use((err, req, res, next) => {
-  // Log full error server-side
-  logger.error({ err, req: { method: req.method, url: req.url } });
-  
-  // Return sanitized response
-  res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production' 
-      ? 'An error occurred' 
-      : err.message
-  });
-});
-```

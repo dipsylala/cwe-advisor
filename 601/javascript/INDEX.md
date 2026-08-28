@@ -21,24 +21,6 @@ Open redirect vulnerabilities in Node.js occur when user-controlled input flows 
 
 - Parse the redirect URL using Node.js `URL` constructor to extract components
 - Check if the URL is relative (no protocol/hostname) or matches allowlist
-- For external redirects, compare hostname against approved domain list
+- For external redirects, compare `url.hostname` against the approved domain list and require `url.protocol === 'https:'`
 - Reject invalid destinations with error or fallback to safe default page
 - Log blocked redirect attempts for security monitoring
-
-## Safe Pattern
-
-```javascript
-const ALLOWED_DOMAINS = ['example.com', 'app.example.com'];
-
-function safeRedirect(res, redirectUrl, fallback = '/') {
-  try {
-    const url = new URL(redirectUrl, 'https://example.com');
-    if (url.protocol === 'https:' && ALLOWED_DOMAINS.includes(url.hostname)) {
-      return res.redirect(redirectUrl);
-    }
-  } catch {
-    if (redirectUrl.startsWith('/')) return res.redirect(redirectUrl);
-  }
-  res.redirect(fallback);
-}
-```

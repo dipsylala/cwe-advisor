@@ -13,6 +13,8 @@ Use of Cryptographically Weak PRNG in PHP occurs when developers use non-cryptog
 - Use `random_int()` for random integers within a specific range
 - Never seed or predict CSPRNG output
 - Ensure sufficient entropy (minimum 16 bytes for tokens, 32+ bytes for keys)
+- PHP 8.2's `Random\Randomizer` takes an engine, so it is only as strong as the engine passed in - `Random\Engine\Secure` is the cryptographic one
+- `shuffle()`, `str_shuffle()` and `array_rand()` use the non-cryptographic generator, and `mt_srand()` makes the sequence reproducible on purpose
 
 ## Taint Sinks
 
@@ -26,22 +28,3 @@ Use of Cryptographically Weak PRNG in PHP occurs when developers use non-cryptog
 - Ensure proper encoding when converting binary random data (use `bin2hex()` or `base64_encode()`)
 - Review and test all changes to verify randomness quality
 - Remove any custom seeding logic for PRNGs
-
-## Safe Pattern
-
-```php
-// Generate cryptographically secure token
-function generateSecureToken($length = 32) {
-    return bin2hex(random_bytes($length));
-}
-
-// Generate random integer in range
-function generateSecurePin() {
-    return random_int(1000, 9999);
-}
-
-// Usage
-$sessionToken = generateSecureToken(32); // 64-char hex string
-$resetToken = bin2hex(random_bytes(16)); // 32-char hex string
-$otp = random_int(100000, 999999); // 6-digit number
-```

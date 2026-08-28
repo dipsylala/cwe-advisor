@@ -8,7 +8,7 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 
 - Use libraries that support safe LDAP filter builders or prepared filters
 - Validate and sanitize all user inputs with strict allowlists before using in LDAP queries
-- Escape LDAP special characters: `*`, `(`, `)`, `\`, `/`, `NUL` using proper encoding
+- Escape LDAP special characters: `*`, `(`, `)`, `\`, `/`, `NUL` as a backslash followed by the two-digit hex code per RFC 4515 - `\2a`, `\28`, `\29`, `\5c`, `\2f`, `\00` - and if escaping by sequential replacement, replace `\` first so the inserted sequences are not escaped again
 - Implement least-privilege access controls on LDAP directory operations
 - Use framework-provided LDAP query builders instead of string concatenation
 
@@ -24,21 +24,3 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 - Implement input validation with allowlists for username/search patterns
 - Add logging and monitoring for suspicious LDAP query patterns
 - Conduct security testing with LDAP injection payloads
-
-## Safe Pattern
-
-```javascript
-const ldap = require('ldapjs');
-
-// Safe: Escape LDAP special characters
-function escapeLDAP(str) {
-  return str.replace(/[*()\\\/\x00]/g, (char) => '\\' + char.charCodeAt(0).toString(16).padStart(2, '0'));
-}
-
-const username = escapeLDAP(userInput);
-const filter = `(&(objectClass=user)(uid=${username}))`;
-
-client.search('ou=users,dc=example,dc=com', { filter, scope: 'sub' }, (err, res) => {
-  // Handle results
-});
-```

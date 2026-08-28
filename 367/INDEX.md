@@ -12,6 +12,9 @@ This weakness occurs when code checks a condition - file existence, permissions,
 - For authorization, re-verify permissions at the point of the sensitive action itself, not only at request entry, since state can change during processing
 - Hold any required lock continuously from the check through the use; releasing and reacquiring reopens the race window
 - Treat any check whose result is used after more than a negligible delay as stale, and re-verify at the point of use
+- Verify after opening, not before: once the file is open, `fstat(fd)` reports on the file that was actually opened, while `stat(path)` resolves the name again and can answer about a different one
+- Prefer an API that does both at once - `open()` with `O_CREAT|O_EXCL` is an atomic check-and-create, where `if (exists) open()` is two steps with a window between them
+- An in-process lock is enough only while the state is shared between threads of one process; across workers, replicas, or the filesystem it protects nothing
 
 ## Remediation Steps
 

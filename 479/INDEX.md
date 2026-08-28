@@ -12,6 +12,9 @@ This weakness occurs when a signal handler calls a function that is not async-si
 - Prefer handler-free signal delivery where the platform supports it, since it removes the async-signal-safety question entirely
 - Review every registered handler against the platform's async-signal-safe function list, not only the one a scanner flagged
 - Defence-in-depth: use a thread or data-race sanitizer to catch races between a handler and the code it interrupts
+- A handler does not run alongside the program, it runs inside it: the kernel suspends the thread between two instructions and runs the handler on that same thread, so it begins with whatever the program was halfway through still halfway through - a free list partly relinked, a buffer partly flushed, an object partly constructed
+- That is why a lock does not help: calling back into the code that owns the mid-update state re-enters it, and a mutex the interrupted code already holds deadlocks
+- The same defect with a thread as the concurrent context rather than a signal is CWE-663, and a handler racing the main program over shared state generally is CWE-364; the restriction is identical in all of them
 
 ## Remediation Steps
 

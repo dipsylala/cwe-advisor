@@ -12,6 +12,8 @@ Hard-coded credentials in source code are exposed in version control, decompiled
 - Implement proper access controls and encryption for configuration files containing sensitive data
 - Rotate credentials regularly and revoke any previously hard-coded credentials immediately
 - Environment variables are a reasonable fallback but not immune to leakage - they can be read via process inspection, crash dumps, or cloud metadata services, so prefer a secrets manager for production
+- `application.properties` with `${DB_PASSWORD}`-style placeholders resolves from the environment, which is the right shape - but a committed `.env` or a profile-specific properties file holding the literal defeats it
+- Check the built artifact as well as the source: a value bound at build time is inside the JAR and is recoverable from it
 
 ## Taint Sinks
 
@@ -25,21 +27,3 @@ Hard-coded credentials in source code are exposed in version control, decompiled
 - Add credential files to .gitignore to prevent accidental commits
 - Remove credential history from version control using tools like git-filter-repo
 - Rotate all exposed credentials immediately after removal
-
-## Safe Pattern
-
-```java
-// Retrieve credentials from environment variables at runtime
-public class DatabaseConnection {
-    private static final String DB_URL = System.getenv("DB_URL");
-    private static final String DB_USER = System.getenv("DB_USER");
-    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
-    
-    public Connection connect() throws SQLException {
-        if (DB_PASSWORD == null) {
-            throw new IllegalStateException("DB_PASSWORD not set");
-        }
-        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-    }
-}
-```

@@ -11,6 +11,10 @@ CWE-427 occurs when a fixed, unmodified search path (unlike CWE-426, the path it
 - Load libraries and executables by their full, absolute, trusted path rather than depending on default loader search order, even when the path itself is not attacker-modifiable
 - Apply least-writable-permissions to every directory that remains in the search order - a directory the application does not control should not be searched at all
 - Verify the integrity (signature or checksum) of loaded components when loading by name is unavoidable
+- Overwrite the search path rather than appending to it: appending inherits whatever elements were already there, which is the condition being fixed
+- Do not expect a runtime property to move a loader's path - `System.setProperty("java.library.path", ...)` after startup changes the property and nothing else, since `System.loadLibrary` keeps the value captured at class-initialization time. Set `-Djava.library.path` at launch, or load by absolute path with `System.load`
+- Set the environment for the subprocess rather than the parent, and prefer a clean environment over an inherited one
+- The circulating names - DLL preloading, binary planting, insecure library loading, dependency confusion - are used for both this and CWE-426, so do not take a scanner's label as the answer
 
 ## Remediation Steps
 

@@ -11,6 +11,7 @@ Insufficiently Protected Credentials in JavaScript/Node.js occurs when passwords
 - Use HTTPS/TLS for all credential transmission
 - Add `.env` files to `.gitignore` and scan repositories for committed secrets
 - Implement credential rotation policies and use short-lived tokens where possible
+- Commit a `.env.example` with the variable *names* only, so the shape is documented and the values are never in the repository
 
 ## Taint Sinks
 
@@ -18,30 +19,9 @@ hardcoded secrets in source, `crypto.createHash('md5'|'sha1')` for passwords, `c
 
 ## Remediation Steps
 
-- Replace plaintext password storage with bcrypt hashing (minimum 12 rounds)
+- Replace plaintext password storage with `bcrypt.hash(plain, 12)` (minimum 12 rounds) and verify with `bcrypt.compare()`
 - Move all hardcoded credentials to environment variables loaded via `dotenv` or platform secrets
 - Add `.env`, `config.js`, and credential files to `.gitignore`
 - Use `git-secrets` or `truffleHog` to scan repository history for leaked credentials
 - Implement HTTPS for APIs and use secure cookie flags (`httpOnly`, `secure`, `sameSite`)
 - Rotate any credentials that were previously exposed
-
-## Safe Pattern
-
-```javascript
-const bcrypt = require('bcrypt');
-require('dotenv').config();
-
-// Hash password on registration
-async function registerUser(plainPassword) {
-  const hashedPassword = await bcrypt.hash(plainPassword, 12);
-  // Store hashedPassword in database
-}
-
-// Verify password on login
-async function loginUser(plainPassword, hashedPassword) {
-  return await bcrypt.compare(plainPassword, hashedPassword);
-}
-
-// Load API keys from environment
-const apiKey = process.env.API_KEY;
-```

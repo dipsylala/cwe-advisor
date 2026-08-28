@@ -12,6 +12,9 @@ Obsolete functions remain callable long after being superseded because standard 
 - Search the codebase for every occurrence of the same function, not only the instance a scanner flagged
 - Confirm the platform or language version's current deprecation list, since obsolete status and replacements can shift between releases
 - Add a lint or static analysis rule preventing reintroduction of the retired function
+- Separate the three "dangerous function" questions: this one is about *status* - withdrawn, deprecated, or superseded. A current function with a documented safe calling convention (`strcpy`, `sprintf`, `system`) is CWE-676, and one with no safe convention at all is CWE-242; `gets()` is on both of the latter lists as well as this one
+- The distinction decides the work: an obsolete function has a named successor and the fix is a substitution, while a merely dangerous one is often correct where it stands and the fix is a judgement about this call site
+- Prioritise withdrawn *security* helpers first - a removed TLS wrapper, password-hashing module, or credential API usually verified less than its replacement does, and there is no argument that makes it correct. A weak algorithm reached through a current API is CWE-327/CWE-328 instead
 
 ## Remediation Steps
 

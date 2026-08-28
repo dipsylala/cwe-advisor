@@ -12,6 +12,8 @@ This weakness occurs when credentials, API keys, or other secrets are stored in 
 - Sanitize logs so secret-shaped values are redacted before being written, and prefer structured logging with an explicit field allowlist over logging entire request, response, or environment objects
 - Prevent server-side template injection, since a template compiled from untrusted input can be used to read environment or configuration context
 - Defence-in-depth: where the platform supports it, mount secrets as files instead of environment variables, since files are not inherited by every child process or exposed through process listings
+- The fix is not to have a long-lived secret in the environment at all: fetch it at runtime from a secrets manager, or mount it as a file with restricted permissions, so there is nothing sensitive for a leak channel to disclose
+- Closing the leak channels alone hides the finding rather than removing the secret - the environment is readable by child processes, crash dumps, `/proc` on some configurations, and any diagnostic endpoint that prints configuration
 
 ## Remediation Steps
 

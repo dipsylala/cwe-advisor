@@ -13,6 +13,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Never use escapeshellarg() or escapeshellcmd() as a primary defence - they are insufficient
 - Never concatenate user input into command strings
 - Only use proc_open() as a last resort with an argument array; the `bypass_shell` option in `$other_options` avoids the `cmd.exe` wrapper but is Windows-specific and has no effect on Linux/macOS
+- A `.bat`/`.cmd` target re-enters `cmd.exe` regardless, because Windows parses the command line for batch files; PHP addressed the resulting injection in 2024 (CVE-2024-1874), so keep the runtime patched and prefer invoking the executable the batch file wraps
 - An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Taint Sinks
@@ -27,40 +28,3 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Replace process execution - Delete exec()/system()/shell_exec() code and use the appropriate PHP function
 - For unavoidable commands - Use proc_open() with argument array and bypass_shell option, validate all inputs
 - Test thoroughly - Verify the PHP function replacement provides the same functionality
-
-## Safe Pattern
-
-```php
-// UNSAFE: Executing ping command
-$output = shell_exec("ping -c 1 " . $host);
-
-// UNSAFE: Even with escapeshellarg()
-$output = shell_exec("ping -c 1 " . escapeshellarg($host));
-
-// SAFE: Use fsockopen for reachability check
-function isHostReachable($host, $port = 80, $timeout = 5) {
-    $socket = @fsockopen($host, $port, $errno, $errstr, $timeout);
-    if ($socket) {
-        fclose($socket);
-        return true;
-    }
-    error_log("Host unreachable: $errstr ($errno)");
-    return false;
-}
-
-// SAFE: File copy with built-in function
-copy($source, $dest);
-
-// SAFE: HTTP request with cURL
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-$response = curl_exec($ch);
-curl_close($ch);
-
-// SAFE: File operations with built-in functions
-unlink($file);                          // Delete file
-rename($old, $new);                     // Move/rename file
-mkdir($dir, 0755, true);                // Create directory
-$content = file_get_contents($file);    // Read file
-```

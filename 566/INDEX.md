@@ -11,6 +11,9 @@ CWE-566 is the SQL-specific case of Insecure Direct Object Reference (see CWE-63
 - Enforce this at the data access layer so no code path can query by primary key without the ownership filter
 - Return consistent error responses (403/404) that don't reveal whether a given key exists
 - Consider indirect or session-scoped references where the identifier exposed to the client does not map directly to the database primary key
+- Scope the query itself to the authenticated user rather than loading the row and checking ownership afterwards - the predicate then prevents returning another user's data, and there is no window in which unauthorized data is held in memory
+- Nothing in the query looks wrong, which is why this survives review: `get(id)` returns the row with that key exactly as written, and what is absent is any statement that the caller is entitled to it
+- Apply the check on every operation, not only reads - update and delete paths reached by the same identifier are the ones usually left behind
 
 ## Remediation Steps
 

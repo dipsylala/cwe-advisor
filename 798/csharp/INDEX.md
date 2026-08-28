@@ -11,6 +11,7 @@ Hard-coded credentials (passwords, API keys, connection strings, encryption keys
 - Implement least-privilege access with managed identities where possible
 - Rotate credentials regularly and audit all secret access
 - Treat environment variables as a fallback, not a vault - they can still leak via process listings, crash dumps, or platform metadata endpoints, so prefer Key Vault for production
+- A connection string in `web.config`/`appsettings.json` is still a hard-coded credential - move it to a secret store and authenticate with a workload identity (`DefaultAzureCredential`) so there is no secret to place at all
 
 ## Taint Sinks
 
@@ -21,25 +22,6 @@ Hard-coded credentials (passwords, API keys, connection strings, encryption keys
 - Identify all hard-coded credentials using code scanning tools or manual review
 - Move secrets to User Secrets (`dotnet user-secrets set`) for local development
 - Configure Azure Key Vault or environment variables for production environments
-- Update code to retrieve credentials via `IConfiguration` or Key Vault client
+- Update code to retrieve credentials via `IConfiguration` built with `AddUserSecrets<T>()` and `AddEnvironmentVariables()`, or a Key Vault client
 - Remove hard-coded values and scrub from version control history
 - Implement secret scanning in CI/CD pipelines to prevent future violations
-
-## Safe Pattern
-
-```csharp
-// appsettings.json - no secrets here
-public class Startup {
-    public void ConfigureServices(IServiceCollection services) {
-        var config = new ConfigurationBuilder()
-            .AddUserSecrets<Startup>()      // Development
-            .AddEnvironmentVariables()       // Production
-            .Build();
-        
-        var apiKey = config["ApiKey"];
-        var connStr = config["ConnectionStrings:Database"];
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connStr));
-    }
-}
-```

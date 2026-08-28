@@ -11,6 +11,9 @@ CWE-95 occurs when untrusted input from HTTP requests, APIs, files, or external 
 - Use safe parsers like `ast.literal_eval()` for data structures or JSON for configuration
 - Validate and sanitize all input with strict whitelists before any processing
 - Apply least-privilege principles to limit damage if execution occurs
+- `yaml.load(data, Loader=yaml.Loader)` and `yaml.UnsafeLoader` construct arbitrary Python objects; `yaml.safe_load()` is the fix, and the `Loader=` argument is the thing to check rather than the function name
+- A Jinja2 `Environment` is a template engine, not a sandbox: `{{ ''.__class__.__mro__ }}`-style attribute traversal reaches module globals unless a `SandboxedEnvironment` is used, and even then the template body must not come from a request
+- `str.format` on a user-supplied template is a different weakness (CWE-134) and is not fixed by anything here
 
 ## Taint Sinks
 
@@ -24,22 +27,3 @@ CWE-95 occurs when untrusted input from HTTP requests, APIs, files, or external 
 - Run unavoidable dynamic execution in a separate locked-down process/container with minimal permissions and resource limits; do not rely on in-process Python sandboxing
 - Apply input whitelisting to allow only specific, predefined values or patterns
 - Review and audit all external data sources feeding into the application
-
-## Safe Pattern
-
-```python
-# UNSAFE: Using eval with user input
-user_input = request.GET.get('expression')
-result = eval(user_input)  # NEVER do this
-
-# SAFE: Use a function mapping with whitelist
-ALLOWED_OPERATIONS = {
-    'add': lambda x, y: x + y,
-    'subtract': lambda x, y: x - y,
-    'multiply': lambda x, y: x * y
-}
-
-operation = request.GET.get('op')
-if operation in ALLOWED_OPERATIONS:
-    result = ALLOWED_OPERATIONS[operation](10, 5)
-```

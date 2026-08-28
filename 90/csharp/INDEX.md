@@ -7,7 +7,7 @@ LDAP Injection occurs when untrusted data is used to construct LDAP queries with
 ## Key Principles
 
 - Validate with strict allowlists - Restrict input to expected patterns before any LDAP operations
-- Escape LDAP metacharacters - Encode `*()\/` and null bytes when user input must appear in filters
+- Escape LDAP metacharacters - Encode `*()\/` and null bytes when user input must appear in filters, using the RFC 4515 hex forms `\2a`, `\28`, `\29`, `\5c`, `\2f`, `\00`; when escaping by sequential replacement, replace `\` first or the sequences inserted afterwards are escaped a second time
 - Search-then-use pattern - Query by safe attribute, retrieve the object's DN, use that DN for further operations
 - Avoid DN construction - Never concatenate user input into Distinguished Names or filter strings
 - Principle of least privilege - Use service accounts with minimal LDAP permissions
@@ -24,22 +24,3 @@ LDAP Injection occurs when untrusted data is used to construct LDAP queries with
 - For authentication, search by `sAMAccountName`, retrieve the object, then use its `Path` property
 - Never build LDAP filter strings with `String.Format()` or interpolation on raw user input
 - Test with injection payloads - `*)(objectClass=*)`, `admin*`, `*)(uid=*`
-
-## Safe Pattern
-
-```csharp
-string EscapeLdap(string input) {
-    return input.Replace("\\", "\\5c").Replace("*", "\\2a")
-                .Replace("(", "\\28").Replace(")", "\\29")
-                .Replace("\0", "\\00").Replace("/", "\\2f");
-}
-
-string username = EscapeLdap(userInput);
-using (var searcher = new DirectorySearcher()) {
-    searcher.Filter = $"(&(objectClass=user)(sAMAccountName={username}))";
-    SearchResult result = searcher.FindOne();
-    if (result != null) {
-        string userDn = result.Path; // Use this DN, don't construct it
-    }
-}
-```

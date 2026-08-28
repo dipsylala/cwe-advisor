@@ -11,6 +11,10 @@ CBC mode requires a random, unpredictable Initialization Vector (IV) for each en
 - Generate a fresh, unpredictable IV for each encryption operation
 - Store or transmit the IV alongside the ciphertext (IV does not need to be secret)
 - Ensure IV size matches the cipher block size (typically 16 bytes for AES)
+- A plain counter is not a CBC IV: CBC requires the IV to be *unpredictable* before the plaintext is chosen. NIST SP 800-38A does permit deriving one by encrypting a unique nonce under the same key, but that is a deliberate construction rather than what a counter IV is
+- Distinguish the two requirements: CBC needs an unpredictable IV, while GCM and other nonce-based AEAD modes need nonce *uniqueness* - a repeated GCM nonce under the same key is catastrophic, not merely weak
+- Use the mode's recommended nonce size (96 bits for GCM) and manage the nonce explicitly unless the library does it, since many APIs make it the caller's responsibility
+- The IV is not a secret and belongs with the ciphertext - prepend it - and it must be independent of the data being encrypted
 
 ## Remediation Steps
 

@@ -11,6 +11,7 @@ RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) is vulnerabl
 - Prefer modern alternatives like AES-GCM with RSA-OAEP for hybrid encryption
 - Never use legacy PKCS#1 v1.5 padding (`RSA_PKCS1_PADDING`) for encryption
 - Consider using `publicEncrypt`/`privateDecrypt` with explicit padding configuration
+- `subtle.encrypt`/`decrypt` with an OAEP `CryptoKey` is the WebCrypto form; on the Node side, do not surface `ERR_OSSL_RSA_OAEP_DECODING_ERROR` to the caller, since a distinguishable decode failure is the oracle the attack needs
 
 ## Taint Sinks
 
@@ -24,29 +25,3 @@ RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) is vulnerabl
 - Test encryption/decryption with OAEP padding enabled
 - Review and update all RSA encryption configurations
 - Regenerate any data encrypted with PKCS#1 v1.5 padding
-
-## Safe Pattern
-
-```javascript
-const crypto = require('crypto');
-
-// Encrypt with OAEP
-const encrypted = crypto.publicEncrypt(
-  {
-    key: publicKey,
-    padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-    oaepHash: 'sha256'
-  },
-  Buffer.from('sensitive data')
-);
-
-// Decrypt with OAEP
-const decrypted = crypto.privateDecrypt(
-  {
-    key: privateKey,
-    padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-    oaepHash: 'sha256'
-  },
-  encrypted
-);
-```

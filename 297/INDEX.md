@@ -11,6 +11,9 @@ Improper certificate hostname validation occurs when TLS/SSL clients don't verif
 - Use default SSL/TLS library configurations which enable hostname verification by default
 - Custom certificate validators must explicitly check CN/SAN fields against the target hostname
 - Hostname verification is separate from certificate chain validation-both are required
+- Raw TLS sockets skip the name check by default, with nothing disabled and no `verify=False` for a rule to match: a Java `SSLSocket` and a Python `SSLContext.wrap_socket()` called without `server_hostname` both verify the chain and authenticate nobody. Set `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` before `startHandshake()`, and pass `server_hostname=host` in Python
+- In OpenSSL the name check is opt-in rather than a switch: `SSL_VERIFY_PEER` alone gives a fully validated chain with no name check at all, so call `SSL_set1_host()` or `X509_VERIFY_PARAM_set1_host()`
+- Removing the chain-verification switches (`verify=False`, `ssl.CERT_NONE`, `SSL_VERIFY_NONE`) is necessary and does not by itself give a name check; the hostname switches are separate - a `HostnameVerifier` returning `true`, Apache HttpClient's `NoopHostnameVerifier.INSTANCE` (named `ALLOW_ALL_HOSTNAME_VERIFIER` through the 4.5.x line, gone in 5.x), `check_hostname = False`, and `assert_hostname=False`
 
 ## Remediation Steps
 

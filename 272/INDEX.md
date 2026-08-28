@@ -12,6 +12,8 @@ This weakness appears when a process acquires an elevated privilege to perform o
 - Do not assume a privilege-drop call succeeded; verify the drop took effect (for example, confirm the privilege cannot be re-acquired) before continuing.
 - Where the platform supports it, prefer a narrower mechanism that avoids needing full elevation at all, such as a capability scoped to exactly one action, over acquiring and then dropping broad privilege.
 - Distinguish this from a component that is configured to run with excess privilege for its entire lifetime with no specific privileged operation to point to; that broader, standing condition is a different weakness requiring a different fix.
+- Order the drop correctly, or the code looks complete and is not: `setgroups()`/`setgid()` must run *before* `setuid()`, since once the user id is gone those calls have no privilege left to succeed with - and an unchecked failure there silently leaves the groups attached
+- `seteuid()` changes only what the process currently acts as and leaves the saved user id at the privileged value, so a later call can silently re-acquire it; the permanent form (`setuid`) is what the drop needs
 
 ## Remediation Steps
 

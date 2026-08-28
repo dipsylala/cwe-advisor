@@ -12,6 +12,8 @@ This weakness occurs when a process attempts to drop elevated privileges (setuid
 - Drop privileges as early as possible after the elevated operation completes, minimizing the window of elevated execution
 - Apply least privilege to the elevated section itself: elevate only for the specific operation that requires it
 - Treat unconfirmed privilege state as untrusted - do not proceed to handle untrusted input or perform further operations until the drop is verified
+- Verify more than the effective identity: a check on the effective UID or token alone passes while a saved identity or an inherited capability is still elevated, leaving a route back to full privilege the check never looks at
+- Do not assume a library's "drop privileges" helper is atomic - many perform the group drop, user drop, and capability clear as separate internal calls, and one that swallows a failure partway through leaves a partially-dropped state that looks successful from outside
 
 ## Remediation Steps
 

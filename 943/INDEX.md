@@ -12,6 +12,10 @@ This weakness covers query injection into non-relational or structure-based quer
 - Allowlist which fields a query may filter, sort, or project on, and reject any input key that begins with a query-operator prefix
 - Never enable server-side expression or code-execution features of the query engine with any part of the expression derived from user input
 - Apply least privilege to the database account used by the application
+- The injectable value is often a *type* rather than a character: nothing is concatenated and nothing needs escaping, but a JSON body can make a field an object where a string was expected, and the driver serializes it faithfully into the query where it becomes an operator
+- Require the plain type before the value reaches the query, and use the driver's explicit equality construct rather than accepting a bare value, so the query's structure stays under the application's control
+- Keep the secret out of the filter entirely - look the user up by name and verify the hash in code - and run the verification against a dummy hash when no user is found, so the endpoint does not become a username oracle (CWE-208)
+- Use CWE-89 for a relational engine; this entry covers document, key-value, wide-column and graph stores, and SQL-like languages exposed by NoSQL products such as Cosmos DB's SQL API or Cassandra's CQL
 
 ## Remediation Steps
 

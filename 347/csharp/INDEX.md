@@ -12,6 +12,9 @@
 - Reject `alg: none` and weak algorithms; `ValidAlgorithms` combined with `RequireSignedTokens = true` prevents unsigned tokens from validating
 - Use `CryptographicOperations.FixedTimeEquals()` (.NET Core 2.1+) for any raw signature/HMAC comparison - never `==`, `SequenceEqual()`, or `Array.Equals()`, none of which are constant-time
 - Set `ValidateIssuer`, `ValidateAudience`, and `ValidateLifetime` to `true` in addition to signature validation
+- `SignedXml.CheckSignature()` with no arguments verifies the signature against the key embedded in the document, which any attacker can supply - pass the expected key or certificate (`CheckSignature(cert, true)`) so the trust decision is yours
+- With `Microsoft.IdentityModel.JsonWebTokens`, set `IssuerSigningKey`/`IssuerSigningKeys` from configuration and leave `ValidateIssuerSigningKey`, `ValidateIssuer`, `ValidateAudience` and `ValidateLifetime` on - a `SecurityTokenSignatureKeyNotFoundException` is the correct outcome for a token you cannot key, not a case to fall back from
+- Handle `FormatException` from a malformed token as rejection rather than letting it surface as a 500
 
 ## Taint Sinks
 
@@ -25,34 +28,3 @@
 - Bind, encode, validate, or authorize - resolve signing keys by `kid` only from a trusted keystore, and pin the algorithm the resolved key is allowed to use
 - Harden configuration - set `RequireSignedTokens = true`, `RequireExpirationTime = true`, and validate issuer/audience
 - Test - re-sign a legitimate RS256 token as HS256 using the known public key as secret and confirm `ValidateToken()` throws `SecurityTokenInvalidSignatureException`
-
-## Safe Pattern
-
-```csharp
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Cryptography;
-
-// SAFE: algorithm is pinned - the token header cannot select HS256 instead
-var validationParameters = new TokenValidationParameters
-{
-    ValidateIssuerSigningKey = true,
-    IssuerSigningKey = rsaSecurityKey,
-    ValidAlgorithms = new[] { SecurityAlgorithms.RsaSha256 },
-    RequireSignedTokens = true,
-    ValidateIssuer = true,
-    ValidIssuer = "https://issuer.example.com",
-    ValidateAudience = true,
-    ValidAudience = "my-api",
-};
-var handler = new JwtSecurityTokenHandler();
-var principal = handler.ValidateToken(token, validationParameters, out _);
-
-// SAFE: webhook HMAC-SHA256 verification with constant-time comparison
-byte[] expected = new HMACSHA256(webhookSecret).ComputeHash(requestBody);
-byte[] provided = Convert.FromHexString(signatureHeader);
-if (!CryptographicOperations.FixedTimeEquals(expected, provided))
-{
-    throw new SecurityException("Invalid webhook signature");
-}
-```

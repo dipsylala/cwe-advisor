@@ -13,6 +13,9 @@ In C#, CWE-114 vulnerabilities occur when loading DLLs or executing processes wi
 - Use absolute paths with known-safe directories (e.g., System32, application directory)
 - Apply least privilege principles when spawning child processes
 - Never concatenate user input directly into process arguments or DLL paths
+- `Assembly.LoadFrom()` with a path from configuration or a request loads and runs whatever is there - resolve to an absolute path under a directory the application account cannot write to, and verify the file's signature (`WinVerifyTrust`, or an Authenticode check) before loading
+- `AppDomain.CreateDomain()` and `PermissionSet`-based sandboxing are .NET Framework only and do not exist on .NET Core or later - do not treat a code-access-security boundary as available on a modern runtime; isolate in a separate process instead
+- Use `ProcessStartInfo.ArgumentList` rather than `Arguments`, and never launch through `cmd.exe`, whose parsing reintroduces shell semantics
 
 ## Taint Sinks
 
@@ -26,25 +29,3 @@ In C#, CWE-114 vulnerabilities occur when loading DLLs or executing processes wi
 - Use ProcessStartInfo with `UseShellExecute = false` and escape arguments properly
 - Sign assemblies and enable strong name verification for managed code
 - Implement file integrity checks (digital signatures) before loading external DLLs
-
-## Safe Pattern
-
-```csharp
-using System.Linq;
-
-// Safe process execution with validated path
-public void ExecuteProcess(string userInput) {
-    var allowedCommands = new[] { "notepad.exe", "calc.exe" };
-    var command = Path.GetFileName(userInput);
-    
-    if (!allowedCommands.Contains(command))
-        throw new SecurityException("Invalid command");
-    
-    var psi = new ProcessStartInfo {
-        FileName = Path.Combine(Environment.SystemDirectory, command),
-        UseShellExecute = false,
-        CreateNoWindow = true
-    };
-    Process.Start(psi);
-}
-```

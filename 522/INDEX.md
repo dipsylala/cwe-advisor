@@ -11,6 +11,9 @@ This vulnerability occurs when credentials (passwords, API keys, tokens) are sto
 - Use secure credential storage systems (secrets managers, hardware security modules, encrypted vaults)
 - Never expose credentials in logs, error messages, URLs, or client-side code
 - Apply least-privilege access and rotate credentials regularly
+- Distinguish what needs to be read back from what only needs to be recognised: a password is hashed with an adaptive algorithm and never decrypted, while a credential the application must present to another system is stored in a secrets manager and fetched at runtime
+- SHA-256 is not a password hash - it is too fast, which is the property that matters here rather than whether it is broken
+- Keep credentials out of the places they leak from by accident: URLs and query strings (server logs, referrer headers, browser history), exception messages, debug logs, and client-visible responses
 
 ## Remediation Steps
 

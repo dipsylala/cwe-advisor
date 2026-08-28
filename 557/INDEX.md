@@ -12,6 +12,9 @@ Concurrency issues arise when multiple threads or processes access shared mutabl
 - Acquire multiple locks in a consistent global order across the codebase to avoid deadlock
 - Do not dismiss a rarely-triggered race as low risk; timing-dependent bugs are exploitable, not merely flaky
 - Apply defense-in-depth: idempotency keys, unique constraints, or rate limiting reduce impact if a race slips through
+- MITRE prohibits this category as a mapping target, so a finding reported here has not been classified yet: work out the shape first - the general race is CWE-362, a signal handler is CWE-364, state shared between threads of one process is CWE-366, check-then-use is CWE-367, and channel setup is CWE-421
+- Acquire multiple locks in one global order (by a stable id) so no cycle of waiters can form; deadlock needs each thread to hold what the next one waits for
+- Guard reads with the same lock as writes - a read left unsynchronized can observe a partially-updated value even when every write is protected
 
 ## Remediation Steps
 

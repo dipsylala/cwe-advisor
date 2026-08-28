@@ -10,6 +10,9 @@ Missing Encryption occurs when sensitive data is transmitted or stored without p
 - Use TLS 1.2+ for all network communications transmitting sensitive data
 - Never transmit credentials, PII, or secrets over unencrypted channels
 - Apply defence-in-depth: combine encryption with access controls and secure key management
+- Stored passwords are not an encryption problem, and this is the most common misreading of a "missing encryption" finding: encryption is reversible by design, so a key compromise returns every password in cleartext. Use an adaptive password hash with a per-password salt - Argon2id or scrypt, or bcrypt where neither is available - and see CWE-256, CWE-261 and CWE-916 for the storage variants
+- The test for which control applies is whether anything legitimately needs the *original* value back: if not, hash it
+- Separate the two cases when remediating: data at rest is CWE-312's ground and data in transit is CWE-319's
 
 ## Remediation Steps
 

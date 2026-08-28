@@ -12,6 +12,10 @@ Including third-party web functionality, such as a script, stylesheet, widget, o
 - Avoid embedding third-party functionality on pages that handle credentials, payment data, or other high-value actions
 - Treat an unpinned or version-floating external include as equivalent to trusting that origin's current and all future content indefinitely
 - Combine origin restriction, integrity verification, and isolation as defence-in-depth rather than relying on any single control
+- Know what Subresource Integrity does not cover: it applies to the one request carrying the attribute, and a chat, ad, or analytics tag is usually a small loader that fetches the real payload at runtime with no integrity attribute on those second-stage requests - so pinning the snippet pins the part that was never going to change
+- A hash pinned to a versionless URL turns the vendor's next rolling release into a blank widget rather than a security event, which is why many vendors ask you not to set one; pin a specific versioned file, prefer self-hosting a reviewed copy, and otherwise rely on isolation and origin restriction
+- Build the CSP from `default-src 'none'` and open only what the page needs, since every unset *fetch* directive falls back to it - but `form-action` and `base-uri` do **not** fall back, so under `default-src 'none'` a form can still post anywhere and an injected `<base>` can still retarget every relative URL
+- Isolate the widget from data it does not need: a cross-origin iframe with a narrow `postMessage` contract keeps it out of the page's DOM and cookies
 
 ## Remediation Steps
 

@@ -28,3 +28,4 @@ env/
 !.env.example
 
 FlawFixingGuidance
+docs/

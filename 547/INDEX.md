@@ -11,6 +11,10 @@ Hard-coded security-relevant constants (paths, ports, IPs, credentials, encrypti
 - Implement centralized secret management (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault) for sensitive data
 - Ensure configuration changes don't require code recompilation or redeployment
 - Apply principle of least privilege to configuration access and rotation
+- The failure mode is a policy change applied *partially*: a timeout restated in three places means shortening it requires finding all three, and nothing fails if you find two - the enforcement keeps using the old interval while the message quotes the new one
+- Give the value a type that carries its unit (a duration object rather than a bare number of seconds), which removes the ambiguity that lets one site disagree with another
+- A security decision keyed on a literal string is a second defect on top of the first - comparing a username against `"admin"` grants the role to any account holding that name instead of consulting an authorization record
+- Values that vary by environment belong in configuration rather than in a constant, but they still need exactly one definition that every site reads
 
 ## Remediation Steps
 

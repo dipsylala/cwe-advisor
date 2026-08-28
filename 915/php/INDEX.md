@@ -11,6 +11,8 @@ Mass assignment in Laravel Eloquent occurs when `Model::create($request->all())`
 - Never pass `$request->all()` or `$request->input()` directly to `create()` or `update()` without filtering
 - Use `$request->only(['field1', 'field2'])` to select permitted fields from the request
 - Set security-critical attributes (role, is_admin, verified_at) only through dedicated code paths, not from request input
+- `Model::unguard()` disables mass-assignment protection process-wide, so a seeder or test helper that calls it and does not re-guard leaves every model open
+- A `$fillable` entry for a cast attribute (an array or JSON column) lets the caller supply the whole structure, including keys the application treats as internal
 
 ## Taint Sinks
 
@@ -24,39 +26,3 @@ Mass assignment in Laravel Eloquent occurs when `Model::create($request->all())`
 - Remove or replace `protected $guarded = []` with a proper `$fillable` definition
 - Use Laravel Form Requests (`php artisan make:request`) to centralize validation and field filtering
 - Test by posting `is_admin=1` or `role=admin` and verifying the attribute is not persisted
-
-## Safe Pattern
-
-```php
-<?php
-// app/Models/User.php
-class User extends Model
-{
-    // Explicit allowlist - only these fields can be mass-assigned
-    protected $fillable = ['name', 'email', 'password'];
-    // 'is_admin', 'role', 'email_verified_at' are NOT listed - they cannot be mass-assigned
-}
-
-// app/Http/Requests/UpdateProfileRequest.php
-class UpdateProfileRequest extends FormRequest
-{
-    public function rules(): array
-    {
-        return [
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email,' . $this->user()->id],
-        ];
-    }
-}
-
-// app/Http/Controllers/UserController.php
-class UserController extends Controller
-{
-    public function update(UpdateProfileRequest $request): RedirectResponse
-    {
-        // $request->validated() returns only the fields defined in rules()
-        $request->user()->update($request->validated());
-        return redirect()->route('profile');
-    }
-}
-```

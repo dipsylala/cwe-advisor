@@ -19,30 +19,8 @@
 ## Remediation Steps
 
 - Search for `new Random()` and `Random.Shared` in authentication, session, token, and key-generation code
-- Replace with `RandomNumberGenerator.GetBytes(int count)` (.NET 6+) and encode the result
+- Replace with `RandomNumberGenerator.GetBytes(int count)` (.NET 6+) and encode the result with `Convert.ToBase64String()` or `Convert.ToHexString()`
 - For bounded integer generation (OTPs, PINs), use `RandomNumberGenerator.GetInt32(fromInclusive, toExclusive)` (.NET 6+)
 - On .NET Framework or .NET 5, use `RandomNumberGenerator.Create()` with `GetBytes(byte[])`
 - Confirm `System.Random` import is not pulled into security-sensitive files via `using System;`
 - After replacement, test that values are non-repeating and unpredictable across application restarts
-
-## Safe Pattern
-
-```csharp
-using System.Security.Cryptography;
-
-// SAFE: cryptographically secure random bytes (.NET 6+)
-byte[] token = RandomNumberGenerator.GetBytes(32);
-string tokenBase64 = Convert.ToBase64String(token);
-
-// SAFE: hex token (.NET 5+)
-string hexToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
-
-// SAFE: secure integer range - OTP between 100000 and 999999
-int otp = RandomNumberGenerator.GetInt32(100_000, 1_000_000);
-
-// .NET Framework / .NET 5 fallback
-using var rng = RandomNumberGenerator.Create();
-byte[] buffer = new byte[32];
-rng.GetBytes(buffer);
-string legacyToken = Convert.ToBase64String(buffer);
-```

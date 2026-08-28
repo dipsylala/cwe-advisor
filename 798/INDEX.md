@@ -11,6 +11,9 @@ Hard-coded credentials occur when authentication secrets (passwords, API keys, e
 - Rotate and revoke exposed credentials
 - Restrict secret access by least privilege
 - Treat environment variables as a fallback, not a risk-free store - they can still leak via process inspection, debug dumps, or cloud metadata endpoints
+- Search for comparisons as well as assignments: a hard-coded credential used to *check* an incoming value (`if key == "..."`) is a backdoor, and every `password=`-style pattern finds only the assignment half
+- Treat test fixtures as in scope - a mock credential is frequently a real one that was pasted in
+- Rotate before removing: deleting the literal changes what the code does and not who holds the secret, since it remains in history, in clones, in CI logs, and in built artifacts
 
 ## Remediation Steps
 

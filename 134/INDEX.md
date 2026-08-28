@@ -9,6 +9,8 @@ Format string vulnerabilities occur when untrusted input is passed as the format
 - The format/template argument must always be an application-written literal, never derived from input
 - Untrusted data belongs only in the substitution argument list, never in the template position
 - Concatenating a literal prefix onto untrusted input and using the result as the format does not neutralize embedded format specifiers
+- Denylisting `%n` while still passing attacker-controlled text as the format leaves `%x`, `%s` and the managed-language equivalents available for disclosure or a crash
+- A memory-safe language does not make the finding low risk - the write primitive is C/C++-specific, but the same root cause gives a reliable denial of service, and in languages whose format syntax supports attribute or item access, information disclosure
 - For logging, use the logging framework's parameterized placeholder syntax rather than building or passing the message as a format template
 - If a format must be selected dynamically, choose it from a fixed, application-defined set of templates by key, never construct one from input
 - Ensure a formatting error cannot surface an unhandled exception or stack trace to the caller, as defence in depth

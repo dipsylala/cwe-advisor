@@ -8,10 +8,11 @@ In C, out-of-bounds reads arise from raw pointer arithmetic and array indexing t
 
 - Track buffer capacity explicitly alongside every pointer; never assume a length from a fixed-size type or a convention such as NUL-termination
 - Validate `offset <= buffer_size` first, then `length <= buffer_size - offset`, in that order, so the subtraction cannot underflow
-- Use `strnlen(buf, cap)` instead of `strlen(buf)` on any buffer received from input, network, or file data - `strlen` reads past the end if no NUL terminator is present within the buffer
+- Use `strnlen(buf, cap)` instead of `strlen(buf)` on any buffer received from input, network, or file data - `strlen` reads past the end if no NUL terminator is present within the buffer, and a `strnlen` result equal to `cap` means no terminator was found, so reject the buffer rather than reading on
 - Check every array index against the array's known bound (`0 <= index < length`) immediately before the dereference, not in a distant caller
 - Never pass an attacker-supplied or miscalculated size directly to `memcpy()`, `read()`, or an `sscanf()` field width; clamp it against both the source's actual available bytes and the destination's capacity first
 - Compile with `-fsanitize=address,undefined` in testing and `-D_FORTIFY_SOURCE=2` (with `-O1` or higher) in production builds as defence-in-depth
+- Guard the size arithmetic itself: `if (count > SIZE_MAX / sizeof(T))` before multiplying, since a wrapped product produces a bound that is smaller than the data it is meant to describe
 
 ## Taint Sinks
 
@@ -26,32 +27,3 @@ In C, out-of-bounds reads arise from raw pointer arithmetic and array indexing t
 - Bind, encode, validate, or authorize - Clamp the length or offset to the smaller of the source's available bytes and the destination's capacity before calling `memcpy`/`read`/`sscanf`
 - Harden configuration - Build and test with `-fsanitize=address,undefined`; enable `-D_FORTIFY_SOURCE=2` with `-O1` or higher in release builds
 - Test - Test with oversized, negative, and boundary index/offset/length values, and with non-NUL-terminated buffers filled to exactly their allocated capacity
-
-## Safe Pattern
-
-```c
-#include <string.h>
-#include <stdint.h>
-#include <stddef.h>
-
-// SAFE: validate offset and length against the buffer's actual received
-// size before reading; claimed_len is attacker-controlled, buf_len is the
-// true number of bytes available in buf
-int extract_payload(const uint8_t *buf, size_t buf_len, size_t offset,
-                     size_t claimed_len, uint8_t *out, size_t out_cap) {
-    if (offset > buf_len)
-        return -1;
-    size_t available = buf_len - offset;
-    if (claimed_len > available || claimed_len > out_cap)
-        return -1; // reject: would read past buf or write past out
-
-    memcpy(out, buf + offset, claimed_len);
-    return 0;
-}
-
-// SAFE: bound a scan length instead of trusting a NUL terminator in
-// untrusted memory
-size_t safe_len = strnlen(untrusted_buf, untrusted_cap);
-if (safe_len == untrusted_cap)
-    return -1; // no terminator found within the buffer; treat as invalid
-```

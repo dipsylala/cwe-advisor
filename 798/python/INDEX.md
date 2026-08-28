@@ -12,6 +12,8 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 - Apply principle of least privilege to all credentials
 - Implement secure defaults and fail securely when credentials are missing
 - Environment variables are a practical fallback but can still leak via process inspection (`/proc/<pid>/environ`), crash dumps, or cloud metadata endpoints, so prefer a secrets manager where available
+- `os.environ.get('SECRET')` is the right read; the finding is usually the `config.py` or committed `.env` that puts the literal there
+- Build connection strings with a helper that takes the secret as a parameter (SQLAlchemy's `URL.create`) rather than formatting it into a URL, which then appears in logs and exception messages
 
 ## Taint Sinks
 
@@ -21,25 +23,7 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 
 - Identify all hard-coded credentials in source code using grep/scanning tools
 - Replace hard-coded values with `os.getenv()` calls with no defaults for secrets
-- Store credentials in environment variables or `.env` files (add `.env` to `.gitignore`)
+- Store credentials in environment variables or `.env` files loaded with `python-dotenv`'s `load_dotenv()` (add `.env` to `.gitignore`)
 - For production, migrate to secrets managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault)
 - Rotate all exposed credentials immediately
 - Implement validation to ensure required credentials are present at startup
-
-## Safe Pattern
-
-```python
-import os
-from dotenv import load_dotenv
-
-load_dotenv()  # Load from .env file for local dev
-
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-API_KEY = os.getenv("API_KEY")
-
-if not DB_PASSWORD or not API_KEY:
-    raise ValueError("Missing required credentials")
-
-# Use credentials
-connection = connect(password=DB_PASSWORD)
-```

@@ -20,33 +20,9 @@ hardcoded `String password = "..."`, `MessageDigest.getInstance("MD5")`, plainte
 ## Remediation Steps
 
 - Remove hardcoded credentials from source code; scan with tools like git-secrets or TruffleHog
-- Migrate credentials to AWS Secrets Manager, Azure Key Vault, or HashiCorp Vault
+- Migrate credentials to AWS Secrets Manager, Azure Key Vault, or HashiCorp Vault; on AWS use SDK for Java v2 (`software.amazon.awssdk.services.secretsmanager.SecretsManagerClient`), since v1's `com.amazonaws.services.secretsmanager` reached end of support in December 2025
 - Configure application to retrieve credentials at runtime from secret manager or environment variables
 - Use PKCS12 KeyStore or platform-backed storage for local encrypted credential storage if a secrets manager is not available
 - Hash user passwords with `BCryptPasswordEncoder` or Argon2 before storage; verify with the same encoder's `matches()`/`verify()` method, never a manual comparison
 - Replace String passwords with char[] and zero out arrays after authentication
 - Enable TLS 1.3 for all credential transmission; never send credentials in URLs or logs
-
-## Safe Pattern
-
-```java
-// Retrieve credentials from AWS Secrets Manager (AWS SDK for Java v2 -
-// v1's com.amazonaws.services.secretsmanager reached end-of-support Dec 2025)
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
-
-SecretsManagerClient client = SecretsManagerClient.builder()
-    .region(Region.US_EAST_1).build();
-
-GetSecretValueRequest request = GetSecretValueRequest.builder()
-    .secretId("prod/db/password").build();
-GetSecretValueResponse result = client.getSecretValue(request);
-String secret = result.secretString();
-
-// Use credential immediately; avoid claiming full clearing after creating a String copy
-char[] password = secret.toCharArray();
-authenticateUser(username, password);
-Arrays.fill(password, '\0'); // Clear sensitive data
-```

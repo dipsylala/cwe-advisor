@@ -8,7 +8,8 @@ Insertion of sensitive information into sent data occurs when applications inclu
 
 - Minimize data exposure: Only include necessary data in responses; exclude internal details, debug info, and sensitive fields
 - Sanitize error messages: Return generic errors to clients; log detailed errors server-side only
-- Filter serialization: Explicitly control which object properties are serialized to JSON/XML/etc.
+- Filter serialization: build the payload from an explicit allowlist of fields rather than serializing an internal object and stripping the sensitive ones, so a field added later cannot ship exposed by default
+- This is the sent-data channel of CWE-200; where the exposure is an error message use CWE-209, a log file CWE-532, and personal information CWE-359
 - Scrub credentials: Never send passwords, tokens, API keys, or session identifiers in responses or logs
 - Strip metadata: Remove stack traces, file paths, database schemas, and system configuration from outbound data
 

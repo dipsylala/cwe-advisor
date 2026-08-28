@@ -11,6 +11,9 @@ Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cl
 - Avoid operations that create copies of sensitive data (string concatenation, logging)
 - Use secure input methods (`getpass`) and avoid printing/logging credentials
 - Consider memory-locking libraries (`mlock`) for highly sensitive applications
+- A `str` cannot be wiped: convert to a `bytearray` at the boundary and clear it with a slice assignment, since `bytes(password)` produces an immutable copy that stays until collected
+- Compare secrets with `hmac.compare_digest()`, which is constant-time as well as exact
+- Where the platform allows it, keep the secret out of a normal file entirely (`memfd_create`, an anonymous mapping) rather than writing it and deleting it afterwards
 
 ## Taint Sinks
 
@@ -18,27 +21,9 @@ Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cl
 
 ## Remediation Steps
 
-- Replace string-based credentials with `bytearray` for passwords and keys
+- Replace string-based credentials with `bytearray` for passwords and keys, and hand them to downstream APIs as a `memoryview` so no extra copy is made
 - Implement explicit byte-by-byte zeroing before deallocation
 - Use context managers or try-finally blocks to ensure cleanup occurs
 - Avoid storing secrets in exception messages or stack traces
 - Use `getpass.getpass()` instead of `input()`, but account for the temporary immutable string it returns
 - Integrate libraries like `ctypes` with `mlock()` for critical data protection
-
-## Safe Pattern
-
-```python
-import getpass
-
-def authenticate():
-    password = bytearray(getpass.getpass("Password: "), 'utf-8')
-    try:
-        # Prefer APIs that accept a mutable buffer or memoryview to avoid extra copies.
-        result = verify_credentials(memoryview(password))
-        return result
-    finally:
-        # Clear sensitive data
-        for i in range(len(password)):
-            password[i] = 0
-        del password
-```

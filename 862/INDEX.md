@@ -12,6 +12,10 @@ Missing Authorization occurs when a code path performs a sensitive action or ret
 - Check both the action (does the caller hold the required role or permission) and the resource (does the caller own or have a granted relationship to this specific record)
 - Do not rely on hiding UI controls, client-side route guards, or trusting a role/permission value supplied by the client
 - Fail closed - if the authorization decision cannot be evaluated, deny the request rather than default to allow
+- "Authenticated" is not "authorized": a positively named `requireAuthentication` gate makes the route read as protected, and the distance between logged in and allowed is exactly what an attacker covers by changing an identifier in the URL
+- Attach the permission and ownership checks through the same centralized mechanism every comparable route uses, so a new or overlooked route inherits them instead of depending on someone remembering
+- Check ownership against a server-loaded copy of the resource, never a client-supplied flag - an authenticated caller with the right role still must not reach a record that is not theirs
+- Where the request carries an object identifier, CWE-639 usually gives the more concrete remediation; no identity check at all is CWE-306, and a check that runs with wrong logic is CWE-863
 
 ## Remediation Steps
 

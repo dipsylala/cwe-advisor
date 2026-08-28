@@ -11,7 +11,9 @@ External control of file names or paths occurs when untrusted input (HTTP reques
 - Use canonical paths to resolve symbolic links and relative references (`.`, `..`)
 - Restrict file operations to a defined base directory using path normalization
 - Never concatenate user input directly into file paths
-- Sanitize file names by removing directory traversal sequences
+- Reject file names containing a path separator or traversal sequence rather than stripping them - a strip is bypassable, destroys legitimate names, and hides the attempt from logs, and reject an embedded null byte (`\0`) on the same grounds
+- Where a bare filename is expected, take `Paths.get(name).getFileName()` as a *check* (`getFileName().toString().equals(name)`), not as a cleaner; on Unix `Paths.get("..\\..\\etc\\passwd").getFileName()` returns the whole string because backslash is not a separator there
+- Compare with `Path.startsWith(Path)` on resolved `Path` objects, not `canonicalPath.toString().startsWith(baseDirectory)` - the string form accepts a sibling such as `/app/uploads-backup`; once contained, confirm the target with `Files.isRegularFile()` so directories and special files are refused
 
 ## Taint Sinks
 
@@ -26,26 +28,4 @@ External control of file names or paths occurs when untrusted input (HTTP reques
 - Canonicalize paths - Use `File.getCanonicalPath()` or `Path.toRealPath()` to resolve traversals
 - Enforce base directory - Verify canonical path starts with approved base directory
 - Reject invalid input - Return error for paths failing validation; never allow fallback to user input
-
-## Safe Pattern
-
-```java
-public Path getSafeFilePath(String userFilename, Path baseDir) throws IOException {
-    // Decode URL encoding and Unicode-normalise before filtering
-    String decoded = URLDecoder.decode(userFilename, StandardCharsets.UTF_8);
-    String normalised = Normalizer.normalize(decoded, Normalizer.Form.NFC);
-    
-    // Remove traversal sequences after decoding
-    String sanitized = normalised.replaceAll("[./\\\\]", "");
-    
-    // Build path within base directory
-    Path requestedPath = baseDir.resolve(sanitized).normalize();
-    Path canonicalPath = requestedPath.toRealPath();
-    
-    // Verify within base directory
-    if (!canonicalPath.startsWith(baseDir.toRealPath())) {
-        throw new SecurityException("Invalid path");
-    }
-    return canonicalPath;
-}
-```
+- Authorize separately - containment inside the base directory is not permission to read that file; check ownership or role before `Files.newInputStream()`, and do not treat `Files.exists()` as an access decision

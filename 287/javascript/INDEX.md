@@ -8,6 +8,9 @@ In Node.js applications, Improper Authentication commonly appears as a Passport.
 
 - In every Passport `Strategy` verify callback, compare the supplied credential against the stored hash with `bcrypt.compare()`/`argon2.verify()` before calling `done(null, user)`; call `done(null, false)` on any mismatch or missing user.
 - Never call `done(null, user)` directly after a database lookup with no credential comparison - a callback that only checks "user exists" authenticates any known username.
+- Compare against a dummy hash instead of returning early when the lookup misses - `bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH)` keeps both branches paying the same cost, where an early return answers an unknown username in 0.004 ms against 231 ms for a wrong password.
+- Make `DUMMY_HASH` a genuine bcrypt hash at the same cost as the stored ones; `bcrypt.compare(password, '')` returns in 0.028 ms and closes nothing. The `??` also covers a user row with no `passwordHash` (an SSO-only account), which would otherwise throw and answer that row with a `500`.
+- In an Express login route, call `req.session.regenerate()` and issue `req.login()` from inside its callback: regenerating after `req.login()` throws away the session Passport just populated, and skipping it lets a session ID an attacker planted before login become the authenticated one.
 - Always pass `{ algorithms: [...] }` explicitly to `jwt.verify()` rather than relying on `jsonwebtoken`'s key-format inference, so a token cannot switch algorithm families (e.g. RS256 to HS256) between issuance and verification.
 - Never use `jwt.decode()` for authentication or authorization decisions - it only base64-decodes the payload and does not check the signature; reserve it for non-trust-boundary debugging.
 - Store JWT and session secrets outside source control and rotate them if a forged or unsigned token is ever accepted in logs.
@@ -25,29 +28,4 @@ Passport `Strategy` `done(null, user)` without comparison, `jwt.decode()` for tr
 - Bind, encode, validate, or authorize - Pass `{ algorithms: ['HS256'] }` (or the specific algorithm(s) actually used to sign) to `jwt.verify()`, matching only what the issuer produces
 - Break taint after allowlist validation - Attach only the object returned by `jwt.verify()`/`done(null, user)` to `req.user`; do not merge in unverified decoded claims
 - Harden configuration - Confirm `ignoreExpiration` is not set to `true`, and that Passport session serialization stores only a user id, not full claims
-- Test - Write tests that submit a wrong password (expect rejection), a `jwt.decode()`-only bypass attempt, and a token re-signed with `alg: none` or a swapped algorithm (expect `jwt.verify()` to throw `JsonWebTokenError`)
-
-## Safe Pattern
-
-```javascript
-// SAFE: Passport local strategy compares a password hash, not just user existence
-const bcrypt = require('bcrypt');
-const { Strategy: LocalStrategy } = require('passport-local');
-
-passport.use(new LocalStrategy(async (username, password, done) => {
-  const user = await User.findOne({ username });
-  if (!user) return done(null, false, { message: 'Invalid credentials' });
-
-  const match = await bcrypt.compare(password, user.passwordHash);
-  if (!match) return done(null, false, { message: 'Invalid credentials' });
-
-  return done(null, user);
-}));
-
-// SAFE: jsonwebtoken verify with a pinned algorithm - never jwt.decode() for trust decisions
-const jwt = require('jsonwebtoken');
-
-function verifyToken(token) {
-  return jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
-}
-```
+- Test - Time a right password, a wrong password, and an unknown username and assert all three are within noise of each other and all failures return `401`; capture the pre-login session cookie and confirm it no longer authenticates after login; write tests that submit a wrong password (expect rejection), a `jwt.decode()`-only bypass attempt, and a token re-signed with `alg: none` or a swapped algorithm (expect `jwt.verify()` to throw `JsonWebTokenError`)

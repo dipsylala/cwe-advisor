@@ -11,6 +11,9 @@ System information exposure occurs when applications leak internal details (serv
 - Disable debug modes and verbose error messages in production environments
 - Implement generic error pages that don't reveal technical details
 - Limit information disclosure in API endpoints like /info, /status, /health
+- Check the places that answer on every request, not only the error page: `Server`, `X-Powered-By`, `X-AspNet-Version` and similar headers appear on redirects and error responses too, and a 404 that names the path it looked in or a 405 that lists allowed methods describes the routing table
+- Check diagnostic endpoints unauthenticated - `/info`, `/status`, `/version`, `/health`, `/actuator/*` - and the body content as well: version strings in HTML comments, generator meta tags, and build fields in API payloads
+- Version disclosure is reconnaissance rather than a leak of user data: it hands a scanner a ready-made bill of materials to cross-reference against CVE databases, so move it behind an authorization check rather than deleting it from the diagnostics that need it
 
 ## Remediation Steps
 

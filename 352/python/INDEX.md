@@ -11,6 +11,8 @@ CSRF occurs when state-changing endpoints don't validate that requests originate
 - Use SameSite=Strict cookies to prevent cross-site cookie transmission
 - Include tokens in forms via template tags and AJAX via custom headers
 - Never disable CSRF protection with `@csrf_exempt` or similar decorators
+- Flask-WTF's `wtforms.Form` subclasses only validate CSRF when `CSRFProtect` is initialised on the app - a form used without it validates fields and nothing else
+- Exempting an endpoint (`@csrf_exempt`, an excluded path) is the shape most findings take; check the exclusion list as well as the handler
 
 ## Taint Sinks
 
@@ -24,26 +26,3 @@ CSRF occurs when state-changing endpoints don't validate that requests originate
 - For AJAX - read CSRF token from cookie and send in `X-CSRFToken` header
 - Remove any `@csrf_exempt` decorators from state-changing endpoints
 - Verify all POST/PUT/PATCH/DELETE routes validate tokens automatically
-
-## Safe Pattern
-
-```python
-# Django settings.py
-MIDDLEWARE = [
-    'django.middleware.csrf.CsrfViewMiddleware',  # Enable CSRF
-]
-SESSION_COOKIE_SAMESITE = 'Strict'
-CSRF_COOKIE_SAMESITE = 'Strict'  # independent of SESSION_COOKIE_SAMESITE - set both
-CSRF_COOKIE_SECURE = True
-
-# views.py
-@login_required
-@require_http_methods(["POST"])
-def transfer_funds(request):
-    # Token validated automatically by middleware
-    perform_transfer(request.user, request.POST['to_account'], request.POST['amount'])
-    return redirect('success')
-
-# Template
-# <form method="post">{% csrf_token %}<input name="to_account"><button>Transfer</button></form>
-```

@@ -8,37 +8,22 @@ Code injection occurs when untrusted input flows into code execution functions l
 
 - Never pass user input to code evaluation functions (`eval`, `Function`, `vm` modules); Node's `vm` module is not a security boundary
 - Use safe alternatives: JSON.parse() for data, allowlists for dynamic operations
-- Sanitize template engine inputs and use auto-escaping modes
+- The template *body* must come from the source tree and only the substituted values may come from the request: `Handlebars.compile(req.body.templateSource)` turns attacker text into a compiled function, and auto-escaping is an XSS control that does nothing about it
 - Apply principle of least privilege to execution contexts
 - Validate and restrict all dynamic code paths
+- `node:vm` is not a security boundary: code inside a context can reach out through `this.constructor.constructor('return process')()` and through `process.mainModule.require`, so use a separate process or a real sandbox (`isolated-vm`) where isolation is required
+- Where an expression really must be evaluated, parse it and walk the AST against an allowlist of node types and operators, rejecting anything else - that leaves no call, member access, or identifier lookup for an attacker to use
 
 ## Taint Sinks
 
-`eval()`, `new Function()`, `setTimeout(string)`, `setInterval(string)`, `vm.runInContext()`, `vm.runInNewContext()`
+`eval()`, `new Function()`, `setTimeout(string)`, `setInterval(string)`, `vm.runInContext()`, `vm.runInNewContext()`, `require(userInput)`, `import(userInput)`, `Handlebars.compile(userInput)`
 
 ## Remediation Steps
 
 - Replace `eval()` with `JSON.parse()` for data parsing
 - Convert `setTimeout(string)` to `setTimeout(function)` with callbacks
 - Use allowlists for dynamic property access instead of bracket notation with user input
-- Configure template engines (EJS, Pug, Handlebars) with auto-escaping enabled
+- Move any template source that is read from a request back into the source tree and pass the request data in as template values only (EJS, Pug, Handlebars)
+- Gate dynamic `require()` and `import()` behind a server-side `Set` of pre-approved module names, rejecting anything else - a request-derived module name executes that module's top level
 - If untrusted code execution is unavoidable, isolate it out of process or in a locked-down container with resource limits
 - Apply input validation at entry points before any processing
-
-## Safe Pattern
-
-```javascript
-// UNSAFE: eval with user input
-const result = eval(userInput);
-
-// SAFE: Parse data, use allowlist for operations
-const data = JSON.parse(userInput);
-const allowedOps = { add: (a,b) => a+b, multiply: (a,b) => a*b };
-const operation = allowedOps[data.operation];
-if (operation) {
-  const result = operation(data.a, data.b);
-}
-
-// SAFE: Function reference instead of string
-setTimeout(() => handleTask(params), 1000);
-```

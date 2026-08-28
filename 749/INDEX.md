@@ -10,6 +10,10 @@ Exposed dangerous methods (admin functions, debug endpoints, internal APIs, priv
 - Require multi-layered authorization: Implement authentication tokens, role verification, and permission checks before execution
 - Limit operation scope: Replace batch operations with single-item operations that require individual authorization
 - Add audit logging: Track all invocations of sensitive operations for security monitoring
+- Write an environment gate so the *unset* case is the safe one: `if env == "production": disable()` leaves the endpoint enabled wherever the variable is missing, empty, or spelled differently. Enable from an explicit allowlist (`if env in {"local", "dev", "test"}`) so an unrecognized value disables it and the mistake is a missing debug tool rather than an exposed one
+- Make internal helpers actually internal with the language's strongest visibility modifier rather than leaving them public with a comment saying "internal use only"
+- Never expose a raw dynamic-dispatch or reflection-based `invoke(methodName, args)` API - it turns every method in the reachable object graph into attack surface, including ones added later by someone who never reconsidered exposure
+- Check the alternate routes: a check enforced in the UI layer is absent from the direct RPC call, another HTTP verb, or a second route to the same handler
 
 ## Remediation Steps
 

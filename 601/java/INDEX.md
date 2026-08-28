@@ -11,6 +11,10 @@ Open redirect vulnerabilities in Java web applications occur when user-controlle
 - Avoid user input in redirects: Use indirect references (e.g., enums, IDs mapped to destinations)
 - Strict URL parsing: Validate protocol, domain, and path components before redirecting
 - Framework-level guards: Configure Spring Security or servlet filters to block external redirects
+- Decide on the parsed URI, not the string: `URI.create(value)` then check `isAbsolute()` and `getHost()` - a value with no host is a relative path and safe to redirect to, while any absolute URI must match a host allowlist
+- A `startsWith("/")` check accepts `//evil.example`, which the browser reads as protocol-relative, and `\/\/evil.example` on some parsers - test both
+- Reject `javascript:` and `data:` schemes explicitly where the value can reach an anchor rather than a `Location` header
+- Where a framework offers its own `isLocalUrl()`-style predicate, use it rather than reimplementing the check, and confirm what it does with a backslash and with an encoded separator
 
 ## Taint Sinks
 
@@ -22,26 +26,5 @@ Open redirect vulnerabilities in Java web applications occur when user-controlle
 - Replace user-controlled URLs with enum/ID mapping to predefined destinations
 - For necessary external redirects, validate against an allowlist of trusted domains
 - Use `URI` class to parse and validate URL components (scheme, host, path)
-- Implement a centralized redirect validator for consistent enforcement
+- Implement a centralized redirect validator for consistent enforcement, falling back to a fixed safe path when validation fails or `URI` parsing throws `URISyntaxException`
 - Add unit tests verifying that malicious URLs (`//evil.com`, `https://attacker.com`) are rejected
-
-## Safe Pattern
-
-```java
-// Allowlist-based redirect validator
-private static final Set<String> ALLOWED_HOSTS = Set.of("example.com", "app.example.com");
-
-public String safeRedirect(String userUrl, HttpServletResponse response) {
-    try {
-        URI uri = new URI(userUrl);
-        String host = uri.getHost();
-        
-        if (host != null && !ALLOWED_HOSTS.contains(host)) {
-            return "redirect:/error"; // Reject external redirects
-        }
-        return "redirect:" + uri.getPath(); // Use path only
-    } catch (URISyntaxException e) {
-        return "redirect:/error";
-    }
-}
-```

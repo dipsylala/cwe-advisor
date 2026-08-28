@@ -11,6 +11,8 @@ Sensitive Cookie Without 'Secure' Flag occurs when cookies containing sensitive 
 - Use framework-specific secure session configuration (express-session, cookie-session) with `secure` enabled
 - Ensure application runs on HTTPS in production; cookies with `secure` flag won't work over HTTP
 - Apply secure cookies globally via middleware or default session configuration
+- Choose `SameSite` per flow rather than defaulting to `Strict`, which withholds the cookie from inbound links, SSO redirects and OAuth callbacks and presents as an unexplained logged-out state
+- Behind a proxy, Express needs `app.set('trust proxy', ...)` before `secure: true` cookies are issued, or the session middleware sees HTTP and silently omits the flag
 
 ## Taint Sinks
 
@@ -24,26 +26,3 @@ Sensitive Cookie Without 'Secure' Flag occurs when cookies containing sensitive 
 - Set `sameSite: 'strict'` or `'lax'` to mitigate CSRF attacks
 - Configure session middleware (express-session) with secure cookie defaults
 - Verify HTTPS is enforced in production (cookies with `secure` won't transmit over HTTP)
-
-## Safe Pattern
-
-```javascript
-// Express.js secure cookie configuration
-app.set('trust proxy', 1); // Needed when TLS terminates at a trusted reverse proxy
-
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  proxy: true,
-  cookie: {
-    secure: true,        // Only send over HTTPS
-    httpOnly: true,      // Prevent JavaScript access
-    sameSite: 'strict',  // CSRF protection
-    maxAge: 3600000      // 1 hour
-  }
-}));
-
-// Setting individual secure cookies
-res.cookie('authToken', token, { 
-  secure: true, httpOnly: true, sameSite: 'strict' 
-});
-```

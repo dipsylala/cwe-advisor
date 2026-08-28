@@ -11,6 +11,10 @@ Calling System.exit() in J2EE applications terminates the entire application ser
 - Rely on container-managed lifecycle for application shutdown
 - Keep privileged operations gated and isolated from application code
 - Allow the J2EE container to manage resource cleanup and thread lifecycle
+- Look for the calls that do not read as an exit: `System.exit()` delegates to `Runtime.getRuntime().exit()`, and `Runtime.halt()` skips shutdown hooks entirely, so a grep for `System.exit` alone misses both
+- Replace the exit with a failure the container understands - a `ServletException` for a request-scoped failure, an application exception (`@ApplicationException`) in an EJB so the transaction is handled rather than the process, or `response.sendError()` for a client error
+- Do cleanup in the container's own hooks (`contextDestroyed`, `@PreDestroy`) rather than in the code path that wanted to exit
+- Severity follows how shared the process is: a multi-tenant application server takes every co-deployed application down with it, while a fat JAR running one application behind a restarting supervisor has a smaller blast radius - a validation failure that terminates the process is still a denial of service any client can trigger
 
 ## Remediation Steps
 

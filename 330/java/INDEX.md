@@ -11,6 +11,9 @@
 - Do not manually seed `SecureRandom` with `setSeed()` unless adding to the existing entropy pool
 - Generate at least 128 bits (16 bytes) for tokens; 256 bits (32 bytes) for cryptographic keys
 - Encode output in Base64URL or hex before storage or transmission
+- `UUID.randomUUID()` draws from `SecureRandom` and carries 122 random bits - adequate as an identifier, short of the usual bar for key material
+- Ask for `"DRBG"` where a NIST DRBG is required and `getInstanceStrong()` where a blocking source is wanted; naming a legacy algorithm such as `"SHA1PRNG"` selects an implementation rather than strengthening it
+- `nextLong()` yields 64 bits whatever the generator - size the request to the purpose rather than assuming one call is enough
 
 ## Taint Sinks
 
@@ -24,27 +27,3 @@
 - For integer ranges (OTP), use `secureRandom.nextInt(bound)` instead of `random.nextInt(bound)`
 - Verify all call sites - search for `import java.util.Random` across the codebase
 - Run tests to confirm generated values are not sequential or predictable across restarts
-
-## Safe Pattern
-
-```java
-import java.security.SecureRandom;
-import java.util.Base64;
-
-public class TokenGenerator {
-    // Thread-safe; reuse the instance
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
-    // 256-bit URL-safe token
-    public static String generateToken() {
-        byte[] bytes = new byte[32];
-        SECURE_RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    // 6-digit OTP
-    public static int generateOtp() {
-        return SECURE_RANDOM.nextInt(900_000) + 100_000;
-    }
-}
-```

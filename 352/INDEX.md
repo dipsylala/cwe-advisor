@@ -11,6 +11,10 @@ CSRF attacks force authenticated users to perform unwanted actions by exploiting
 - Do not rely solely on session cookies for authentication of state-changing actions
 - Validate CSRF tokens on the server side before processing any data modifications
 - Use framework-provided CSRF protection rather than custom implementations
+- Set `SameSite` on the session cookie as defence-in-depth alongside the token, not instead of it: it is a browser-enforced control that non-browser clients ignore, and `Strict` also withholds the cookie from inbound links, SSO redirects and OAuth callbacks
+- Generate the token from a CSPRNG at 128 bits or more, bind it to the session, and compare it in constant time
+- Protect every state-changing route, including ones that accept JSON or a custom content type - a preflight is not an authorization check, and an endpoint reachable with a simple request has none
+- Re-issue the token when the session is regenerated at login, so the pre-authentication token cannot be replayed
 
 ## Remediation Steps
 

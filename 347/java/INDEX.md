@@ -7,11 +7,15 @@ Java JWT libraries are vulnerable to algorithm confusion when verification code 
 ## Key Principles
 
 - Pin the exact verification algorithm and key type; never let the token header, a custom `SigningKeyResolver`, or a JWKS lookup select the algorithm family based on attacker input
-- With Nimbus JOSE+JWT, configure `ConfigurableJWTProcessor.setJWSKeySelector()` with a `SingleKeyJWSKeySelector` (or `JWSVerificationKeySelector` for a JWKS) bound to one algorithm; with jjwt, call `Jwts.parser().verifyWith(rsaPublicKey)` using a strongly-typed `PublicKey`/`SecretKey`, never a raw byte array cast to satisfy both
+- With Nimbus JOSE+JWT, configure `ConfigurableJWTProcessor.setJWSKeySelector()` (implementation `DefaultJWTProcessor`) with a `SingleKeyJWSKeySelector` (or `JWSVerificationKeySelector` for a JWKS) bound to one algorithm; with jjwt, call `Jwts.parser().verifyWith(rsaPublicKey)` using a strongly-typed `PublicKey`/`SecretKey`, never a raw byte array cast to satisfy both
 - Never build a key resolver that reads `header.getAlgorithm()` and returns HMAC secret bytes when the header claims HS256, or an RSA key when it claims RS256, without first checking the algorithm against a fixed expectation
 - Reject `alg: none` and weak algorithms (MD5/SHA-1 based); only accept RS256/PS256/ES256 or the specific algorithm your issuer uses
 - Use `MessageDigest.isEqual(byte[], byte[])` for any raw signature or HMAC comparison - never `String.equals()`, `==`, or `Arrays.equals()`, none of which are constant-time
 - Validate issuer, audience, and expiration in addition to the signature
+- Fix the key before parsing: `parseClaimsJws()`/`parseSignedClaims()` with a key set in the builder verifies, while a `SigningKeyResolver` that picks the key from the token's own header lets the token choose how it is verified
+- Pin the algorithm rather than reading it from the header, and treat `UnsupportedJwtException`/`SignatureException` as rejection paths rather than as conditions to log and continue
+- For XML, `XMLSignature.validate()` returning true is not the end of it: confirm the validated `Reference` covers the element you go on to read, or a signature over a different part of the document passes while the data you use is unsigned
+- `Signature.verify()` returns a boolean rather than throwing - an unchecked call is indistinguishable from a successful verification
 
 ## Taint Sinks
 
@@ -25,34 +29,3 @@ Java JWT libraries are vulnerable to algorithm confusion when verification code 
 - Bind, encode, validate, or authorize - resolve signing keys by `kid` only against a trusted, server-side keystore or JWKS, and pin the algorithm the resolved key is allowed to use
 - Harden configuration - explicitly reject `none` and disallow mixing symmetric and asymmetric algorithms for the same endpoint
 - Test - craft a token re-signed as HS256 using the known RSA public key as the HMAC secret and confirm verification fails; add a test for the webhook comparison path
-
-## Safe Pattern
-
-```java
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.proc.JWSKeySelector;
-import com.nimbusds.jose.proc.SecurityContext;
-import com.nimbusds.jose.proc.SingleKeyJWSKeySelector;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
-import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import java.security.MessageDigest;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
-// SAFE: algorithm and key are pinned server-side, not read from the token header
-ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-JWSKeySelector<SecurityContext> keySelector =
-    new SingleKeyJWSKeySelector<>(JWSAlgorithm.RS256, rsaPublicKey);
-jwtProcessor.setJWSKeySelector(keySelector);
-JWTClaimsSet claims = jwtProcessor.process(token, null); // throws BadJOSEException on any mismatch
-
-// SAFE: webhook HMAC-SHA256 verification with constant-time comparison
-Mac mac = Mac.getInstance("HmacSHA256");
-mac.init(new SecretKeySpec(webhookSecret, "HmacSHA256"));
-byte[] expected = mac.doFinal(requestBody);
-byte[] provided = hexDecode(signatureHeader);
-if (!MessageDigest.isEqual(expected, provided)) {
-    throw new SecurityException("Invalid webhook signature");
-}
-```

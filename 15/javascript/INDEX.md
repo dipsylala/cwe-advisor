@@ -7,6 +7,8 @@ In Node.js applications this occurs when request data (`req.body`, `req.query`, 
 ## Key Principles
 
 - Load configuration once at startup with `dotenv` or a schema-validated library like `convict`, then export an `Object.freeze()`-wrapped object; never assign to `process.env[key]` or a config object using a request-derived key
+- Treat a request-reachable write to `process.env` as high severity regardless of the value: `NODE_OPTIONS=--require /tmp/evil.js` is code execution on the next child process, `NODE_TLS_REJECT_UNAUTHORIZED=0` disables certificate verification, and `NODE_EXTRA_CA_CERTS` adds an attacker's CA
+- Reject `__proto__`, `constructor`, and `prototype` as configuration key names - a deep-merge or set-path helper (`config.util.setPath()`, a hand-rolled `setPath()`) applied to a request-derived key path pollutes `Object.prototype` for the whole process
 - Use `zod` (or a similar schema library) with `z.enum([...])` for the allowed setting names so unknown keys are rejected before reaching `configService.set()`
 - Never let `req.body`/`req.query` values flow directly into `logger.level`, CORS `origin`, or any security-relevant middleware option
 - Any admin endpoint that changes a setting must run behind authentication/authorization middleware (e.g. a `requireAdmin` guard) and check the requested key and value against an allowlist `Set` or schema before applying it
@@ -26,27 +28,3 @@ In Node.js applications this occurs when request data (`req.body`, `req.query`, 
 - Break taint after allowlist validation - use `result.data` (the schema-parsed, allowlist-checked value) when calling `logger.level =` or `configService.set()`, never the raw `req.body` field
 - Harden configuration - use `convict`'s `format` allowlist plus `config.validate({ allowed: 'strict' })` so invalid configuration throws at startup instead of degrading security silently
 - Test - submit values outside the allowlist and confirm 400, confirm unauthenticated calls to admin config endpoints return 401/403, and confirm `config.someKey = 'value'` throws or is silently ignored on the frozen object
-
-## Safe Pattern
-
-```javascript
-// SAFE: startup-loaded, frozen configuration - no request can reach it
-require('dotenv').config();
-const config = Object.freeze({
-  logLevel: process.env.LOG_LEVEL || 'info',
-});
-module.exports = config;
-
-// SAFE: runtime log-level change gated by auth + allowlist
-const ALLOWED_LOG_LEVELS = new Set(['info', 'warn', 'error']);
-
-app.post('/admin/log-level', requireAdmin, (req, res) => {
-  const level = (req.body.level || '').toLowerCase();
-  if (!ALLOWED_LOG_LEVELS.has(level)) {
-    return res.status(400).json({ error: 'Invalid log level' });
-  }
-  // Allowlist-checked value is what reaches the sink, not the raw body field
-  logger.level = level;
-  res.json({ status: 'updated', level });
-});
-```

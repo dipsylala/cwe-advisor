@@ -11,6 +11,8 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 - Validate Origin/Referer headers for additional protection on critical endpoints
 - Never rely solely on cookies for authentication without CSRF protection
 - For REST APIs consumed by native apps, use token-based auth instead of cookies
+- Generate with `crypto.randomBytes(32)` and compare with `crypto.timingSafeEqual()` on equal-length buffers, rather than `===`
+- Send the token in a custom request header for XHR/fetch paths so a cross-site form post cannot carry it, and re-issue it whenever the session identifier is regenerated
 
 ## Taint Sinks
 
@@ -19,35 +21,8 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 ## Remediation Steps
 
 - Install CSRF middleware - `npm install csrf-csrf cookie-parser`
-- Apply `doubleCsrfProtection` middleware globally or to protected routes
+- Obtain `doubleCsrfProtection` from `doubleCsrf({ getSecret, cookieName, cookieOptions })` and apply it globally or to protected routes, mounted after `cookieParser()`
 - Generate a token per request with `generateToken(req, res)` and inject it into forms or expose via a GET endpoint for SPA clients
 - Configure client to send token in `x-csrf-token` header (AJAX/fetch) or `_csrf` body field (forms)
 - Set cookie SameSite attribute to `Strict` or `Lax` and verify implementation with security tests
 - Handle CSRF errors gracefully - catch `invalidCsrfTokenError` and return 403
-
-## Safe Pattern
-
-```javascript
-const { doubleCsrfProtection, generateToken } = require('csrf-csrf').doubleCsrf({
-  getSecret: () => process.env.CSRF_SECRET,
-  cookieName: '__Host-psifi.x-csrf-token',
-  cookieOptions: { sameSite: 'strict', secure: true, httpOnly: true },
-});
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const app = express();
-
-app.use(cookieParser());
-app.use(doubleCsrfProtection);
-
-// Expose token for SPA / inject into server-rendered forms
-app.get('/csrf-token', (req, res) => {
-  res.json({ token: generateToken(req, res) });
-});
-
-app.post('/transfer', (req, res) => {
-  // Token validated automatically by middleware; 403 thrown if invalid
-  processTransfer(req.body);
-  res.sendStatus(200);
-});
-```

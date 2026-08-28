@@ -11,6 +11,10 @@ CWE-760 occurs when a password (or comparable secret) hash uses a salt, but the 
 - Never hardcode a single salt value shared across all users - that is functionally equivalent to using no salt at all
 - Prefer an adaptive password hashing function (bcrypt, Argon2, scrypt) that generates and manages the salt internally, so a predictable-salt mistake cannot be introduced at the call site
 - Store the generated salt alongside the hash; its value does not need to be secret, only unpredictable at generation time
+- A salt derived from the account - the username, the user id, the email, the row's creation timestamp - is not a salt: an attacker who has the database has those values too, so the table can be built per target
+- One salt shared across all records is equivalent to no salt for precomputation purposes, since a single table still covers every row
+- The salt does not need to be secret, only unpredictable and unique per credential; store it alongside the hash, which is what the standard password-hash encodings already do
+- Where no salt is present at all the finding is CWE-759, and both sit under CWE-916 with the same fix
 
 ## Remediation Steps
 

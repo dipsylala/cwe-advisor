@@ -12,6 +12,9 @@ On Unix-family systems, `umask()` is subtractive: it removes permission bits fro
 - Set a restrictive umask (0077 or 0027) once at process startup as the safe baseline
 - Verify the actual resulting permissions after any umask change rather than trusting the passed value to be correct
 - Remember umask is process-wide state - a change on one code path affects every file created afterward until it is reset
+- The weakness is an argument with the wrong *value*, and its effect is an incorrect default permission on every file the process creates afterwards - so a finding phrased as "files are created world-writable" may arrive under CWE-276 instead
+- Where the finding is one `chmod`-style call setting the wrong mode on a named resource rather than a wrong process-wide default, it is CWE-732
+- Set the mask once, early, before any file is created, and pass an explicit mode at each creation call as well - the mask only subtracts, so it cannot make a permissive explicit mode safe
 
 ## Remediation Steps
 

@@ -12,6 +12,8 @@ Go's `net/http.Cookie` struct sets no security attributes by default, so `http.S
 - Each `http.Cookie` and each session-library `Options` struct is independent - a library like `gorilla/sessions` has its own `Options` that must be configured separately from any handler-level `http.SetCookie` calls
 - Do not derive `Secure` from `r.TLS != nil` when the app sits behind a reverse proxy - `r.TLS` reflects the proxy-to-app hop, which is often plaintext even when the client used HTTPS
 - Keep `MaxAge` short for session cookies; use a separate, rotated token for "remember me" functionality
+- Leave `Domain` unset unless a subdomain genuinely needs the cookie: setting it widens the cookie to every host under that domain, including one an attacker may control
+- Deciding "is this HTTPS" from `r.RemoteAddr` or a forwarded header trusts the proxy chain - set `Secure` unconditionally and terminate TLS in front, rather than making the flag conditional
 
 ## Taint Sinks
 
@@ -24,18 +26,3 @@ Go's `net/http.Cookie` struct sets no security attributes by default, so `http.S
 - Replace the unsafe pattern - Add `Secure: true`, `HttpOnly: true`, and `SameSite: http.SameSiteStrictMode` (or `LaxMode`) to each sensitive cookie
 - Harden configuration - If behind a reverse proxy, set `Secure` unconditionally rather than from `r.TLS`, and ensure the proxy forwards `X-Forwarded-Proto` if app logic needs to detect HTTPS
 - Test - Inspect `Set-Cookie` response headers (browser devtools or `curl -v`) against the deployed HTTPS endpoint to confirm all three attributes are present
-
-## Safe Pattern
-
-```go
-// SAFE: session cookie with all security attributes set
-http.SetCookie(w, &http.Cookie{
-    Name:     "session_id",
-    Value:    sessionID,
-    Path:     "/",
-    MaxAge:   3600,
-    Secure:   true,
-    HttpOnly: true,
-    SameSite: http.SameSiteStrictMode,
-})
-```

@@ -11,7 +11,7 @@ Signed integer overflow in C is undefined behavior, not defined wraparound - a c
 - Prefer `__builtin_add_overflow()`, `__builtin_sub_overflow()`, and `__builtin_mul_overflow()` (GCC and Clang) over hand-written precondition logic - they compute the correct result and a true/false overflow flag in one step, handle mixed-sign operands correctly, and cannot be optimized away by the UB they check for
 - Unsigned (`size_t`) arithmetic wraps instead of triggering UB, but a wrapped `size_t` is just as dangerous when it sizes an allocation or copy length; precondition-check `size_t` arithmetic that feeds `malloc`/`calloc`/`memcpy` the same as signed arithmetic
 - Treat any overflowed or wrapped length that reaches `malloc()`, `calloc()`, or `memcpy()` as a buffer-overflow risk, not merely an arithmetic bug - validate before the allocation, not after
-- Where builtins are unavailable, use `<limits.h>`/`<stdint.h>` constants (`INT_MAX`, `SIZE_MAX`) to size the precondition check to the actual operand type, and prefer `calloc(count, size)` over `malloc(count * size)` since `calloc` performs its own overflow check on the multiplication
+- Where builtins are unavailable, use `<limits.h>`/`<stdint.h>` constants (`INT_MAX`, `SIZE_MAX`) to size the precondition check to the actual operand type - for a multiplication that is `elem_size != 0 && count > SIZE_MAX / elem_size` before the multiply - and prefer `calloc(count, size)` over `malloc(count * size)` since `calloc` performs its own overflow check on the multiplication
 
 ## Taint Sinks
 
@@ -26,33 +26,3 @@ Signed integer overflow in C is undefined behavior, not defined wraparound - a c
 - Bind, encode, validate, or authorize - Use the checked, validated value everywhere the result feeds `malloc`/`calloc`/`memcpy`, not the original unchecked operands
 - Harden configuration - Compile with `-fsanitize=undefined` (or `-ftrapv`) during testing to catch any signed overflow a manual check missed
 - Test - Test with `INT_MAX`/`SIZE_MAX`, values one below and above those limits, and operand pairs specifically chosen to overflow the addition/multiplication, confirming the checked path rejects them before any allocation occurs
-
-## Safe Pattern
-
-```c
-#include <limits.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-// SAFE: precondition check before an unsigned multiplication used to size
-// an allocation; avoids the size_t wraparound that would otherwise shrink
-// the buffer malloc actually receives
-int alloc_buffer(size_t count, size_t elem_size, void **out) {
-    if (elem_size != 0 && count > SIZE_MAX / elem_size)
-        return -1; // reject: count * elem_size would overflow size_t
-
-    void *p = malloc(count * elem_size);
-    if (!p)
-        return -1;
-    *out = p;
-    return 0;
-}
-
-// SAFE: compiler builtin detects signed overflow without relying on the
-// UB it is checking for; preferred over a hand-written pre-check
-int add_lengths(int a, int b, int *result) {
-    if (__builtin_add_overflow(a, b, result))
-        return -1; // reject: a + b would overflow int
-    return 0;
-}
-```

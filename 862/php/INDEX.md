@@ -12,6 +12,8 @@ In Laravel, Missing Authorization typically appears as a controller method reach
 - For resource-specific actions, the Policy method should compare the authenticated user to the model instance, such as `$user->id === $order->user_id`, not just check a role
 - Use the `can` middleware (`->middleware('can:update,order')`) on routes so authorization is visible in the route definition and cannot be silently omitted from a handler
 - Let unauthorized `authorize()` calls throw `AuthorizationException`, which Laravel converts to a 403 response by default - do not catch and suppress it
+- Use the framework's authorization layer rather than an inline check - Symfony's `denyAccessUnlessGranted()`/`#[IsGranted(...)]` and Laravel's policies keep the rule in one place and apply it to every route that declares it
+- Prefer the "deny as not found" form (Symfony's `Response::denyAsNotFound()`, Laravel's `findOrFail` after a scoped query) so "not yours" and "does not exist" are indistinguishable and the id space cannot be walked
 
 ## Taint Sinks
 
@@ -26,33 +28,3 @@ In Laravel, Missing Authorization typically appears as a controller method reach
 - Cover role-only actions - For actions not tied to a specific model instance, use `Gate::define()` and `Gate::allows('manage-orders')` or `$this->authorize('manage-orders')`
 - Reconcile route files - Audit `routes/web.php` and `routes/api.php` to confirm every sensitive route applies the same `can` middleware or authorize call as comparable routes
 - Test - Write feature tests that call each route as an authenticated user without the required role or ownership and assert a 403 response
-
-## Safe Pattern
-
-```php
-// SAFE: OrderPolicy defines the authorization rule
-class OrderPolicy
-{
-    public function update(User $user, Order $order): bool
-    {
-        return $user->id === $order->user_id;
-    }
-}
-
-// SAFE: controller calls authorize() before performing the action
-class OrderController extends Controller
-{
-    public function update(Request $request, Order $order)
-    {
-        $this->authorize('update', $order);
-
-        $order->update($request->validated());
-
-        return response()->json($order);
-    }
-}
-
-// SAFE: route-level authorization via the "can" middleware
-Route::put('/orders/{order}', [OrderController::class, 'update'])
-    ->middleware(['auth', 'can:update,order']);
-```

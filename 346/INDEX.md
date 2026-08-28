@@ -12,6 +12,10 @@ Origin validation errors occur when an application fails to properly verify the 
 - Never trust a client-supplied Referer or Origin header as sole proof of legitimacy without a defined allowlist to check it against
 - Guard against DNS rebinding by re-validating the resolved host/IP against expectations, not just the hostname string
 - For the CSRF-specific consequence of a missing origin check, apply CWE-352's token-based defence as well - origin validation and CSRF tokens are complementary, not substitutes for each other
+- Match the `Origin` header against an exact allowlist server-side and echo only that value - never a wildcard, the reflected header, or a suffix or substring match
+- Never allowlist the literal `null` origin: an attacker can make a request carry `Origin: null` from a page they fully control (a sandboxed iframe, a `data:` URL, certain redirect chains), so `null` in the list admits anyone
+- Send `Vary: Origin` with the response, or a shared cache can hand the response built for one allowed origin to a different one
+- Route by the specific manifestation: forged state-changing requests riding a victim's session are CWE-352, and an over-broad `Access-Control-Allow-Origin`, `crossdomain.xml`, or `postMessage` handler is CWE-942
 
 ## Remediation Steps
 

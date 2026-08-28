@@ -11,6 +11,8 @@ In PHP, cookies set with `setcookie()` or `session_start()` without the `secure`
 - Combine with `httponly: true` and `samesite: 'Strict'` on every sensitive cookie
 - Never send sensitive cookies (session ID, authentication tokens) over HTTP
 - Enforce HTTPS site-wide to make the `Secure` flag effective
+- Set the parameters before the session starts (`session_set_cookie_params([...])` ahead of `session_start()`), or `PHPSESSID` is issued with the ini defaults
+- Set `samesite` in the same call, choosing `Lax` or `Strict` per flow, and set `session.cookie_secure=1` in php.ini so a code path that starts a session without the call still gets it
 
 ## Taint Sinks
 
@@ -24,33 +26,3 @@ In PHP, cookies set with `setcookie()` or `session_start()` without the `secure`
 - Alternatively, call `ini_set()` and `session_set_cookie_params()` before `session_start()` if `php.ini` is not configurable
 - Verify HTTPS is enforced at the web server level (redirect HTTP → HTTPS)
 - Test by loading the page over HTTP and confirming the cookie is not set or transmitted
-
-## Safe Pattern
-
-```php
-<?php
-// Set session cookie parameters before session_start()
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => '/',
-    'domain'   => '',
-    'secure'   => true,   // Only send over HTTPS
-    'httponly' => true,   // Inaccessible to JavaScript
-    'samesite' => 'Strict',
-]);
-session_start();
-
-// Custom cookie - PHP 7.3+ options array syntax
-setcookie('auth_token', $token, [
-    'expires'  => time() + 3600,
-    'path'     => '/',
-    'secure'   => true,
-    'httponly' => true,
-    'samesite' => 'Strict',
-]);
-
-// php.ini equivalents (preferred for consistency)
-// session.cookie_secure   = 1
-// session.cookie_httponly = 1
-// session.cookie_samesite = Strict
-```

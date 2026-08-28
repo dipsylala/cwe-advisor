@@ -12,10 +12,11 @@ In .NET applications this occurs when request data (query strings, form fields, 
 - Use Serilog's `LoggingLevelSwitch` for any legitimate runtime log-level control instead of rebuilding the logger from a request value
 - Any admin endpoint that changes a setting must authorize with `[Authorize(Roles = "Admin")]` and check the requested key and value against a `HashSet<string>` allowlist before applying it
 - Never let a request parameter select a database catalog (`SqlConnection.ChangeDatabase()`), a config file path, or a remote config URL without allowlist validation
+- Do not derive resource limits from request data - `HttpClient.Timeout` accepts up to ~25 days and throws `ArgumentOutOfRangeException` outside its range, so a request-controlled timeout is both a connection-exhaustion and an unhandled-exception vector; hardcode it or configure it centrally via `IHttpClientFactory`
 
 ## Taint Sinks
 
-`Environment.SetEnvironmentVariable()`, `ConfigurationManager.AppSettings.Set()`, `IConfigurationRoot` indexer set, `SqlConnection.ChangeDatabase()`
+`Environment.SetEnvironmentVariable()`, `ConfigurationManager.AppSettings.Set()`, `IConfigurationRoot` indexer set, `SqlConnection.ChangeDatabase()`, `HttpClient.Timeout` setter
 
 ## Remediation Steps
 
@@ -26,36 +27,3 @@ In .NET applications this occurs when request data (query strings, form fields, 
 - Break taint after allowlist validation - assign the matched allowlist entry to a fresh local variable and pass that variable to `LoggingLevelSwitch.MinimumLevel`, `ChangeDatabase()`, or the config service, never the raw request value
 - Harden configuration - enable `ValidateDataAnnotations().ValidateOnStart()` so misconfiguration fails startup instead of degrading security silently
 - Test - submit values outside the allowlist and confirm 400, confirm unauthenticated requests to admin config endpoints return 401/403, and confirm the app refuses to start with an invalid `appsettings.json`
-
-## Safe Pattern
-
-```csharp
-// SAFE: startup-bound, validated configuration - no request can reach it
-public class AppSettings
-{
-    [RegularExpression("^(Information|Warning|Error)$")]
-    public string LogLevel { get; init; } = "Information";
-}
-
-builder.Services.AddOptions<AppSettings>()
-    .Bind(builder.Configuration.GetSection("App"))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-// SAFE: runtime log-level change gated by auth + allowlist
-private static readonly HashSet<string> AllowedLogLevels =
-    new(StringComparer.OrdinalIgnoreCase) { "Information", "Warning", "Error" };
-
-[HttpPost("admin/log-level")]
-[Authorize(Roles = "Admin")]
-public IActionResult SetLogLevel([FromBody] LogLevelRequest request)
-{
-    if (!AllowedLogLevels.Contains(request.Level))
-        return BadRequest("Invalid level");
-
-    // Allowlist-selected value is what reaches the sink, not request.Level directly
-    var approvedLevel = Enum.Parse<LogEventLevel>(request.Level, ignoreCase: true);
-    _levelSwitch.MinimumLevel = approvedLevel;
-    return Ok();
-}
-```

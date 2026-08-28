@@ -12,6 +12,9 @@ Incorrect Authorization occurs when an authorization check exists but its logic 
 - Pair resource-type checks with resource-ownership or tenant checks - confirming "this is a document" is not the same as confirming "this is the caller's document"
 - Scrutinize boolean logic for inversions, wrong operator precedence, and short-circuit mistakes (`||` where `&&` was intended)
 - Fail closed - unmatched, unknown, or error states in the authorization decision must deny access, not default to allow
+- Look for the recurring logic shapes: a denylist comparison where an allowlist was meant, a resource-*type* check with no matching ownership or tenant check, an inverted or short-circuited boolean, and a path (another HTTP method, a bulk operation, an internal API) that never reaches the check at all
+- Submit a role value the allowlist does not recognize and confirm it is denied rather than silently permitted
+- Assert the denials are indistinguishable: an id that exists in no row and an id owned by another user must return the identical status and body, since a 403 for one and a 404 or 500 for the other is an existence oracle whichever way round it falls
 
 ## Remediation Steps
 

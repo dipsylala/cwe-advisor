@@ -7,6 +7,8 @@ This weakness appears when code creates a chroot jail (remapping the process's f
 ## Key Principles
 
 - Primary defence: change the working directory into the new root immediately after creating the jail, with no file access performed in between.
+- Close inherited file descriptors *before* creating the jail: the call does not close them, and a directory handle opened beforehand is a route straight back out through `fchdir()`. Use `closefrom(3)`, `close_range()`, or a loop over the process's own descriptor list
+- Drop supplementary groups before the group id and the group id before the user id; reversing that order leaves the process without the privilege needed to complete the earlier step, and check the return value of every one of these calls
 - The jail alone is not a privilege boundary; a process that keeps elevated privileges after entering the jail can often re-invoke the jail-creation call on a subdirectory and walk back out.
 - Drop elevated privileges immediately after the jail is established, as part of the same remediation, not as an optional follow-up.
 - Do not treat the jail as sufficient isolation on its own; it only remaps a filesystem path and does not restrict process, network, or device visibility.
@@ -19,4 +21,4 @@ This weakness appears when code creates a chroot jail (remapping the process's f
 - Identify the unsafe pattern - Confirm whether a working-directory change into the new root occurs immediately after jail creation, and whether elevated privileges are dropped afterward.
 - Replace with the safe pattern - Sequence the code so the working-directory change happens immediately after jail creation, before any file access, followed immediately by dropping elevated privileges.
 - Add secondary controls - Where available, prefer a namespace- or container-based isolation mechanism over a hand-sequenced chroot/working-directory pair.
-- Test - Attempt to open a file outside the jail using a relative path immediately after setup and confirm it fails; confirm the process is not running with elevated privileges once setup completes; confirm the jail-creation call cannot be invoked a second time from inside the jailed process.
+- Test - Attempt to open a file outside the jail using a relative path immediately after setup and confirm it fails; attempt the same through a descriptor opened before the jail was created; confirm the process cannot regain its former user id; and confirm the jail-creation call cannot be invoked a second time from inside the jailed process.

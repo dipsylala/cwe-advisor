@@ -11,6 +11,9 @@ Java applications commonly leak sensitive information through HTTP responses, er
 - Configure frameworks to disable detailed error pages and debug information in production
 - Validate and sanitize all data before including in responses, especially user-controlled input
 - Apply principle of least privilege to error messages - only expose what users need
+- `management.endpoints.web.exposure.include=*` publishes every Actuator endpoint, including `/env`, `/configprops` and `/heapdump` - expose the specific endpoints needed and put them behind authentication
+- An entity's generated `toString()` includes every field, so logging or returning the object publishes columns the API never declared
+- Extend `ResponseEntityExceptionHandler` (or an equivalent boundary handler) so an unhandled exception cannot render the framework's default body, and build the response from fields you chose
 
 ## Taint Sinks
 
@@ -18,30 +21,9 @@ Java applications commonly leak sensitive information through HTTP responses, er
 
 ## Remediation Steps
 
-- Replace default exception handlers with custom handlers that log full details server-side but return generic messages to clients
+- Replace default exception handlers with a `@RestControllerAdvice` class whose `@ExceptionHandler` methods log full details server-side but return generic messages to clients
 - Configure `server.error.include-stacktrace=never` and `server.error.include-message=never` in Spring Boot
 - Audit all API responses and DTOs to ensure no sensitive fields are serialized using `@JsonIgnore` or custom serializers
 - Implement structured logging with masking patterns for sensitive data
 - Review exception handling to catch specific exceptions and avoid leaking implementation details
 - Add response filters to strip sensitive headers and sanitize error content
-
-## Safe Pattern
-
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        log.error("Internal error occurred", ex); // Full details server-side only
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new ErrorResponse("An error occurred. Please contact support."));
-    }
-    
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new ErrorResponse("Resource not found")); // No sensitive details
-    }
-}
-```

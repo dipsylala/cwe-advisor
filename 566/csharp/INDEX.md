@@ -11,6 +11,7 @@ CWE-566 here is the SQL-primary-key case: a user-controlled ID (route parameter,
 - Implement centralized authorization policies using ASP.NET Core Authorization or repository patterns
 - Use strongly-typed claims (`ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)`) to get authenticated user context
 - Return 404 instead of 403 for unauthorized resources to avoid information disclosure
+- Put the ownership predicate in the query (`&& d.UserId == currentUserId`) rather than loading by id and comparing afterwards, so no unauthorized row is materialized and the list endpoint is covered by the same rule
 
 ## Taint Sinks
 
@@ -24,21 +25,3 @@ CWE-566 here is the SQL-primary-key case: a user-controlled ID (route parameter,
 - Add authorization check - filter queries with `.Where(e => e.UserId == currentUserId)` in the query itself, not as a check performed after retrieval
 - Return `NotFound()` if entity doesn't exist or user lacks access
 - Apply authorization attributes (`[Authorize]`) and consider policy-based authorization for complex scenarios
-
-## Safe Pattern
-
-```csharp
-[Authorize]
-public async Task<IActionResult> GetOrder(int orderId)
-{
-    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var order = await _context.Orders
-        .Where(o => o.Id == orderId && o.UserId == userId)
-        .FirstOrDefaultAsync();
-    
-    if (order == null)
-        return NotFound();
-    
-    return Ok(order);
-}
-```

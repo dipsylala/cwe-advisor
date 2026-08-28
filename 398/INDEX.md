@@ -11,6 +11,9 @@ Poor code quality indicators - dead or unreachable code, empty or overly broad c
 - Treat every ignored return value, unused variable, or unvalidated input near a flagged line as suspicious until confirmed harmless
 - Prefer simple, linear control flow (early returns, small focused functions) over deep nesting so security-relevant logic stays auditable
 - Integrate static analysis and linting into the normal build and review workflow so these indicators are caught early and consistently
+- MITRE marks CWE-398 a Category and Prohibited for mapping, so a finding should carry a member weakness's number instead - but note the members are memory and API misuse (CWE-401, CWE-404, CWE-415, CWE-416, CWE-476, CWE-477), not the code smells scanners emit this ID for
+- Where a more specific number exists for the smell it is usually outside this category: a result nobody inspects is CWE-252, a failure escaping the frame meant to contain it is CWE-248, an empty `catch` is CWE-390, and dead or irrelevant code is CWE-561/CWE-1164
+- Where none of those fits, the honest answer is a maintainability defect with no CWE to carry it, and this entry is the remediation reference rather than a mapping target
 
 ## Remediation Steps
 

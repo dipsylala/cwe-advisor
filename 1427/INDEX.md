@@ -12,6 +12,10 @@ This vulnerability occurs when externally-controllable data (user input, retriev
 - Apply least privilege to tool design: narrow, purpose-built, parameterized tools with server-side argument validation, not broad-capability tools (arbitrary shell execution, unrestricted file or network access) that turn a successful injection into full compromise
 - Require human approval or a secondary confirmation step for irreversible or high-consequence actions (financial transfers, deletions, sending communications, credential changes) regardless of model confidence
 - This class of weakness cannot be fully eliminated by any single control; combine multiple independent layers and expect new bypass techniques to keep appearing
+- There is no parameterization fix here: natural language has no syntax separating instruction from data, so a capable model can still be talked out of its instructions by content crafted to look authoritative
+- Defend in layers instead: structural separation of trusted instructions from untrusted content where the platform offers it, independent server-side authorization for every consequential tool action, and least-privilege tools so a successful injection has a narrow blast radius
+- Where a tool fetches a URL the model chose, apply CWE-918 to that fetch
+- Unlike CWE-1426, this ID is Allowed for mapping, so a prompt-injection finding belongs here
 
 ## Remediation Steps
 

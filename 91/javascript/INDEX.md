@@ -21,27 +21,8 @@ Template literals/string concatenation building XML, `+` into raw XML strings
 ## Remediation Steps
 
 - Replace string concatenation XML building with library-based approaches
-- Install and use `xmlbuilder2` or similar library with built-in escaping
+- Install and use `xmlbuilder2` or similar library with built-in escaping, building nodes with `create()`/`.ele()` and setting values with `.txt()`, which escapes
 - Apply XML escaping function to all user-controlled data before insertion
 - Validate input against strict schemas or patterns before processing
 - Enable XML parser security features (disable external entities, limit depth)
 - Test with malicious payloads containing `<`, `>`, `&`, `CDATA` sections
-
-## Safe Pattern
-
-```javascript
-const { create } = require('xmlbuilder2');
-
-function createUserXML(username, email) {
-  const doc = create({ version: '1.0' })
-    .ele('user')
-      .ele('name').txt(username).up()  // txt() auto-escapes
-      .ele('email').txt(email).up()
-    .up();
-  
-  return doc.end({ prettyPrint: true });
-}
-
-// Safe: Special chars automatically escaped
-createUserXML("<script>alert('xss')</script>", "test@example.com");
-```

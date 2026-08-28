@@ -7,10 +7,10 @@ Code injection in PHP most commonly occurs via `eval()`, the `preg_replace()` `/
 ## Key Principles
 
 - Remove all `eval()` calls; there is no sanitization that makes `eval($userInput)` safe
-- Replace `assert($stringExpression)` with direct boolean assertions - `assert()` with a string argument behaves like `eval()` in PHP 7 and earlier
+- Replace `assert($stringExpression)` with direct boolean assertions - `assert()` with a string argument behaves like `eval()` in PHP 7 and earlier, but stopped evaluating in PHP 8.0, where a non-empty string is simply truthy; on a PHP 8 target the finding is not exploitable and what remains is an assertion that has never tested anything
 - Never use `include`/`require` with user-controlled paths - use an allowlist of permitted filenames
 - Replace dynamic dispatch patterns with `match` expressions or lookup arrays of callable functions
-- Disable `allow_url_include` and `allow_url_fopen` in `php.ini` to block remote file inclusion
+- Disable `allow_url_include` and `allow_url_fopen` in `php.ini` to block remote file inclusion; `disable_functions` cannot close `eval` because `eval` is a language construct rather than a function, so listing it there records a control that was never applied - the directive is still worth setting for `system`, `exec`, `passthru`, `proc_open` and `popen`
 
 ## Taint Sinks
 
@@ -21,33 +21,6 @@ Code injection in PHP most commonly occurs via `eval()`, the `preg_replace()` `/
 - Search for `eval(`, `assert("`, `preg_replace(.*/e`, `create_function(` and remove each one
 - Replace `eval()` with a `match` statement, `switch`, or an array of named callables keyed by allowlisted identifiers
 - For `include`/`require` with variable paths, replace with an allowlist: `$allowed = ['home', 'about']; if (in_array($page, $allowed, true)) include __DIR__ . "/pages/{$page}.php";`
-- Set `assert.active = Off` in `php.ini` or `ini_set('assert.active', '0')` to disable string-based assertions
+- Establish the PHP version before triaging `assert($string)`, the `/e` modifier and `create_function()` - all three had stopped executing by PHP 8.0, so on a current target they are dead code to delete rather than live sinks; on PHP 7 and earlier disable string assertions with `zend.assertions = -1` in `php.ini`
 - Enable `display_errors = Off` in production so error messages don't reveal code-injection paths
 - Test by submitting `system('id')` or `phpinfo()` as input values and confirming they are not executed
-
-## Safe Pattern
-
-```php
-<?php
-// SAFE: replace eval() with a lookup of predefined callables
-$operations = [
-    'double' => fn(float $x): float => $x * 2,
-    'square' => fn(float $x): float => $x ** 2,
-    'negate' => fn(float $x): float => -$x,
-];
-
-$opName = $_GET['op'] ?? '';
-if (!isset($operations[$opName])) {
-    http_response_code(400);
-    exit('Invalid operation');
-}
-$result = $operations[$opName](42.0);
-
-// SAFE: allowlist-controlled include
-$allowedPages = ['home', 'about', 'contact'];
-$page = $_GET['page'] ?? 'home';
-if (!in_array($page, $allowedPages, true)) {
-    $page = 'home';
-}
-include __DIR__ . '/pages/' . $page . '.php';
-```

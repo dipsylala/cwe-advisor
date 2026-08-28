@@ -11,7 +11,11 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Disable URL redirects or validate redirect destinations
 - Restrict protocols to HTTPS only, never allow file://, gopher://, or other schemes
 - Implement DNS rebinding protection by validating all A/AAAA records before connecting and enforcing egress controls
-- Pin the request to the validated IP with `CURLOPT_RESOLVE` rather than passing the original URL to cURL for re-resolution - `parse_url()` and cURL's own URL parser can disagree on malformed input, so the host that was validated is not guaranteed to be the host cURL would otherwise connect to
+- Pin the request to the validated IP with `CURLOPT_RESOLVE => ["host:port:ip"]` rather than passing the original URL to cURL for re-resolution - `parse_url()` and cURL's own URL parser can disagree on malformed input, so the host that was validated is not guaranteed to be the host cURL would otherwise connect to
+- Block the whole `169.254.0.0/16` range rather than the single address `169.254.169.254`, and include the ranges PHP's own filter flags miss - `100.64.0.0/10` (CGNAT), `192.0.0.0/24`, `0.0.0.0/8` and the NAT64 prefix `64:ff9b::/96`, which spells an IPv4 address inside an ordinary IPv6 one
+- Set `CURLOPT_FOLLOWLOCATION = false`, or re-run the full address check on every hop, since a permitted host can redirect out of the allowlist after validation
+- Clear `CURLOPT_PROXY` for the request: an environment proxy forwards the hostname to be resolved at the other end, which makes the address you validated irrelevant
+- Confirm what was actually reached with `CURLINFO_PRIMARY_IP` after the transfer, as a check that the connection went where the validation said it would
 
 ## Taint Sinks
 
@@ -26,40 +30,3 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Disable `CURLOPT_FOLLOWLOCATION` or validate all redirect targets
 - Set timeouts and use `CURLOPT_PROTOCOLS` to restrict allowed protocols
 - Pin the connection to the validated IP with `CURLOPT_RESOLVE` so cURL cannot independently re-resolve or re-parse the host
-
-## Safe Pattern
-
-```php
-function safeFetchUrl($url, array $allowedHosts) {
-    $parsed = parse_url($url);
-    if (!$parsed || $parsed['scheme'] !== 'https' || !in_array($parsed['host'], $allowedHosts, true)) {
-        throw new Exception('Invalid URL');
-    }
-
-    $host = $parsed['host'];
-    $port = $parsed['port'] ?? 443;
-
-    $records = dns_get_record($host, DNS_A + DNS_AAAA);
-    if (!$records) {
-        throw new Exception('Host did not resolve');
-    }
-    $validatedIp = null;
-    foreach ($records as $record) {
-        $ip = $record['ip'] ?? $record['ipv6'] ?? null;
-        if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-            throw new Exception('Private IP not allowed');
-        }
-        $validatedIp = $validatedIp ?? $ip;
-    }
-
-    // Pin the request to the validated IP: cURL uses a different URL parser
-    // than parse_url(), so passing the raw $url here could let cURL connect
-    // to a host that was never actually validated. CURLOPT_RESOLVE also
-    // closes the DNS-rebinding gap between validation and the request.
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RESOLVE, ["$host:$port:$validatedIp"]);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-    curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
-    return curl_exec($ch);
-}
-```

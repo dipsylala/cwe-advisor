@@ -11,6 +11,10 @@ A covert timing channel is a deliberate, out-of-band communication path: two mut
 - Where a shared resource cannot be eliminated, reduce its observability: quantize or add noise to timing/usage metrics exposed across the boundary, or restrict high-resolution timing measurement for the untrusted side
 - Treat unusual, structured resource-usage patterns (rhythmic CPU spikes, patterned lock contention) as a potential exfiltration signal worth monitoring, not just noise
 - Apply this at the architecture/isolation layer - this is not a code-level input-validation or output-encoding fix
+- The channel is usually the control flow rather than the comparison: a login that returns immediately for an unknown user and runs a deliberately slow password hash for a known one reports which branch was taken, and no constant-time comparison helps because the leak happened before it
+- Equalize the work instead - hash against a fixed decoy on the not-found path so both branches perform the same expensive operation before returning
+- The same treatment applies beyond login: API key checks, token validation, and signature verification all need every branch touching a secret to do equivalent work
+- A scanner usually reports the discrepancy as CWE-208; this entry is the right one when the concern is the channel - repeated sampling, statistical averaging, and the branches that stay unequal after the comparison is fixed
 
 ## Remediation Steps
 

@@ -11,6 +11,10 @@ HTTP Response Splitting occurs when attackers inject CRLF characters (`\r\n`) in
 - Apply allowlisting: Restrict header values to expected character sets (alphanumeric, safe punctuation)
 - Avoid manual header construction: Never concatenate user input directly into headers
 - Use safe APIs: Prefer `UriComponentsBuilder` for URL construction with proper encoding
+- Build a `Content-Disposition` with the framework's builder (`ContentDisposition.builder(...).filename(name, UTF_8)`), which emits the RFC 5987 form, rather than interpolating a filename into the header string
+- `response.getContentType()` returns the value the application set, not the value the container will write - Tomcat and Jetty replace CR and LF with a space at write time, so a value read back still contains the payload and nothing is logged
+- `URLEncoder.encode()` is form encoding, not header encoding: it turns a space into `+`, so it is the wrong tool for a header parameter even though it removes the newline
+- Validate a redirect target as a path against an allowlist rather than checking `startsWith("/")`, which accepts `//evil.example` as a protocol-relative URL
 
 ## Taint Sinks
 
@@ -24,32 +28,3 @@ HTTP Response Splitting occurs when attackers inject CRLF characters (`\r\n`) in
 - Use `ContentDisposition.builder()` for file download headers instead of string concatenation
 - Implement allowlist validation for redirect URLs using parsed local paths or strict regex patterns that reject `//`
 - Review all response header manipulations and replace with framework methods
-
-## Safe Pattern
-
-```java
-@Controller
-public class SafeRedirectController {
-    
-    @GetMapping("/redirect")
-    public String safeRedirect(@RequestParam String url) {
-        // Example allowlist policy: matches local absolute paths that start with
-        // one "/" and reject "//", allowing only letters, digits, "/", "_", and "-".
-        if (!url.matches("^/(?!/)[a-zA-Z0-9/_-]+$")) {
-            throw new IllegalArgumentException("Invalid URL");
-        }
-        return "redirect:" + url; // Spring handles encoding
-    }
-    
-    @GetMapping("/cookie")
-    public ResponseEntity<Void> safeCookie(@RequestParam String value) {
-        ResponseCookie cookie = ResponseCookie.from("session", value)
-            .path("/")
-            .httpOnly(true)
-            .build();
-        return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .build();
-    }
-}
-```

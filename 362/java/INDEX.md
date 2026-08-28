@@ -12,6 +12,10 @@ Shared mutable state accessed from multiple threads - a field on a singleton bea
 - For JPA/Hibernate entities, add a `@Version` column for optimistic locking, or use `SELECT ... FOR UPDATE` (`@Lock(LockModeType.PESSIMISTIC_WRITE)`) when a conflict must block rather than fail
 - Do not assume a Spring `@Service` or `@Component` bean is race-free because a single instance handles all requests; singleton beans are shared across all concurrent threads
 - Keep synchronized blocks short and always release locks in a `finally` block when using explicit `Lock` objects
+- `ConcurrentHashMap.compute()`/`computeIfAbsent()`/`putIfAbsent()` are the atomic forms; a `get()` followed by a `put()` races even on that class
+- Release a `ReentrantLock` in a `finally` block, or an exception leaves it held and every later caller blocks
+- Optimistic locking is a retry contract, not a guarantee: treat `ObjectOptimisticLockingFailureException` as a signal to re-read and retry rather than as a 500
+- `SERIALIZABLE` isolation makes the database enforce the invariant, at the cost of serialization failures the application must be prepared to retry
 
 ## Taint Sinks
 
@@ -26,30 +30,3 @@ Shared mutable state accessed from multiple threads - a field on a singleton bea
 - Bind, encode, validate, or authorize - For database-backed shared state, use `SELECT ... FOR UPDATE` in a transaction or add a JPA `@Version` field for optimistic concurrency control
 - Harden configuration - Ensure the same lock object or `@Version` strategy protects the resource consistently, including exception paths
 - Test - Exercise the code with a thread pool driving concurrent calls against the same resource and confirm no lost updates and, for optimistic locking, that `OptimisticLockException` is handled by retry or a clear error
-
-## Safe Pattern
-
-```java
-import java.util.concurrent.atomic.AtomicInteger;
-
-// SAFE: synchronized method protects the full read-modify-write sequence
-public class Account {
-    private int balance;
-
-    public synchronized void withdraw(int amount) {
-        if (balance < amount) {
-            throw new IllegalStateException("insufficient funds");
-        }
-        balance -= amount;
-    }
-}
-
-// SAFE: AtomicInteger avoids the need for a lock on a simple counter
-class RequestCounter {
-    private final AtomicInteger count = new AtomicInteger(0);
-
-    public void increment() {
-        count.incrementAndGet();
-    }
-}
-```

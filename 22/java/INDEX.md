@@ -9,8 +9,10 @@ Path Traversal occurs when user input constructs file paths without validation, 
 ## Key Principles
 
 - Use indirect reference maps instead of accepting filenames directly from users
-- Decode and Unicode-normalise input before filtering - overlong UTF-8 sequences and full-width Unicode path separators bypass naive string checks; use `java.net.URLDecoder` and `java.text.Normalizer`
+- Do not re-decode: `request.getParameter()`, `@RequestParam` and model binding already return percent-decoded values, so a further `URLDecoder.decode()` turns the inert literal `%2e%2e%2f` into `../`; `URLDecoder` also maps `+` to a space, corrupting legitimate filenames
 - Validate canonical paths remain within the intended base directory
+- Compare `java.nio.file.Path` objects with `Path.startsWith(Path)` (or `File.getCanonicalPath()` against a separator-terminated base) - `canonicalPath.startsWith(baseDir)` on the *strings* accepts a sibling such as `/app/uploads-backup`
+- `Path.normalize()` is textual and `getAbsolutePath()` resolves nothing; only `toRealPath()`/`getCanonicalFile()` follow symbolic links
 - Reject paths containing traversal sequences (`../`, `..\\`) or null bytes
 - Use allowlists for permitted file extensions and directories
 - Avoid constructing paths from untrusted input when possible
@@ -23,27 +25,9 @@ Path Traversal occurs when user input constructs file paths without validation, 
 ## Remediation Steps
 
 - Implement indirect object references (user provides ID, application maps to filename)
-- Decode URL-encoded input with `URLDecoder.decode(input, StandardCharsets.UTF_8)` and normalise Unicode with `Normalizer.normalize(input, Form.NFC)` before any filtering
+- Validate the value the container already decoded - add no second `URLDecoder.decode()` pass, and do not rely on `Normalizer` to neutralise separators
 - Canonicalize user input with `File.getCanonicalPath()` or `Path.normalize()`
 - Verify the resolved path starts with the intended base directory
 - Reject requests with traversal sequences, absolute paths, or suspicious characters
 - Apply allowlist validation for file extensions if direct input is unavoidable
 - Use OS/container sandboxing and filesystem permissions to restrict file access
-
-## Safe Pattern
-
-```java
-public File getSecureFile(String userInput, String baseDir) throws IOException {
-    // Decode and Unicode-normalise before filtering
-    String decoded = URLDecoder.decode(userInput, StandardCharsets.UTF_8);
-    String normalized = Normalizer.normalize(decoded, Normalizer.Form.NFC);
-    
-    Path base = Path.of(baseDir).toRealPath();
-    Path requested = base.resolve(normalized).normalize().toRealPath();
-    
-    if (!requested.startsWith(base)) {
-        throw new SecurityException("Path traversal detected");
-    }
-    return requested.toFile();
-}
-```

@@ -6,7 +6,8 @@ XSS occurs when untrusted data is rendered in web pages without proper encoding,
 
 ## Key Principles
 
-- Use output encoding appropriate to the context (HTML, JavaScript, URL, CSS)
+- Use output encoding appropriate to the context (HTML, JavaScript, URL, CSS): `htmlspecialchars($v, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8')` for markup, `json_encode()` with `JSON_HEX_TAG | JSON_HEX_AMP` inside `<script>`, `urlencode()`/`rawurlencode()` for URL components
+- Include `ENT_SUBSTITUTE` so invalid UTF-8 becomes a replacement character rather than an empty string - without it a malformed byte sequence silently drops the whole value, which hides the bug rather than encoding it. `htmlentities()` is not a stronger `htmlspecialchars()`; it converts more characters but neutralizes the same ones
 - Enable auto-escaping in templating engines by default
 - Never trust user input or data from external sources
 - Implement Content Security Policy (CSP) headers as defence-in-depth
@@ -24,22 +25,3 @@ XSS occurs when untrusted data is rendered in web pages without proper encoding,
 - For URLs, apply `urlencode()` or `rawurlencode()` to user data
 - Review all instances of `echo`, `print`, and template rendering
 - Add CSP header - `Content-Security-Policy - default-src 'self'`
-
-## Safe Pattern
-
-```php
-<?php
-// HTML context
-$username = $_GET['name'];
-echo htmlspecialchars($username, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-// Laravel Blade template
-// {{ $username }} - auto-escaped
-
-// JavaScript context
-echo '<script>var user = ' . json_encode($data, JSON_HEX_TAG | JSON_HEX_AMP) . ';</script>';
-
-// URL context
-echo '<a href="profile.php?id=' . urlencode($userId) . '">Profile</a>';
-?>
-```

@@ -11,6 +11,8 @@ Sensitive cookies in Java web applications transmitted without the `secure` attr
 - Apply `HttpOnly` flag alongside `Secure` to prevent client-side script access
 - Configure framework-level defaults for secure cookie creation
 - Validate that production environments use HTTPS exclusively
+- Set it in configuration rather than per cookie where the container supports it: `server.servlet.session.cookie.secure=true` (plus `http-only` and `same-site`) covers `JSESSIONID`, which application code never creates
+- The Servlet `Cookie` class has no `SameSite` setter - set it through the container's session-cookie configuration, a `Set-Cookie` written via `ResponseCookie`, or JAX-RS `NewCookie`, and choose `Lax` or `Strict` per flow rather than defaulting to `Strict`
 
 ## Taint Sinks
 
@@ -21,26 +23,6 @@ Sensitive cookies in Java web applications transmitted without the `secure` attr
 - Identify all cookie creation points (Servlet `Cookie`, Spring `ResponseCookie`, framework configurations)
 - Add `cookie.setSecure(true)` to every sensitive cookie instantiation
 - Set `HttpOnly` flag with `cookie.setHttpOnly(true)` for additional protection
-- Configure Spring Security or servlet container defaults for secure cookies
+- Configure container defaults via `ServletContext.getSessionCookieConfig().setSecure(true)` and `.setHttpOnly(true)`, or build Spring cookies with `ResponseCookie.from(name, value).secure(true).httpOnly(true).build()`
 - Test in HTTPS environment to verify cookies transmit only over secure channels
 - Review session management configuration in `web.xml` or application properties
-
-## Safe Pattern
-
-```java
-// Servlet container-managed session cookie
-ServletContext context = request.getServletContext();
-SessionCookieConfig sessionCookie = context.getSessionCookieConfig();
-sessionCookie.setSecure(true);
-sessionCookie.setHttpOnly(true);
-sessionCookie.setPath("/");
-
-// Spring Framework
-ResponseCookie cookie = ResponseCookie.from("authToken", token)
-    .secure(true)
-    .httpOnly(true)
-    .path("/")
-    .maxAge(3600)
-    .build();
-response.addHeader("Set-Cookie", cookie.toString());
-```

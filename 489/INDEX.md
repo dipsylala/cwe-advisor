@@ -11,6 +11,9 @@ Leftover debug code in production (print statements, test backdoors, disabled au
 - Disable by default: Ensure DEBUG flags, verbose logging, and development modes are off in production configurations
 - Sanitize error output: Replace detailed error messages with generic responses; log details server-side only
 - Use build-time removal: Configure build tools to automatically strip debug code from production artifacts
+- The weakness is that a development-only path is *reachable*, whether or not it discloses anything: a test account, a header that grants a session, a `?debug=true` branch, or a registered `/debug` route is this finding even when it leaks nothing, because the functionality is the exposure and deleting it is the fix
+- Use this entry when the fix is removing an affordance, and the disclosure entries when the fix is changing what a still-wanted output contains: what debug instrumentation puts in its output is CWE-215, system and environment detail is CWE-497, an error message as the vehicle is CWE-209, and a log file as the destination is CWE-532
+- Older tooling calls this "Leftover Debug Code", the name it carried until 2020
 
 ## Remediation Steps
 

@@ -11,6 +11,10 @@ Storing sensitive data (passwords, API keys, PII, credit cards, session tokens) 
 - Store encryption keys separately in dedicated key management systems (AWS KMS, Azure Key Vault, HashiCorp Vault)
 - Apply least privilege access controls to encrypted data and key storage
 - Avoid storing sensitive data unnecessarily; minimize what you persist
+- Hash passwords rather than encrypting them - encryption is reversible and a database dump plus the key returns every password, so the column type is not the tell: a bcrypt or Argon2id digest lives in a `VARCHAR` perfectly correctly, and what is wrong is anything a dump can be turned back into the user's password (CWE-916)
+- Store a hash of a session or API token rather than the token as issued: the server never needs the value back, only to recognise it, so encryption is the wrong control there too
+- Minimise before encrypting: truncate a card to its last four digits, tokenize through the payment processor, and delete on a retention schedule - data not stored needs no key
+- Where the medium is process memory rather than disk, the finding is CWE-316; CWE-312 is the broader parent covering any persistent medium
 
 ## Remediation Steps
 

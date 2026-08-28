@@ -12,6 +12,10 @@ This weakness occurs when data such as files, messages, or tokens is accepted wi
 - Keep the integrity key or signing key out of untrusted reach; never embed it in client-side code or transmit it alongside the data
 - Verify integrity before parsing, decrypting, or otherwise acting on the data, not after
 - When encryption is also used, verify integrity as part of an authenticated encryption mode or an encrypt-then-MAC construction, rather than layering unauthenticated encryption with a separate weak checksum
+- Where the expected digest comes from decides what a plain hash proves: SHA-256 detects deliberate tampering only when the digest reaches the verifier independently of the data - pinned in your own source, carried in a signed manifest, or fetched over a separate channel. A digest published beside the file it covers proves nothing, since whoever replaced the file replaced the digest
+- A keyless hash carries no authenticity of its own; that is what an HMAC or a signature adds
+- A keyed tag belongs beside the data - AES-GCM appends its tag to the ciphertext by construction and separating it buys nothing, because the strength comes from the key rather than from where the tag is filed
+- Compare with a constant-time function (`hmac.compare_digest`, `crypto.timingSafeEqual`) and reject on failure rather than logging and continuing
 
 ## Remediation Steps
 

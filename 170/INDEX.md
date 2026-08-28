@@ -11,7 +11,9 @@ This weakness occurs when code that produces a C-style string fails to guarantee
 - Any buffer sized from a string's length must add space for the terminator, and every copy into it must respect that same accounting
 - Data that was never a string to begin with (raw network or file reads) must be terminated explicitly at the position immediately after the last byte actually read
 - Prefer a string type that tracks its own length and manages termination internally where the language and API surface allow it
-- Do not rely on a buffer's prior contents or an assumption of zero-initialization to supply the terminator
+- Do not rely on a buffer's prior contents or an assumption of zero-initialization to supply the terminator - the assumption fails silently until the memory happens to hold non-zero leftovers
+- Enlarging the buffer is not a fix: it makes the missing terminator less often visible while a large enough input still produces an unterminated string
+- Fix both sides of the same value - terminating on the way in while a later path re-copies or re-slices the buffer without preserving the terminator reintroduces the defect one step downstream
 
 ## Remediation Steps
 

@@ -8,10 +8,13 @@ This weakness occurs when a regular expression's matching logic does not do what
 
 - Anchor the pattern to the whole string (or use a full-match API) unless a substring match is genuinely intended
 - Escape every literal metacharacter that should be taken literally; an unescaped metacharacter matches more than intended
-- Group alternation explicitly with parentheses so anchors apply to every branch, not just one
+- Group alternation explicitly with parentheses so anchors apply to every branch: alternation has the lowest precedence of any regex operator, so `^report|invoice\.pdf$` parses as `(^report)` or `(invoice\.pdf$)` and each branch inherits only one anchor - `reportXYZ` and `XYZinvoice.pdf` both pass
+- Escape every branch, not just the one that was written first: `a\.b|c.d` escapes the dot in one alternative and leaves it as a wildcard in the other
 - Treat a negated character class as excluding only the listed characters, not everything unsafe
 - Prefer a maintained URL, IP address, or path parser over a hand-written pattern for structured formats
 - Reserve regex for genuinely simple, fixed-shape formats
+- `$` is not an end-of-input anchor in every engine - it also matches before a final newline in Python, .NET and PCRE, so `^[a-z]+$` accepts a permitted value with a newline appended, and that newline is the byte that splits a header, a log line, or a mail command downstream. Use the whole-string call (`re.fullmatch()`, `Matcher.matches()`) or `\A...\z`
+- A pattern that is logically correct but backtracks catastrophically on hostile input is CWE-1333, not this weakness - both present as "bad regex", but one is a matching-logic bug and the other an availability bug
 
 ## Remediation Steps
 
@@ -21,4 +24,4 @@ This weakness occurs when a regular expression's matching logic does not do what
 - Replace with the safe pattern - Rewrite the pattern with full-string anchors, escaped literals, and explicitly grouped alternation, or replace it with a structured parser for URLs, IPs, or paths
 - Break taint after allowlist validation - Where the regex is an allowlist check, use the matched or canonicalized value for downstream use, not the original raw input
 - Add secondary controls - For semantically bounded values, such as IP octets, validate the numeric range in addition to the pattern shape
-- Test - Verify the pattern accepts every legitimate input shape including boundary cases, and rejects near-miss malicious input such as a valid prefix with a malicious suffix or an encoded variant
+- Test - Verify the pattern accepts every legitimate input shape including boundary cases, and rejects near-miss malicious input such as a valid prefix with a malicious suffix or an encoded variant. The cheapest mechanical check for the anchor case: feed every allowlist pattern its own permitted value with a newline appended and assert rejection

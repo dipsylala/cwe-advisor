@@ -11,6 +11,10 @@ Privacy violations occur when applications expose PII (names, SSN, medical data,
 - Control exposure channels: logs, errors, APIs, URLs, analytics, UI
 - Delete PII promptly when no longer needed
 - Question every PII field in forms and data models
+- Hashing an identifier is pseudonymization, not anonymization: a hashed email, phone number, or SSN is recoverable by brute force (an SSN is a 10^9 keyspace, enumerable in seconds) and remains personal data under GDPR. Where analytics needs a per-user key, use a random, per-service, rotatable surrogate ID never derived from the PII
+- Require step-up authentication before a bulk export or a full-record view, so a hijacked session alone is not enough
+- Audit who accessed which personal data and when - the access log is part of the control here, not just of the investigation
+- Use this entry when the exposed data is personally identifiable and regulatory exposure is the concern; CWE-200 covers sensitive-data exposure generally
 
 ## Remediation Steps
 

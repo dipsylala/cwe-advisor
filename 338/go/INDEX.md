@@ -12,6 +12,8 @@
 - Audit helper functions written for non-security use (shuffling, sampling) that later get reused for a security-relevant selection, such as choosing a verification question or partitioning a feature flag
 - When reducing `crypto/rand` output to a smaller range (OTP digits), use `crypto/rand.Int(rand.Reader, big.NewInt(n))` rather than `%` on raw bytes, which introduces modulo bias
 - `math/rand`/`math/rand/v2` remain the correct choice for simulations, games, and reproducible test fixtures - the fix is scoping their use away from security code, not removing them entirely
+- `crypto/rand` draws from the OS (`getrandom(2)` on Linux, `ProcessPrng` on Windows) and needs no seeding; `math/rand/v2`'s `NewPCG` is a newer non-cryptographic generator whose name suggests otherwise
+- Size the token in bytes rather than characters and set the cookie carrying it `Secure` and `HttpOnly`, since a strong value read off the wire is no longer unguessable
 
 ## Taint Sinks
 
@@ -22,24 +24,6 @@
 - Locate - search for `math/rand`, `"math/rand/v2"`, `rand.Intn`, `rand.Int63`, and `rand.Float64` in token, key, nonce, or credential-generation code
 - Trace data flow - confirm the value protects an authentication, authorization, or cryptographic operation rather than being test or simulation data
 - Replace the unsafe pattern - substitute `crypto/rand.Reader` reads (or `crypto/rand.Int` for bounded ranges) for the `math/rand` call
-- Verify entropy sizing - use at least 16 bytes for tokens/CSRF values and 32 bytes for encryption keys before encoding
+- Verify entropy sizing - use at least 16 bytes for tokens/CSRF values and 32 bytes for encryption keys before encoding with `hex.EncodeToString()`
 - Harden configuration - remove any manual seeding of `math/rand` in security-adjacent packages and keep `crypto/rand` usage in a single reviewed helper
 - Test - confirm tokens are unpredictable across restarts and that no security code path still imports `math/rand` or `math/rand/v2`
-
-## Safe Pattern
-
-```go
-// SAFE: cryptographically secure CSRF token
-import (
-    "crypto/rand"
-    "encoding/hex"
-)
-
-func generateCSRFToken() (string, error) {
-    b := make([]byte, 32) // 256 bits
-    if _, err := rand.Read(b); err != nil {
-        return "", err
-    }
-    return hex.EncodeToString(b), nil
-}
-```

@@ -12,6 +12,7 @@ Go's type system limits classic gadget-chain remote code execution, but `encodin
 - Avoid unmarshaling untrusted data into `interface{}` or `map[string]interface{}` with unchecked type assertions (`data["x"].(string)`); these panic on type mismatch and provide no schema enforcement
 - If using `gopkg.in/yaml.v2` or `v3`, treat "no code execution" as separate from "no need to validate"-apply the same field-level validation as JSON, and never build an `interface{}` field expansion from untrusted YAML tags
 - Determine privileged fields (admin status, balance, role) from server-side authorization/database lookups, never from deserialized client data
+- `gopkg.in/yaml.v3` does not construct arbitrary types the way Python's loader does, so the risk here is shape rather than execution: decode into a concrete struct rather than `map[string]interface{}`, and bound the input, since deeply nested or alias-heavy YAML is a resource-exhaustion vector
 
 ## Taint Sinks
 
@@ -26,51 +27,3 @@ Go's type system limits classic gadget-chain remote code execution, but `encodin
 - Break taint after allowlist validation - Construct the persistence/domain object explicitly from validated request fields plus server-computed authorization values, rather than reusing the decoded struct directly
 - Harden configuration - Wrap request bodies in `http.MaxBytesReader(w, r.Body, limit)` before decoding to prevent oversized-payload resource exhaustion
 - Test - Send payloads with extra fields (expect rejection), boundary/invalid types (expect validation error, not panic), and attempts to set privileged fields (expect no effect on authorization)
-
-## Safe Pattern
-
-```go
-// SAFE: typed request struct, unknown-field rejection, server-side authorization
-package main
-
-import (
-    "context"
-    "encoding/json"
-    "errors"
-    "net/http"
-)
-
-type CreateUserRequest struct {
-    Username string `json:"username"`
-    Email    string `json:"email"`
-}
-
-func (r *CreateUserRequest) Validate() error {
-    if len(r.Username) < 3 || len(r.Username) > 32 {
-        return errors.New("invalid username length")
-    }
-    return nil
-}
-
-func createUserHandler(w http.ResponseWriter, r *http.Request) {
-    r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB limit
-
-    var req CreateUserRequest
-    dec := json.NewDecoder(r.Body)
-    dec.DisallowUnknownFields() // SAFE: reject unexpected fields, e.g. "isAdmin"
-    if err := dec.Decode(&req); err != nil {
-        http.Error(w, "invalid request", http.StatusBadRequest)
-        return
-    }
-    if err := req.Validate(); err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
-
-    // SAFE: privilege determined server-side, never from the decoded request
-    isAdmin := checkAdminPermissions(r.Context())
-    _ = isAdmin
-}
-
-func checkAdminPermissions(ctx context.Context) bool { return false }
-```

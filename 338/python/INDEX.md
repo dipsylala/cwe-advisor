@@ -12,6 +12,7 @@ Use of Cryptographically Weak PRNG occurs when developers use Python's `random` 
 - Use `secrets.token_bytes()`, `secrets.token_hex()`, or `secrets.token_urlsafe()` for cryptographic randomness
 - Reserve `random` module only for non-security contexts like simulations, games, or testing
 - Use `os.urandom()` as fallback for Python < 3.6 or lower-level randomness needs
+- Compare a generated secret with `secrets.compare_digest()` - generating it strongly and then comparing it with `==` leaves a timing channel
 
 ## Taint Sinks
 
@@ -25,23 +26,3 @@ Use of Cryptographically Weak PRNG occurs when developers use Python's `random` 
 - For numeric secrets - use `secrets.randbelow(n)` instead of `random.randint(0, n-1)`
 - For password generation - use `secrets.choice()` with character sets
 - Verify changes don't affect non-security code that legitimately uses `random`
-
-## Safe Pattern
-
-```python
-import secrets
-import string
-
-# Generate secure session token
-session_token = secrets.token_urlsafe(32)
-
-# Generate secure API key
-api_key = secrets.token_hex(32)
-
-# Generate secure password
-alphabet = string.ascii_letters + string.digits + string.punctuation
-password = ''.join(secrets.choice(alphabet) for _ in range(16))
-
-# Secure random number (0 to 99)
-secure_number = secrets.randbelow(100)
-```

@@ -11,6 +11,7 @@ Python's `pickle` module executes arbitrary code during deserialization, enablin
 - Use `yaml.safe_load()` instead of `yaml.load()` or `yaml.unsafe_load()`
 - For pandas DataFrames, use CSV, Parquet, or Feather formats instead of pickle
 - If pickle is absolutely required, implement a restricted unpickler with class allowlisting
+- The `Loader=` argument decides safety, not the function name: `yaml.load(data, Loader=yaml.Loader)` and `yaml.full_load()` construct objects, while `yaml.safe_load()` does not
 
 ## Taint Sinks
 
@@ -24,18 +25,3 @@ Python's `pickle` module executes arbitrary code during deserialization, enablin
 - Manually reconstruct objects from deserialized dictionaries with validation
 - For Django sessions, set `SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'`
 - Test that legitimate data flows work correctly with new serialization format
-
-## Safe Pattern
-
-```python
-# Replace pickle with JSON
-import json
-
-# Serialize
-user_dict = {'name': user.name, 'email': user.email}
-json_data = json.dumps(user_dict)
-
-# Deserialize safely
-data = json.loads(json_data)  # Creates dict, not arbitrary objects
-user = User(name=data['name'], email=data['email'])  # Explicit reconstruction
-```

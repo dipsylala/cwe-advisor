@@ -12,6 +12,9 @@ A null pointer dereference happens when code reads, writes, or calls through a p
 - Initialize variables, fields, and collections to a valid state at declaration or construction rather than leaving them null until first use
 - Handle absence explicitly: return early, raise a meaningful error, or supply a documented default, rather than a check that swallows the missing-value case
 - Apply defence-in-depth: use static analysis or the compiler's null-safety diagnostics to catch dereferences the review misses, and let a genuinely unexpected null fail loudly rather than continue silently
+- A null return is usually the function reporting truthfully that nothing was found; the defect is that the return type gives that answer the same shape as a real one, so the caller can use it without deciding what to do about it
+- Handle the absence where the null-capable value is *produced*, not only at the call site where the crash was observed - the same producer usually has several callers
+- Make the unchecked path a compile-time error where the language allows it, with a non-nullable type or an `Optional`-style wrapper, rather than relying on a review to spot the missing check
 
 ## Remediation Steps
 

@@ -15,6 +15,10 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Reject escape functions (mysql_real_escape_string) as the sole defence mechanism
 - Bind `LIKE` wildcard values as a parameter too - concatenating `"%$search%"` into an otherwise-prepared query still injects the wildcard portion
 - Treat `PDO::quote()` as manual escaping, not parameterization - it builds a string for you to concatenate and is easy to misuse; prefer bound parameters
+- `prepare()` plus `bindValue()`/`execute([...])` is the fix; `mysqli_real_escape_string()` and `pg_escape_string()` are escaping functions that do nothing for an unquoted numeric context and depend on the connection's charset being set correctly
+- PostgreSQL's `pg_query_params()` is the parameterized form for the pgsql extension - use it rather than interpolating with `sprintf()`
+- In Laravel, `whereRaw()`/`selectRaw()`/`orderByRaw()` are the raw sinks and take bindings as a second argument; `whereIn()` binds each element, while a hand-built `IN` list does not
+- An identifier - a table, a column, an `ORDER BY` direction - cannot be bound and needs allowlist validation against a fixed set
 
 ## Taint Sinks
 
@@ -25,24 +29,6 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Locate the sink (SQL execution point) and source (user input) in the data flow report
 - Trace how data flows from source to sink, identifying any concatenation or interpolation
 - Replace concatenated queries with prepared statements using PDO or MySQLi
-- Bind all user-supplied values as parameters, never interpolate them into query strings
+- Bind all user-supplied values as parameters, never interpolate them into query strings - with MySQLi, `bind_param()` takes a leading type-character string (for example `"ss"`) matching the placeholders in order
 - Validate input types and formats as secondary defence (e.g., verify IDs are numeric)
 - Test the fix by attempting injection attacks and reviewing query logs
-
-## Safe Pattern
-
-```php
-// PDO prepared statement with named parameters
-$stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username AND status = :status");
-$stmt->execute([
-    ':username' => $_POST['username'],
-    ':status' => $_POST['status']
-]);
-$results = $stmt->fetchAll();
-
-// MySQLi prepared statement with positional parameters
-$stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ? AND status = ?");
-$stmt->bind_param("ss", $_POST['username'], $_POST['status']);
-$stmt->execute();
-$results = $stmt->get_result()->fetch_all();
-```

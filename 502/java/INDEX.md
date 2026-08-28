@@ -10,10 +10,13 @@ Insecure deserialization occurs when untrusted data is used to create objects, p
 
 - Prefer data-only formats: Replace Java serialization with JSON, Protocol Buffers, or other data-only formats that don't execute code during deserialization
 - Jackson's `ObjectMapper` is safe by default, but not unconditionally: enabling polymorphic typing (`@JsonTypeInfo`, `ObjectMapper.enableDefaultTyping()`) reintroduces gadget-chain risk by letting the input dictate the concrete class to instantiate - avoid it for untrusted input, or pair it with a strict base-type allowlist
-- Allowlist classes explicitly: If Java serialization is unavoidable, use `ObjectInputFilter` (Java 9+) or `ValidatingObjectInputStream` (Apache Commons IO) to allow only specific, known-safe classes
+- Allowlist classes explicitly: If Java serialization is unavoidable, use `ObjectInputFilter` (Java 9+) or `ValidatingObjectInputStream` (Apache Commons IO) to allow only specific, known-safe classes. The filter callback returns one of three values: `Status.ALLOWED` for a permitted class, `Status.REJECTED` for anything else, and `Status.UNDECIDED` only for the calls where `filterInfo.serialClass()` is null - those carry the array-length, depth, and stream-size limits rather than a class
 - Never trust serialized data: Treat all serialized input as untrusted, even from seemingly secure sources
 - Avoid known-unsafe libraries: `XMLDecoder` has no safe configuration and must be replaced. XStream's allowlist framework (`XStream.addPermission()` / `setupDefaultSecurity()`) is available from v1.4.7 but must be explicitly configured; it is only enabled by default from v1.4.18 onward. Versions before 1.4.7, or later versions left unconfigured, are exploitable
 - Apply defence in depth: Combine multiple controls including input validation, least privilege, and monitoring
+- An `ObjectInputFilter` allowlist must include the container types the payload legitimately uses (`java.util.ArrayList`, `[Ljava.lang.Object;`), or valid traffic is rejected while the filter looks correct
+- `setRegistrationRequired(true)` in Kryo (and the equivalent in other binary serializers) refuses any class not explicitly registered, which is the same allowlist idea one layer up
+- `readResolve()`/`readObject()` run during reconstruction, so validation placed in a constructor never executes on a deserialized instance
 
 ## Taint Sinks
 
@@ -27,25 +30,3 @@ Insecure deserialization occurs when untrusted data is used to create objects, p
 - Replace `XMLDecoder` immediately - it has no safe configuration. For XStream, upgrade to 1.4.18+ (allowlisting on by default) or explicitly call `setupDefaultSecurity()`/`addPermission()` on 1.4.7-1.4.17
 - Update dependencies regularly to patch known deserialization gadgets
 - Monitor and log all deserialization activity for anomaly detection
-
-## Safe Pattern
-
-```java
-// SAFE: ObjectInputFilter allowlist approach (Java 9+)
-ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
-ois.setObjectInputFilter(filterInfo -> {
-    Class<?> clazz = filterInfo.serialClass();
-    if (clazz != null) {
-        if (clazz == User.class || clazz == String.class) {
-            return ObjectInputFilter.Status.ALLOWED;
-        }
-        return ObjectInputFilter.Status.REJECTED;
-    }
-    return ObjectInputFilter.Status.UNDECIDED;
-});
-Object obj = ois.readObject();
-
-// SAFE: JSON with Jackson (preferred - no serialization callbacks)
-ObjectMapper mapper = new ObjectMapper();
-User user = mapper.readValue(jsonData, User.class);
-```

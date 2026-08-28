@@ -11,6 +11,7 @@ CWE-566 here is the SQL-primary-key case: a route parameter or body ID reaches a
 - Read the authenticated user identity from the verified token or session (`req.user.id`), never from the request body
 - Return 404 for both non-existent and unauthorized resources to avoid confirming resource existence to attackers
 - Apply the same composite filter across all HTTP verbs - GET, PUT, PATCH, and DELETE on the same resource
+- Put the ownership predicate in the query itself (an `AND` on the owner column, or the ORM's equivalent) rather than fetching by id and comparing the returned row afterwards
 
 ## Taint Sinks
 
@@ -23,37 +24,5 @@ Sequelize `Model.findByPk()`, `Model.findOne({ where: { id } })`; TypeORM `repos
 - Add the owning user's ID to the same query condition, not as a follow-up check after retrieval
 - Ensure `req.user` is set by authentication middleware that runs before the handler
 - Return `res.sendStatus(404)` (not 403) when the resource doesn't exist or is not owned by the user
+- Carry the same composite `where` into write paths - Sequelize `Model.destroy({ where: { id, ownerId } })` and `update()` - and allowlist the body fields applied on update
 - Test by authenticating as one user and requesting another user's resource IDs
-
-## Safe Pattern
-
-```javascript
-// Sequelize - PK and owner filtered in the query itself
-router.get('/orders/:id', authenticate, async (req, res) => {
-  const order = await Order.findOne({
-    where: { id: req.params.id, userId: req.user.id },
-  });
-  if (!order) return res.sendStatus(404);
-  res.json(order);
-});
-
-// Sequelize - same pattern for delete
-router.delete('/documents/:id', authenticate, async (req, res) => {
-  const deleted = await Document.destroy({
-    where: { id: req.params.id, ownerId: req.user.id },
-  });
-  if (!deleted) return res.sendStatus(404);
-  res.sendStatus(204);
-});
-
-// TypeORM - composite query
-router.put('/invoices/:id', authenticate, async (req, res) => {
-  const invoice = await invoiceRepository.findOne({
-    where: { id: req.params.id, userId: req.user.id },
-  });
-  if (!invoice) return res.sendStatus(404);
-  const { amount, note } = req.body; // allowlisted update fields only
-  await invoiceRepository.update(invoice.id, { amount, note });
-  res.json(invoice);
-});
-```

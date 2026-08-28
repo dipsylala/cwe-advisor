@@ -12,6 +12,8 @@ In Laravel and similar PHP frameworks, Incorrect Authorization commonly appears 
 - Never resolve the acting role or ownership from request input (`$request->input('role')`, a hidden form field); always read from the authenticated `$user` model loaded server-side via `Auth::user()`
 - Register Policies via `Gate::policy()` (or auto-discovery) so authorization logic is centralized, not duplicated inline across controllers
 - Ensure Policy methods return `false` (denied) for any unmatched or unexpected role rather than omitting a `return`, which in PHP defaults to `null` and can be misinterpreted by custom authorization middleware
+- Apply the check to every operation, including bulk ones: a `bulkUpdate()` that authorizes the *action* and not each row in the set is the path that survives a fix to `update()`
+- Return the "not found" form for an unauthorized record (`Response::denyAsNotFound()`) so the two denials are indistinguishable
 
 ## Taint Sinks
 
@@ -26,40 +28,3 @@ In Laravel and similar PHP frameworks, Incorrect Authorization commonly appears 
 - Break taint after allowlist validation - Read the role from `$user->role` on the authenticated model, never from request input, before evaluating the Policy
 - Harden configuration - Register the Policy for the model in `AuthServiceProvider` (or via auto-discovery) so every `authorize()`/`can()` call resolves to the same logic
 - Test - Add feature tests where a non-owner with a valid role, and a user with an unrecognized role, both attempt the action and receive a 403
-
-## Safe Pattern
-
-```php
-// SAFE: Policy combines an explicit role allowlist with an ownership check
-class OrderPolicy
-{
-    private const ALLOWED_ROLES = ['admin', 'editor'];
-
-    public function update(User $user, Order $order): bool
-    {
-        if (!in_array($user->role, self::ALLOWED_ROLES, true)) {
-            return false;
-        }
-
-        if ($user->role === 'admin') {
-            return true;
-        }
-
-        // Ownership is checked against the loaded model, not the request.
-        return $order->user_id === $user->id;
-    }
-}
-
-// Controller
-class OrderController extends Controller
-{
-    public function update(Request $request, Order $order)
-    {
-        $this->authorize('update', $order);
-
-        $order->update($request->validate(['status' => 'required|string']));
-
-        return response()->json($order);
-    }
-}
-```

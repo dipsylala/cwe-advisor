@@ -12,6 +12,8 @@ Android activities, services, broadcast receivers, and content providers become 
 - Avoid `normal` or `dangerous` protection levels for components that handle sensitive data or privileged actions - both can be granted to unrelated apps
 - Treat the package name from `getCallingPackage()` as spoofable; validate the caller's signing certificate fingerprint when identity matters
 - Validate every value read from an incoming `Intent` (extras, data URI, action) as untrusted, even after the caller is verified
+- Declare `android:exported` explicitly rather than relying on the pre-Android-12 default, so adding an intent filter later cannot silently export the component
+- Restrict an exported component with a `signature`-level permission, and verify the caller's signing certificate in code rather than its package name, which any app can declare
 
 ## Taint Sinks
 
@@ -26,44 +28,3 @@ Android activities, services, broadcast receivers, and content providers become 
 - Break taint after allowlist validation - In component code, validate `getCallingPackage()` (or `Binder.getCallingUid()` for bound services) against an allowlist of trusted signing certificate SHA-256 fingerprints, and fail closed on any lookup error before acting on intent data
 - Harden configuration - Check `app/build/intermediates/merged_manifests/` after manifest merging, since a library's manifest can override an app-level `android:exported="false"`
 - Test - Run `./gradlew lint` and confirm no `ExportedReceiver`/`ExportedService`/`ExportedContentProvider` warnings; use `adb shell dumpsys package <app>` and `adb shell am start -n <app>/<component>` from an unsigned test app to confirm internal components reject external launches and exported components enforce their permission
-
-## Safe Pattern
-
-```xml
-<!-- SAFE: internal-only activity, export explicit -->
-<activity
-    android:name=".SettingsActivity"
-    android:exported="false">
-    <intent-filter>
-        <action android:name="com.example.OPEN_SETTINGS" />
-    </intent-filter>
-</activity>
-
-<!-- SAFE: component that must be exported, protected by a signature permission -->
-<permission
-    android:name="com.example.permission.ADMIN_ACCESS"
-    android:protectionLevel="signature" />
-
-<activity
-    android:name=".AdminActivity"
-    android:exported="true"
-    android:permission="com.example.permission.ADMIN_ACCESS" />
-
-<!-- SAFE: content provider with independent read/write permissions -->
-<provider
-    android:name=".SharedDataProvider"
-    android:authorities="com.example.shared"
-    android:exported="true"
-    android:readPermission="com.example.permission.READ_DATA"
-    android:writePermission="com.example.permission.WRITE_DATA" />
-```
-
-```java
-// SAFE: fail-closed caller validation as defense in depth, in addition to the
-// manifest-level permission above - not a replacement for it
-String callingPackage = getCallingPackage();
-if (callingPackage == null || !isSignedByAllowedSigner(callingPackage)) {
-    finish();
-    return;
-}
-```

@@ -12,6 +12,8 @@ ActiveX controls marked "safe for scripting" expose their methods to any web pag
 - If removal must be staged, withdraw dangerous methods entirely as the interim step rather than attempting to validate their input safely
 - Any method that must remain temporarily reachable needs allowlist-based input validation and logging of the calling page's origin
 - Treat any remaining ActiveX usage as end-of-life technical debt with no legitimate remaining audience, not a stable configuration
+- The marking is a claim about the method's safety that the browser then relies on, so the fix is to remove the marking or the method rather than to document the risk
+- This is CWE-749 (an exposed dangerous method with no access check) applied to a scripting-safe control; the control-level marking rather than the individual method is CWE-623
 
 ## Remediation Steps
 

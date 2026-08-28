@@ -10,8 +10,13 @@ In Django applications, Improper Authentication commonly appears as a custom cla
 - Rely on Django's configured `PASSWORD_HASHERS` (PBKDF2 by default, or `Argon2PasswordHasher` via the `argon2-cffi` package for new projects) instead of a custom hashing routine.
 - Always pass an explicit `algorithms=[...]` list to `jwt.decode()`; PyJWT raises `DecodeError` if `algorithms` is omitted while signature verification is enabled, but state the expected algorithm in code rather than relying on that as the only guard.
 - Never call `jwt.decode()` with `options={"verify_signature": False}` (or the removed `verify=False` flag from PyJWT 1.x) outside of explicitly non-trust-boundary debugging - both skip signature verification entirely.
+- `ModelBackend` already equalises the two branches through `check_password_with_timing_attack_mitigation()`, so a timing finding against the stock backend is a false positive; a custom backend does not inherit it - call `User().set_password(password)` in the `User.DoesNotExist` branch and discard the result before returning `None`, or an unknown address is answered in 0.2 ms against 916 ms for a wrong password.
+- In a Flask login view, `if user and user.check_password(...)` short-circuits and never reaches the hasher for an unknown address; verify against a `DUMMY_HASH` with `check_password_hash()` in the `else` branch instead, and use it for a user row with no stored hash as well.
+- Generate that dummy once with `generate_password_hash()` using the same method and parameters as the stored hashes and paste it in as a constant - `check_password_hash()` reads both out of the hash string it is given, so a scrypt dummy standing in front of pbkdf2 user hashes restores the gap it was added to close, and `''` or a malformed string returns in microseconds.
 - Return `None` from a custom backend's `authenticate()` on any failure so Django's `authenticate()` falls through to the next configured backend instead of raising and short-circuiting.
 - Keep `PASSWORD_HASHERS` ordered with the strongest hasher first; Django rehashes automatically to the first entry on the next successful login.
+- Django's `django.contrib.auth.login()` calls `request.session.cycle_key()`, which keeps the session data and issues a new key; a login path that writes `request.session['user_id']` directly skips it
+- Flask-Login's `login_user()` has no session identifier to rotate on stock Flask, whose session is a signed client-side cookie - set `SESSION_PROTECTION = 'strong'` (binds the session to the client IP and user agent) along with `SESSION_COOKIE_HTTPONLY`, `SESSION_COOKIE_SECURE`, and `SESSION_COOKIE_SAMESITE`, and never write to `session[...]` before calling `login_user()`, which would carry pre-login state into the authenticated session; a true identifier rotation exists only behind a server-side session store
 
 ## Taint Sinks
 
@@ -25,34 +30,4 @@ Direct `user.password` comparison bypassing `check_password()`, `jwt.decode()` w
 - Bind, encode, validate, or authorize - Confirm the `algorithms` list matches only the algorithm(s) the issuer actually signs with (e.g. `algorithms=["HS256"]`), not a list mixing HMAC and RSA algorithms unless both are genuinely issued
 - Break taint after allowlist validation - Trust only the dict returned by a `jwt.decode()` call that succeeded with signature verification enabled; do not read claims from a debug-only unverified decode used elsewhere in the same path
 - Harden configuration - Load JWT signing keys from environment variables or a secret manager, and confirm `PASSWORD_HASHERS` lists a strong hasher first
-- Test - Write a test with an incorrect password (expect `authenticate()` returns `None`) and a forged token with `alg: none` or a mismatched algorithm (expect `jwt.decode()` to raise `InvalidAlgorithmError`/`DecodeError`)
-
-## Safe Pattern
-
-```python
-# SAFE: Django custom backend verifies the password hash
-from django.contrib.auth.backends import BaseBackend
-from django.contrib.auth import get_user_model
-
-class EmailAuthBackend(BaseBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        User = get_user_model()
-        try:
-            user = User.objects.get(email=username)
-        except User.DoesNotExist:
-            return None
-
-        if user.check_password(password) and user.is_active:
-            return user
-        return None
-
-    def get_user(self, user_id):
-        User = get_user_model()
-        return User.objects.filter(pk=user_id).first()
-
-# SAFE: PyJWT decode with an explicit algorithm allowlist
-import jwt
-
-def verify_token(token: str) -> dict:
-    return jwt.decode(token, key=SIGNING_KEY, algorithms=["HS256"])
-```
+- Test - Time a right password, a wrong password, and an unknown account and assert all three are within noise of each other and no failure returns a `500`; write a test with an incorrect password (expect `authenticate()` returns `None`) and a forged token with `alg: none` or a mismatched algorithm (expect `jwt.decode()` to raise `InvalidAlgorithmError`/`DecodeError`)

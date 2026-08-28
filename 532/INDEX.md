@@ -13,6 +13,9 @@ Common examples include authentication failures logging passwords, request/respo
 - Log generic messages with identifiers, not actual sensitive values
 - Treat all logs as potentially exposed; assume attackers will access them
 - Use structured logging with automatic sanitization for known sensitive fields
+- Redact at the logging layer with a field-name filter that recurses through nested objects and lists, so a call site that forgets to sanitize still fails safe - that is the common case, and per-call-site discipline is what a fix built on it depends on
+- The strongest fix is not passing the secret to the logger at all; redaction is what covers the structured-payload case where the whole object must be logged
+- A log entry outlives its request by the retention period rather than the session, and is readable by support staff, on-call engineers, the aggregation service, and whatever ships the logs there - a much larger set of people than could read the credential where it was stored
 
 ## Remediation Steps
 

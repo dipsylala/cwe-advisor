@@ -7,7 +7,7 @@ Node.js applications typically handle uploads with `multer`. The common mistake 
 ## Key Principles
 
 - Do not trust `file.mimetype` or the extension in `file.originalname` inside `fileFilter` - both are attacker-controlled request metadata, not verified content
-- Check magic bytes with a library such as `file-type` (`fileTypeFromBuffer`/`fileTypeFromFile`) against an allowlist after the bytes are available
+- Check magic bytes with a library such as `file-type` (`fileTypeFromBuffer`/`fileTypeFromFile`) against an allowlist after the bytes are available; `file-type` is ESM-only from v17, so a CommonJS handler must load it with a dynamic `await import('file-type')`
 - Set `limits: { fileSize }` in the multer configuration to reject oversized uploads before they consume memory or disk
 - Prefer `multer.diskStorage` with a generated filename over the default memory storage for anything beyond small files, since memory storage buffers the whole file in RAM
 - Store uploads outside any path passed to `express.static()`; serve files back through a route that streams from the private storage location
@@ -26,37 +26,3 @@ Node.js applications typically handle uploads with `multer`. The common mistake 
 - Break taint after allowlist validation - Use the detected type and a generated filename for storage and response headers, not the client-supplied values
 - Harden configuration - Set `limits.fileSize`, use `diskStorage` with a generated filename function, and store outside `express.static` roots
 - Test - Verify rejection of files with forged `mimetype`/extension but disallowed real content, oversized files, and traversal sequences in `originalname`
-
-## Safe Pattern
-
-```javascript
-// SAFE: magic-byte validation after upload, generated filename, storage outside webroot
-const multer = require('multer');
-const crypto = require('crypto');
-const path = require('path');
-const fs = require('fs/promises');
-
-const UPLOAD_DIR = '/var/app-data/uploads'; // outside any express.static root
-const ALLOWED_TYPES = new Set(['image/png', 'image/jpeg']);
-
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-});
-
-app.post('/upload', upload.single('file'), async (req, res) => {
-  // SAFE: detect real type from bytes, not the client-supplied mimetype/extension
-  // file-type is ESM-only from v17+, so import it dynamically in a CommonJS handler
-  const { fileTypeFromBuffer } = await import('file-type');
-  const detected = await fileTypeFromBuffer(req.file.buffer);
-  if (!detected || !ALLOWED_TYPES.has(detected.mime)) {
-    return res.status(400).send('Unsupported file type');
-  }
-
-  const storedName = `${crypto.randomUUID()}.${detected.ext}`;
-  const targetPath = path.join(UPLOAD_DIR, storedName);
-
-  await fs.writeFile(targetPath, req.file.buffer);
-  res.json({ id: storedName });
-});
-```

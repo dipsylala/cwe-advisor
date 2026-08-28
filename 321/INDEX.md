@@ -11,6 +11,9 @@ Hard-coded cryptographic keys in source code, configuration files, or binaries a
 - Treat keys as replaceable secrets with rotation capabilities
 - Separate key storage from application deployment pipeline
 - Use environment-specific keys with proper access controls
+- Treat the key as already disclosed and rotate *before* editing the source: generate the replacement in the KMS or vault, re-wrap the data keys under it (which is the practical argument for a key hierarchy), retire the old key once nothing decrypts under it, and only then remove the literal
+- An environment variable is an injection mechanism, not a storage location: reading the key from the process environment is fine when an orchestrator fetched it from a KMS at start, and writing it into a deployment manifest, a `.env` file, or a shell profile just moves the hard-coded key to another file
+- Search the artifacts as well as the source - container images, JARs, binaries, and version-control history keep a key that was deleted from the working tree
 
 ## Remediation Steps
 

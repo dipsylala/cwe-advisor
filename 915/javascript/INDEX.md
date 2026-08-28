@@ -11,6 +11,7 @@ Mass assignment in Node.js occurs when request body objects are spread or merged
 - Define a validation schema (Joi, Zod, express-validator) that strips unknown fields - use `.stripUnknown(true)` or `.strict()`
 - Treat fields like `role`, `isAdmin`, `permissions`, `accountBalance`, and `ownerId` as server-only attributes
 - Apply the same restriction on update (PUT/PATCH) as on create - partial updates are equally vulnerable
+- `User.create(req.body)` binds whatever the request contained: pick the fields explicitly, or pass the validated schema's output, since a field added to the model later becomes assignable without any code change
 
 ## Taint Sinks
 
@@ -20,37 +21,7 @@ Mass assignment in Node.js occurs when request body objects are spread or merged
 
 - Identify calls to `Model.create(req.body)`, `instance.update(req.body)`, `Object.assign(target, req.body)`, or `{ ...req.body }` spread into persisted objects
 - Replace with explicit field extraction: `const { name, email } = req.body` or a schema validation that strips unknown keys
-- Use a validation library (Zod, Joi) to define the allowed input shape and call `.strip()` / `stripUnknown` before passing to the model
+- Use a validation library (Zod, Joi) to define the allowed input shape and call `.strip()` / `stripUnknown` before passing to the model - `z.object().parse()` already drops unknown keys, and pass the parsed result to the model rather than `req.body`
 - Move server-controlled fields (role, ownerId) to be set from the session/token, not from the request body
 - Review both create and update routes for the same pattern
 - Test by submitting `isAdmin: true` or `role: "admin"` in the request body and confirming the field is ignored
-
-## Safe Pattern
-
-```javascript
-// Zod - parse strips unknown fields by default
-const { z } = require('zod');
-
-const createUserSchema = z.object({
-  name: z.string().min(1).max(100),
-  email: z.string().email(),
-  // 'role', 'isAdmin', 'balance' intentionally omitted
-});
-
-router.post('/users', authenticate, async (req, res) => {
-  const data = createUserSchema.parse(req.body); // throws on invalid; strips extras
-  const user = await User.create({
-    ...data,
-    role: 'user',           // set server-side, not from request
-    ownerId: req.user.id,
-  });
-  res.status(201).json(user);
-});
-
-// Explicit destructuring (no schema library)
-router.put('/profile', authenticate, async (req, res) => {
-  const { name, bio, avatarUrl } = req.body;  // only permitted fields
-  await User.findByIdAndUpdate(req.user.id, { name, bio, avatarUrl });
-  res.sendStatus(204);
-});
-```

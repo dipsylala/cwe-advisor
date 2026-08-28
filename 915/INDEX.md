@@ -11,6 +11,9 @@ This vulnerability occurs when user input dynamically modifies object attributes
 - Enforce security-critical attributes (isAdmin, role, price, balance) server-side, never from client input
 - Validate both property names and values before modification
 - Prefer explicit property binding over reflection-based or dynamic assignment
+- Bind an explicit allowlist of fields rather than the whole request object, and take the values from the parsed result - re-spreading the original body after validating it puts the payload straight back
+- Server-owned fields (role, price, owner, status, timestamps, identifiers) are never bindable, whatever the form on screen contains
+- Where the attacker controls *what type is constructed* rather than which fields of an expected one get set, the finding is CWE-502; in JavaScript the same shape reaching `Object.prototype` is CWE-1321
 
 ## Remediation Steps
 

@@ -13,6 +13,8 @@ Error Message Information Leak occurs when Java applications expose exception st
 - Disable detailed error responses in production Spring Boot configuration (`server.error.include-stacktrace=never`)
 - Sanitize validation errors to avoid exposing internal field names, patterns, or business rules
 - Redact sensitive data (passwords, tokens, PII) from logs using custom layouts or filters
+- Disable or replace Spring Boot's `BasicErrorController` (the whitelabel page) for production rather than relying on the application's own handler to catch everything - an exception thrown outside a controller reaches it
+- Keep the stack trace out of the log *pattern* as well as the response: a `PatternLayoutEncoder` with `%ex` writes the full trace, so decide deliberately which appender carries it and who can read that destination
 
 ## Taint Sinks
 
@@ -26,21 +28,3 @@ Error Message Information Leak occurs when Java applications expose exception st
 - Add JAX-RS exception mappers (`ExceptionMapper<T>`) for REST services to handle exceptions consistently
 - Configure custom error pages in `web.xml` pointing to `/WEB-INF/error-pages/` to prevent direct access
 - Implement log redaction using custom Logback layouts with regex patterns for passwords, tokens, and PII
-
-## Safe Pattern
-
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-    
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        String errorId = UUID.randomUUID().toString();
-        logger.error("Error ID {}: {}", errorId, ex.getMessage(), ex);
-        
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new ErrorResponse("An error occurred", errorId, LocalDateTime.now()));
-    }
-}
-```

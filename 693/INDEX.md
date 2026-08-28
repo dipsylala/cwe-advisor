@@ -11,6 +11,9 @@ Protection mechanism failure is a broad parent weakness covering any case where 
 - Check for conditional disablement: debug flags, environment checks, or feature toggles that can turn the mechanism off outside the intended environment
 - Prefer global enforcement (e.g., middleware registered at the router/framework level) over per-route application, which is easy to miss on new code
 - Never rely on a mechanism that can be skipped through request manipulation, alternate routing, or client-controlled configuration
+- MITRE marks this Pillar Discouraged: file the descendant instead - missing encryption CWE-311, inadequate strength CWE-326, a broken algorithm CWE-327, weak randomness CWE-330, unverified authenticity CWE-345, obscurity as the control CWE-656, a downgraded negotiation CWE-757, a control the client is trusted to apply CWE-602, and a server-side check whose input the caller supplies CWE-807
+- A check on the server whose *input* is not is the recurring shape: a role read from a cookie means the server is asking the caller whether the caller is an administrator and believing the answer
+- Check the error paths as well as the happy path - a control that is skipped when an exception is thrown, or that covers one disallowed value rather than the whole class, is bypassed without being removed
 
 ## Remediation Steps
 

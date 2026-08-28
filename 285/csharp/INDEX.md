@@ -12,6 +12,10 @@ In ASP.NET Core, `[Authorize]` and `[AllowAnonymous]` attributes only establish 
 - Use `IAuthorizationService` with resource-based policies (`AuthorizationHandler<TRequirement, TResource>`) for centralized, reusable per-resource checks
 - Never assume a client-supplied id is safe to act on solely because the caller is authenticated or holds a given role
 - Combine `[Authorize(Roles = "...")]` for coarse-grained gating with resource-level checks for fine-grained, per-record access control
+- Set an authorization `FallbackPolicy` requiring an authenticated user so an endpoint that declares no policy is denied by default, and use `[AllowAnonymous]`/`.AllowAnonymous()` as the deliberate exception - an opt-in `[Authorize]` leaves every forgotten endpoint open
+- `UseAuthentication()` must be registered before `UseAuthorization()` in the pipeline; reversed, the authorization middleware runs against an unauthenticated principal
+- `[Authorize]` alone proves only that the caller is authenticated - use `[Authorize(Policy = "...")]` for a permission and check resource ownership separately, since a policy cannot see which record is being requested
+- Take the user identity from the validated principal (`ClaimTypes.NameIdentifier`) rather than from a route or body parameter
 
 ## Taint Sinks
 
@@ -25,29 +29,3 @@ controller actions accepting a route/body `id` (e.g. `GetProfile(int id)`) that 
 - Apply role-based authorization (`[Authorize(Roles = "Admin")]`) for endpoints that are privileged regardless of resource ownership
 - Use policy-based authorization for complex, multi-condition access rules
 - Test each endpoint as an authenticated but unauthorized user (e.g. a different owner's id) to confirm the resource-level check blocks access, not just an anonymous request
-
-## Safe Pattern
-
-```csharp
-[Authorize]  // Protect all actions by default
-[ApiController]
-[Route("api/[controller]")]
-public class UserController : ControllerBase
-{
-    [AllowAnonymous]  // Explicitly allow public access
-    [HttpGet("public")]
-    public IActionResult GetPublicInfo() => Ok("Public data");
-    
-    [HttpGet("profile/{id}")]  // Requires authentication and resource authorization
-    public IActionResult GetProfile(int id)
-    {
-        if (!_authorizationService.CanViewUser(User, id))
-            return Forbid();
-        return Ok(_userService.GetUser(id));
-    }
-    
-    [Authorize(Roles = "Admin")]  // Requires admin role
-    [HttpDelete("{id}")]
-    public IActionResult DeleteUser(int id) => NoContent();
-}
-```

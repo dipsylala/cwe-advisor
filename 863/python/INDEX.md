@@ -12,6 +12,7 @@ In Django REST Framework, Incorrect Authorization commonly appears as a `permiss
 - Never resolve role or ownership from request data (`request.data.get('role')`); always read from `request.user`, populated by DRF's authentication classes from the verified session or token
 - Apply the permission class via the view's `permission_classes` attribute so it runs for every method (GET/PUT/PATCH/DELETE) on that view, rather than adding inline checks per view function
 - Return `False` explicitly for any unmatched role or failed ownership comparison; do not rely on falsy defaults from an incomplete conditional
+- Scope `get_queryset()` on the `ModelViewSet` to the requesting user: an object-level permission does not fire on `list`, so the collection endpoint returns rows the detail endpoint would refuse
 
 ## Taint Sinks
 
@@ -26,31 +27,3 @@ In Django REST Framework, Incorrect Authorization commonly appears as a `permiss
 - Break taint after allowlist validation - Read role and identity from `request.user`, never from `request.data` or query parameters, before evaluating permissions
 - Harden configuration - Set `permission_classes` on the `ViewSet`/`APIView` so the check applies uniformly across all actions, and confirm custom views call `check_object_permissions` explicitly if not using generic views
 - Test - Add DRF `APITestCase` tests where a non-owner with a valid role, and a user with an unrecognized role, both attempt the action and receive HTTP 403
-
-## Safe Pattern
-
-```python
-from rest_framework import generics, permissions
-
-ALLOWED_ROLES = {"admin", "editor"}
-
-
-class IsAllowedRoleAndOwner(permissions.BasePermission):
-    def has_permission(self, request, view):
-        # Coarse role check: explicit allowlist, not a `!=` denylist.
-        return getattr(request.user, "role", None) in ALLOWED_ROLES
-
-    def has_object_permission(self, request, view, obj):
-        if request.user.role == "admin":
-            return True
-        # Ownership compared against the loaded object, not request data.
-        return obj.owner_id == request.user.id
-
-
-class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAllowedRoleAndOwner]
-    # get_object() calls check_object_permissions() automatically, so
-    # has_object_permission runs for GET, PUT, PATCH, and DELETE.
-```

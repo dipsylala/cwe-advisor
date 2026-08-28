@@ -22,28 +22,6 @@ Cross-Site Scripting (XSS) occurs when untrusted data is rendered in web pages w
 
 - Replace `innerHTML` with `textContent` or framework-safe rendering
 - Enable auto-escaping in template engines (EJS, Pug, Handlebars)
-- Install and use DOMPurify for sanitizing user-generated HTML
+- Sanitize user-generated HTML with `DOMPurify.sanitize()` and assign only its return value to `innerHTML`
 - Set CSP headers - `Content-Security-Policy - default-src 'self'; script-src 'self'`
 - Validate and encode URL parameters before rendering
-
-## Safe Pattern
-
-```javascript
-// Safe: Use textContent for plain text
-const userInput = req.query.name;
-element.textContent = userInput;
-
-// Safe: React auto-escapes JSX expressions
-return <div>{userInput}</div>;
-
-// Safe: Sanitize rich HTML with DOMPurify
-import DOMPurify from 'dompurify';
-const clean = DOMPurify.sanitize(userHTML);
-element.innerHTML = clean;
-
-// Safe: Template engine escaped interpolation
-// EJS: <%= userInput %>
-// Pug: p= userInput
-// Handlebars: {{userInput}}
-res.render('page', { userInput });
-```

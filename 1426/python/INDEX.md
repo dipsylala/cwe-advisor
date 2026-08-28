@@ -11,6 +11,7 @@ In Python apps calling the Anthropic `anthropic` SDK (or OpenAI's, which follows
 - Validate every `tool_use.input` field against expected types and ranges before use, the same as validating a client-supplied request body - do not assume the model's JSON output already conforms to the schema you gave it
 - Treat any filename or path present in model output or a tool result as attacker-controlled: apply `os.path.basename()` and confirm the resolved path stays within the intended directory before any file write or read
 - A model claiming it "verified" or "checked" something in its text output is not evidence of anything - perform independent verification for security-relevant claims
+- Constrain the shape of the output with the SDK's structured-output binding (`with_structured_output()`), so the value the application acts on is a parsed object against a schema rather than free text it has to interpret
 
 ## Taint Sinks
 
@@ -20,42 +21,7 @@ In Python apps calling the Anthropic `anthropic` SDK (or OpenAI's, which follows
 
 - Locate every point where a model's text response, `tool_use.input` value, or a filename from a tool result reaches `eval`/`exec`, a shell call, a SQL query, a file operation, or an HTML/template render
 - For each sink, apply this repo's existing guidance for that sink type (code injection, command injection, SQL injection, path traversal, XSS), treating the model as the untrusted source
-- Where free-form parsing is used to extract structured data, replace it with `output_config.format` (JSON Schema) or `client.messages.parse()` against a Pydantic model
+- Where free-form parsing is used to extract structured data, replace it with `output_config.format` (JSON Schema) or `client.messages.parse()` against a Pydantic model, reading the validated object from `response.parsed_output`
 - Add explicit type and range checks on every `tool_use.input` field before it is used, matching what you would validate on an equivalent HTTP request body
-- Sanitize any model- or tool-produced filename with `os.path.basename()` and verify the resolved path is contained within the target directory before writing
+- Sanitize any model- or tool-produced filename with `os.path.basename()`, reject a result of `.` or `..`, and verify the resolved path is contained within the target directory before writing
 - Test with a mocked or adversarial model response that returns an out-of-schema value, a path-traversal filename (`../../etc/passwd`), or an injection payload in a text field, and confirm the validation layer rejects it before the sink executes
-
-## Safe Pattern
-
-```python
-import os
-from pydantic import BaseModel
-
-class RefundRequest(BaseModel):
-    order_id: str
-    amount_cents: int
-
-# SAFE: structured output constrains the shape; still validate the parsed values
-response = client.messages.parse(
-    model="claude-opus-5",
-    max_tokens=1024,
-    messages=[{"role": "user", "content": "Summarize the refund request as JSON"}],
-    output_format=RefundRequest,
-)
-refund = response.parsed_output
-if refund.amount_cents <= 0 or refund.amount_cents > order.total_cents:
-    raise ValueError("Refund amount out of range")  # SAFE: range-check model output before use
-
-def handle_tool_call(tool_use):
-    if tool_use.name == "write_report":
-        # SAFE: filenames from tool input are attacker-controlled - sanitize
-        # and confirm containment before any filesystem write
-        safe_name = os.path.basename(tool_use.input["filename"])
-        if not safe_name or safe_name in (".", ".."):
-            raise ValueError("Invalid filename")
-        output_path = os.path.join(OUTPUT_DIR, safe_name)
-        if not os.path.abspath(output_path).startswith(os.path.abspath(OUTPUT_DIR)):
-            raise ValueError("Path escapes output directory")
-        with open(output_path, "w") as f:
-            f.write(tool_use.input["content"])
-```

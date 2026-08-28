@@ -12,6 +12,9 @@ Access of uninitialized pointer occurs when a pointer is read or dereferenced be
 - Fail loudly, returning an error or raising an exception, rather than continuing past an unchecked, possibly-uninitialized pointer
 - Prefer language constructs that default pointer-like values to a safe empty state automatically over ones that leave them undefined
 - Enable compiler warnings for uninitialized use as build failures, and use memory sanitizers during development as defence-in-depth
+- The value in an uninitialized pointer is not random: it is whatever the program last left in that stack slot or heap cell, so it is repeatable for a given build and call sequence and shapeable by anyone who can influence the calls that ran earlier - which is what turns "reads garbage" into "writes to an address the attacker chose"
+- Where the pointer is explicitly null rather than uninitialized - a failed lookup, an unchecked return - the weakness is CWE-476; the fix overlaps and the failure mode does not, since a null dereference faults predictably and this does not
+- Record the finding here rather than against the Discouraged parents CWE-118/CWE-119
 
 ## Remediation Steps
 

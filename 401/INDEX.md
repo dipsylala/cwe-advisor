@@ -11,6 +11,9 @@ A memory leak occurs when an allocation, or an object retaining memory (a growin
 - Bound the size and lifetime of any long-lived collection (cache, session store, subscriber list) with explicit eviction, expiry, or capacity limits
 - Release resources on every exit path, including error and exception paths, not only the success path
 - Break reference cycles or use weak references where a relationship should not, by itself, keep an object alive
+- Do not count on a finalizer or cleaner: no language guarantees one runs before exit, and pooled connections, locks, and native handles behind a thin binding often have no fallback at all - so the best case is late and the worst is never
+- With a listener the reference points the opposite way to the dependency: the component needs the publisher, but subscribing makes the long-lived publisher hold the short-lived component, so lifetime is decided by the wrong end
+- Watch the resource counters as well as the heap - file descriptors, pooled connections, goroutines or threads - since those exhaust long before memory does
 
 ## Remediation Steps
 

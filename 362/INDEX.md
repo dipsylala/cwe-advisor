@@ -12,6 +12,8 @@ This weakness occurs when multiple threads, processes, or requests access the sa
 - Never rely on request timing, UI throttling, or client-side controls to prevent concurrent access; concurrency must be enforced server-side
 - Keep locked or transactional critical sections minimal but complete: begin protection before the first read of the shared state and release only after the final write
 - Design idempotency keys and conflict detection as defence-in-depth for operations that cannot be fully serialized
+- Choose the entry by where the racing parties live: state shared between threads of one process is CWE-366 and an in-process lock suffices, a check followed by a use is CWE-367, and this entry covers races across processes, servers, or replicas where the fix has to live at the datastore
+- Push the precondition into the write where a datastore is involved (`UPDATE ... WHERE balance >= :amount`), which removes the separate read entirely rather than protecting it
 
 ## Remediation Steps
 

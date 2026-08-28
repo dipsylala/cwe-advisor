@@ -11,6 +11,10 @@ Cleartext transmission occurs when sensitive data (passwords, tokens, PII, API k
 - Use HTTPS for entire site, not just login/sensitive pages
 - Implement certificate validation to prevent MITM attacks
 - Apply encryption at transport layer and application layer when needed
+- Moving a URL from `http://` to `https://` does not close the finding while either half of client validation is off: chain validation and hostname verification are separate settings, and a client that checks the chain but skips the name authenticates nobody - the attacker needs one valid certificate for a domain they own, which is free
+- Treat the HTTP-to-HTTPS redirect as damage limitation rather than the fix: the plaintext request has already gone out by the time the 301 arrives, carrying any cookie without the `Secure` flag, and a non-browser client that POSTs to `http://` has sent the whole body first
+- HSTS stops the *next* browser request and nothing else - API clients, mobile SDKs, `curl` and service-to-service callers ignore the header, so for those the scheme is fixed in code or configuration
+- Database connection modes have the same two-part split: PostgreSQL `require` encrypts and verifies nothing and `verify-ca` checks the chain but not the host name, so only `verify-full` does both - as with MySQL's `REQUIRED`, `VERIFY_CA` and `VERIFY_IDENTITY`
 
 ## Remediation Steps
 

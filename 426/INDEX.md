@@ -11,6 +11,8 @@ Untrusted Search Path vulnerabilities occur when applications search for resourc
 - Restrict search paths to trusted system directories only
 - Verify integrity of loaded components when possible
 - Remove current/relative directories from search order
+- The test that separates this from CWE-427 is whether the attacker had to change the path: if they only had to write a file into a directory already on it, the finding belongs to CWE-427
+- Resolve relative paths against a fixed base - the install directory or a configured root - never against the working directory, which is attacker-influenced, so joining a relative name to it produces an absolute path no more trustworthy than the name was
 
 ## Remediation Steps
 

@@ -11,6 +11,10 @@ In Python web frameworks, improper authorization occurs when views or API endpoi
 - Never read role or permission from the request data; derive it from `request.user` or the session
 - Use DRF's `IsAdminUser`, `IsAuthenticated`, or custom `BasePermission` subclasses for consistent enforcement
 - For object-level authorization, override `get_object()` or use `get_queryset()` filtered by the current user
+- Set `DEFAULT_PERMISSION_CLASSES` in DRF so a view that declares nothing is denied by default, rather than relying on each view to opt in
+- Object-level permissions do not run unless something calls them: `has_object_permission()` fires from `self.get_object()`, so a custom `@action(detail=True)` or a hand-written lookup with `Model.objects.get(pk=...)` bypasses it entirely - call `self.check_object_permissions(request, obj)` explicitly there
+- Filter the queryset by the requesting user rather than returning `Model.objects.all()` and checking afterwards - a list endpoint has no object-level hook to fire
+- Take the user from `request.user`, never from `request.POST` or a URL parameter
 
 ## Taint Sinks
 
@@ -19,37 +23,8 @@ views/`ViewSet`s missing `@permission_required`/`permission_classes`, unscoped `
 ## Remediation Steps
 
 - Identify views missing authorization decorators or `permission_classes` - any CBV or FBV that performs privileged operations
-- Add `@permission_required('app.change_report')` to function-based views or set `permission_classes = [IsAdminUser]` on DRF ViewSets
+- Add `@permission_required('app.change_report', raise_exception=True)` to function-based views - without `raise_exception` the decorator redirects to the login page instead of returning 403 or set `permission_classes = [IsAdminUser]` on DRF ViewSets
 - For Django class-based views, use `PermissionRequiredMixin` with `permission_required` attribute
 - Scope querysets to the authenticated user: `queryset = Order.objects.filter(user=request.user)` to prevent IDOR
 - Return 403 (not a redirect to login) for authenticated users who lack permission
 - Add test cases verifying that lower-privileged users receive 403 on each protected endpoint
-
-## Safe Pattern
-
-```python
-# Django function-based view
-from django.contrib.auth.decorators import permission_required
-
-@permission_required('reports.view_report', raise_exception=True)
-def view_reports(request):
-    reports = Report.objects.all()
-    return render(request, 'reports.html', {'reports': reports})
-
-
-# Django REST Framework ViewSet
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework import viewsets
-
-class OrderViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # Object-level: only return the current user's orders
-        return Order.objects.filter(user=self.request.user)
-
-    def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [IsAdminUser]
-        self.check_permissions(request)
-        return super().destroy(request, *args, **kwargs)
-```

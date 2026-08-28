@@ -2,11 +2,12 @@
 
 ## LLM Guidance
 
-Improper Input Validation occurs when applications fail to enforce constraints on externally supplied data before use. While validation alone doesn't prevent all vulnerabilities, its absence allows unexpected or malformed values to reach security-sensitive logic, enabling SQL injection, XSS, command injection, and other attacks. Static analysis flags CWE-20 when code accepts external input without clear type, range, format, or semantic constraints.
+Improper Input Validation occurs when applications fail to enforce constraints on externally supplied data before use. While validation alone doesn't prevent all vulnerabilities, its absence allows unexpected or malformed values to reach security-sensitive logic, enabling SQL injection, XSS, command injection, and other attacks. Static analysis flags CWE-20 when code accepts external input without clear type, range, format, or semantic constraints. MITRE marks CWE-20 Discouraged for mapping, so treat the finding as a pointer to the lower-level weakness that actually applies rather than as the finding itself.
 
 ## Key Principles
 
 - CWE-20 is abstract - the correct fix depends on identifying the specific child CWE that matches how unvalidated input is actually used
+- Where the value reaches an interpreter (SQL, HTML, shell, LDAP, XML, eval), validation is supplementary and the encoding or parameterization is the fix; where it is used as an array index, quantity, loop bound, state selector, or business amount there is nothing to parameterize and constraint checking *is* the fix
 - Address the specific security risk - remediation must target the vulnerability enabled by unconstrained input, not just add generic validation
 - Trace data flow completely - follow input from entry point through all transformations to where it's consumed
 - Defence-in-depth - combine input validation with context-specific output encoding, parameterized queries, and principle of least privilege
@@ -15,7 +16,9 @@ Improper Input Validation occurs when applications fail to enforce constraints o
 
 - Identify input origin - HTTP parameter, header, file upload, API request, database result, or external system
 - Trace to consumption point - determine where input is used - HTML output, SQL query, shell command, file path, LDAP query, XML parser, eval statement
-- Classify the specific vulnerability - map usage to child CWE (SQL Injection, XSS, Path Traversal, Command Injection, etc.)
-- Apply appropriate defence - use parameterized queries for SQL, context-aware encoding for HTML, allowlists for file paths, avoid shell execution
+- Classify the specific vulnerability - map the sink to its child CWE and load that entry as the primary guidance: SQL query CWE-89, HTML output CWE-79, file path CWE-22, shell command CWE-78, dynamic evaluation CWE-94, redirect target CWE-601, outbound URL CWE-918, deserialization CWE-502, log message CWE-117, array index CWE-129, arithmetic on a size CWE-190, configuration value CWE-15
+- Apply the child CWE's defence - that entry carries the concrete fix; CWE-20 contributes the constraint and canonicalization rules below, not a substitute for it
 - Enforce input constraints - validate type, length, format, character set, and business logic rules at entry points
+- Validate the value in the form the sink will see - decode and canonicalize before checking, and account for what the framework already decoded (`request.getParameter`, `@RequestParam`, ASP.NET model binding and `request.args` all return URL-decoded values, so a rule matching `%2e%2e` never fires while the decoded `../` passes)
 - Reject invalid input - fail securely by rejecting malformed data rather than attempting sanitization
+- Test both directions - malicious payloads for the specific child CWE, and legitimate awkward values (unicode names, apostrophes, maximum permitted length, numeric range boundaries); a rule that rejects everything passes every attack test and only the accept-side assertions catch it

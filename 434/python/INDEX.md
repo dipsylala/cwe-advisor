@@ -12,6 +12,9 @@ In Flask and Django, uploads arrive through `request.files` or a `FileField`. A 
 - For images specifically, `PIL.Image.open()` followed by `img.verify()` (or re-saving via `img.load()`/re-encode) confirms the bytes are a valid, parseable image of the claimed format
 - In Django, `FileField(upload_to=...)` controls the storage subpath but does not validate content; add a `validators=[...]` callable or clean method that performs the magic-byte check before save
 - Store uploads outside `STATIC_ROOT`/`MEDIA_ROOT` if they should not be directly web-accessible, or serve them through a view that enforces access control rather than direct static serving
+- `UploadFile.content_type` is the client's claim, not a fact - detect the type from the bytes (`magic.from_buffer(...)`) and check that against an allowlist
+- A `ModelForm.is_valid()` or `full_clean()` pass validates the model's own fields; it says nothing about the file's contents, so the type and extension checks are still yours to write
+- Store under a server-generated name outside the web root and serve through a handler, so an upload named `shell.php` is never a path the server would execute
 
 ## Taint Sinks
 
@@ -26,34 +29,3 @@ In Flask and Django, uploads arrive through `request.files` or a `FileField`. A 
 - Break taint after allowlist validation - Use the detected type and a generated filename (e.g., `uuid.uuid4()`) for storage, keeping `secure_filename()` only as a defence-in-depth sanitizer on the display name
 - Harden configuration - Set `MAX_CONTENT_LENGTH` (Flask) or `FILE_UPLOAD_MAX_MEMORY_SIZE`/`DATA_UPLOAD_MAX_MEMORY_SIZE` (Django) to bound upload size
 - Test - Verify rejection of files with a disallowed real type despite an allowed extension/content-type, oversized files, and traversal sequences in the original filename
-
-## Safe Pattern
-
-```python
-# SAFE: magic-byte validation, generated filename, storage outside webroot
-import os
-import uuid
-import magic  # python-magic
-
-UPLOAD_DIR = "/var/app-data/uploads"  # outside STATIC_ROOT/MEDIA_ROOT
-ALLOWED_TYPES = {"image/png": "png", "image/jpeg": "jpg"}
-MAX_BYTES = 5 * 1024 * 1024
-
-def store_upload(file_storage) -> str:
-    data = file_storage.read(MAX_BYTES + 1)
-    if len(data) > MAX_BYTES:
-        raise ValueError("File too large")
-
-    # SAFE: detect real type from bytes, not the client-supplied content_type
-    detected_type = magic.from_buffer(data, mime=True)
-    if detected_type not in ALLOWED_TYPES:
-        raise ValueError(f"Unsupported file type: {detected_type}")
-
-    stored_name = f"{uuid.uuid4()}.{ALLOWED_TYPES[detected_type]}"
-    target_path = os.path.join(UPLOAD_DIR, stored_name)
-
-    with open(target_path, "wb") as f:
-        f.write(data)
-
-    return stored_name
-```

@@ -13,6 +13,8 @@ Using reference equality (`==`) instead of value equality (`.equals()`) for stri
 - Use `Objects.equals(a, b)` when both strings may be null
 - Consider `equalsIgnoreCase()` for case-insensitive comparisons
 - Never use `==` except for explicit null checks
+- `toLowerCase()`/`toUpperCase()` without a `Locale` argument use the default locale, so normalizing before a comparison can change the result depending on where the JVM runs - pass `Locale.ROOT`
+- Use `MessageDigest.isEqual()` for a digest, MAC, or token comparison, which is constant-time as well as value-based
 
 ## Taint Sinks
 
@@ -23,22 +25,6 @@ Using reference equality (`==`) instead of value equality (`.equals()`) for stri
 - Scan codebase for `string1 == string2` patterns in conditionals and authentication logic
 - Replace with `.equals()`, putting known constant first where possible
 - Add null checks or use `Objects.equals()` where both values may be null
-- Prioritize authentication, authorization, and security-critical paths first
+- Prioritize authentication, authorization, and security-critical paths first; a stored password hash is verified with `passwordEncoder.matches(raw, storedHash)`, never with `.equals()`
 - Run comprehensive test suite to verify logic correctness after changes
 - Enable static analysis rules (e.g., PMD, SpotBugs) to prevent future violations
-
-## Safe Pattern
-
-```java
-// Authentication check - safe string comparison
-public boolean authenticate(String username, String password) {
-    String validUser = "admin";
-    String validPass = retrieveHashedPassword(username);
-    
-    // Constant-first pattern prevents NPE; use a verifier for salted password hashes
-    if (validUser.equals(username) && validPass != null) {
-        return passwordEncoder.matches(password, validPass);
-    }
-    return false;
-}
-```

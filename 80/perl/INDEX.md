@@ -13,6 +13,7 @@ CWE-80 is the subset of CWE-79 that covers injection of script-related HTML tags
 - Use Content Security Policy headers (`script-src 'self'`) as defence-in-depth against any script-related markup that does get through
 - Apply context-specific encoding (HTML, URL, JavaScript) based on output location
 - Never insert untrusted data directly into JavaScript blocks or event handler attributes (e.g. `onerror`, `onload`)
+- Template Toolkit escapes nothing by default: set `default_escape_flags => 'h'` (or Mojolicious's `AUTO_FILTER` equivalent) so escaping is the default rather than a per-variable habit
 
 ## Taint Sinks
 
@@ -26,23 +27,3 @@ CWE-80 is the subset of CWE-79 that covers injection of script-related HTML tags
 - Use templating systems with auto-escaping (Template Toolkit with HTML filter, Mojolicious's auto-escaping `<%= %>`)
 - Test with script-tag payloads like `<script>alert(1)</script>` and `<img src=x onerror=alert(1)>` to verify protection
 - Audit code for direct `print`/`say` statements containing CGI parameters
-
-## Safe Pattern
-
-```perl
-#!/usr/bin/perl
-use strict;
-use warnings;
-use CGI qw(:standard);
-
-my $cgi = CGI->new;
-my $user_input = $cgi->param('name') || '';
-
-# Encode user input before output
-my $safe_output = escapeHTML($user_input);
-
-print $cgi->header('text/html');
-print "<html><body>";
-print "<h1>Welcome, $safe_output</h1>";
-print "</body></html>";
-```

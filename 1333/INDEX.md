@@ -12,6 +12,10 @@ This weakness occurs when a regular expression is logically correct but has wors
 - Prefer a non-backtracking or linear-time regex engine for patterns applied to untrusted input, where the language or runtime offers one
 - Bound the risk with an input length limit and an execution timeout on the regex call, treating a timeout as a rejection, not a silent pass-through
 - Check every sub-pattern in composed or library-provided regexes, not just the top-level pattern, since a nested quantifier can be hidden inside a named sub-expression
+- The defect is ambiguity, not a wrong pattern: two quantifiers that can divide the same run of characters, or alternation branches that both match the same text, give a backtracking engine many paths to the same position and it must explore all of them before reporting no match
+- Because the cost is exponential in the length of that run, the triggering input stays short while the work does not - the request costs the attacker nothing to send
+- Fix at the pattern level (make the branches disjoint, anchor, use possessive quantifiers or atomic groups where available) and treat timeouts and input-length caps as defence in depth rather than the control
+- A pattern that matches the wrong *set of strings* is CWE-185; this is a pattern that matches the right set too slowly, and a regex can have both defects at once
 
 ## Remediation Steps
 

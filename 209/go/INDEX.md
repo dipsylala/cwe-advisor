@@ -12,6 +12,8 @@ Go error handling by convention returns `error` values that callers often serial
 - `fmt.Errorf("...: %w", err)` preserves `errors.Is`/`errors.As` chains but does not sanitize the message - the wrapped error still carries the original text
 - Use custom error types (or error codes) carrying both a safe public message and an internal detail field, so handlers only ever surface the safe field
 - Gate verbose error output behind an explicit development-only flag that defaults to off, never one inferred from an ambient value
+- A `defer`/`recover()` that writes the recovered value into the response publishes the panic message and, with it, internal detail - recover, log with a correlation id, and return a fixed body
+- Return an application error code (`NOT_FOUND`) rather than a subsystem one (`DB_ERROR`): the second names your architecture without naming the product, which is still more than the caller needs
 
 ## Taint Sinks
 
@@ -25,33 +27,3 @@ Go error handling by convention returns `error` values that callers often serial
 - Log, then respond - call `logger.Error(...)` with the full error and request context, then send the client only the generic message and status code
 - Harden configuration - add global panic-recovery middleware around all handlers and ensure any debug/verbose mode defaults to off and is not client-controllable
 - Test - trigger database, filesystem, and type-assertion failures in tests and assert the HTTP response body contains no file paths, SQL text, or stack frames
-
-## Safe Pattern
-
-```go
-// SAFE: log full error server-side, return generic message to client
-import "log/slog"
-
-func getUserProfile(w http.ResponseWriter, r *http.Request) {
-    user, err := db.QueryUser(r.URL.Query().Get("user_id"))
-    if err != nil {
-        slog.Error("query user failed", "error", err, "path", r.URL.Path)
-        http.Error(w, "unable to retrieve user profile", http.StatusInternalServerError)
-        return
-    }
-    json.NewEncoder(w).Encode(user)
-}
-
-// SAFE: recover from panics before a stack trace can reach the client
-func recoverMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        defer func() {
-            if rec := recover(); rec != nil {
-                slog.Error("panic recovered", "panic", rec, "path", r.URL.Path)
-                http.Error(w, "internal server error", http.StatusInternalServerError)
-            }
-        }()
-        next.ServeHTTP(w, r)
-    })
-}
-```

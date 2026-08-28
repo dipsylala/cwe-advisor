@@ -11,8 +11,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# docs/ is a separate, gitignored human-facing tree - not part of the knowledge base spec.
+SKIP_DIRS = {".git", "docs"}
+
 ROOT_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles"]
-LANG_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles", "## Taint Sinks", "## Safe Pattern"]
+LANG_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles", "## Taint Sinks"]
 STEPS_HEADINGS = ["## Remediation Steps", "## Actionable Steps"]
 
 ROOT_WORD_LIMIT = 500
@@ -76,8 +79,8 @@ def check_language_file(lang_dir, cwe_id):
         errors.append(f"{rel(path)}: missing heading(s) {missing}")
     check_steps_heading(path, text)
     check_h1(path, text, cwe_id, is_language=True)
-    if "```" not in text:
-        warnings.append(f"{rel(path)}: no code fence found (Safe Pattern should show one)")
+    if "```" in text:
+        errors.append(f"{rel(path)}: language guidance should not include code fences")
     wc = word_count(text)
     if wc > LANG_WORD_WARN_AT:
         warnings.append(f"{rel(path)}: {wc} words, over the ~{LANG_WORD_LIMIT} word guideline")
@@ -127,7 +130,7 @@ def main():
                 check_language_file(sub, cwe_id)
 
     for md_file in ROOT.rglob("*.md"):
-        if ".git" in md_file.parts:
+        if any(part in SKIP_DIRS for part in md_file.parts):
             continue
         check_links(md_file)
 

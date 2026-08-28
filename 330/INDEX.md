@@ -11,6 +11,11 @@ Insufficient randomness occurs when applications use predictable or weak random 
 - Avoid predictable seeds - Time-based or sequential seeds enable attackers to reproduce random sequences
 - Ensure sufficient entropy - Generate values with adequate length and randomness for the security context
 - Review all random value usage - Audit both direct generation and third-party library calls
+- No seed makes a non-cryptographic generator secure: `random`, `Math.random()`, `rand()`, `java.util.Random`, `System.Random` and `math/rand` are unsuitable however they are seeded, so replacing a predictable seed is not the fix
+- Do not seed a CSPRNG manually - `SecureRandom`, `secrets`, `crypto.randomBytes` and `crypto/rand` take entropy from the OS, and supplying a seed can only reduce it
+- Size by purpose: 128 bits for a session token, 256 for a cryptographic key, and a unique CSPRNG-generated salt per password
+- Do not mix a weak source into a strong one, and never reuse a generated value across sessions or users
+- Statistical tests at the application level cannot demonstrate cryptographic unpredictability - the argument is the source and the size, not the output's appearance
 
 ## Remediation Steps
 

@@ -10,6 +10,9 @@ Insecure deserialization in .NET occurs when untrusted data is deserialized usin
 - Never use `Newtonsoft.Json` with `TypeNameHandling` set to `All`, `Objects`, or `Auto` on untrusted input; use `TypeNameHandling.None` (the default)
 - Allowlist types explicitly: if polymorphic deserialization is unavoidable with Newtonsoft.Json, pair `TypeNameHandling` with a `SerializationBinder` that restricts to known types
 - Apply input validation after deserialization when using safe serializers like `System.Text.Json`
+- `LosFormatter` and unprotected `__VIEWSTATE` are the ASP.NET-specific sinks: keep `ViewStateMac`/`ViewStateEncryptionMode` enabled and the machine key secret, since a deserializable ViewState is remote code execution
+- `XmlSerializer` is safe only when the type is fixed at compile time - a type name resolved from input via `Type.GetType()` puts the attacker back in control of what is constructed
+- Where a binder is unavoidable, implement `SerializationBinder.BindToType` as an allowlist and `BindToName` to keep assembly-qualified names out of the payload
 
 ## Taint Sinks
 
@@ -22,18 +25,3 @@ Insecure deserialization in .NET occurs when untrusted data is deserialized usin
 - For Newtonsoft.Json with `TypeNameHandling` enabled: either remove `TypeNameHandling` entirely, or implement a `SerializationBinder` that allowlists permitted types
 - Add HMAC-based integrity validation to verify data has not been tampered with before deserialization
 - Run static analysis tools to detect remaining unsafe deserialization usage
-
-## Safe Pattern
-
-```csharp
-// SAFE: System.Text.Json - no type resolution by default (.NET Core 3.0+)
-var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-UserData user = JsonSerializer.Deserialize<UserData>(jsonInput, options);
-
-// SAFE: Newtonsoft.Json - TypeNameHandling.None (the default; state it explicitly)
-var settings = new JsonSerializerSettings
-{
-    TypeNameHandling = TypeNameHandling.None
-};
-UserData user = JsonConvert.DeserializeObject<UserData>(jsonInput, settings);
-```

@@ -10,8 +10,13 @@ In Spring applications, Improper Authentication commonly appears as a custom `Au
 - Scope `AuthenticationProvider.supports(Class<?> authentication)` to the exact `Authentication` subtype it handles so `ProviderManager` cannot delegate unrelated authentication attempts to it.
 - For jjwt, always call `parseSignedClaims()` (0.12+) or `parseClaimsJws()` (0.11.x) against a strongly-typed `SecretKey`/`PublicKey` via `verifyWith()`/`setSigningKey()`; never use the unsigned `parse()`/`parseClaimsJwt()` variants, which accept tokens with `alg: none`.
 - Generate JWT signing keys with sufficient entropy, e.g. `Jwts.SIG.HS256.key().build()`, and load them from configuration or a secret store rather than a hardcoded string.
-- For resource-server JWT validation, prefer Spring Security's `NimbusJwtDecoder` with an explicit `macAlgorithm()`/`signatureAlgorithm()` so the accepted algorithm is pinned in code, not inferred from the token.
+- For resource-server JWT validation with `NimbusJwtDecoder`, pin the algorithm on the builder actually in use: `jwsAlgorithm(...)` on `withJwkSetUri(...)`, `signatureAlgorithm(...)` on `withPublicKey(...)`, `macAlgorithm(...)` on `withSecretKey(...)` - so the accepted algorithm comes from configuration rather than the token's own header.
 - Enforce authentication in the `SecurityFilterChain` in addition to the provider, so a misconfigured provider cannot expose an otherwise-protected route.
+- Spring Security's `sessionFixation()` default is `changeSessionId()` on Servlet 3.1+ containers (since Spring Security 4), which keeps the session and its attributes but issues a new identifier; `migrateSession()` (new session, attributes copied) is the older default, still selected on Servlet 3.0 and earlier, `newSession()` starts empty, and `none()` disables the protection entirely - confirm which one a custom configuration selects
+- `UsernameNotFoundException` is mapped to a generic `BadCredentialsException` by `DaoAuthenticationProvider` only while `hideUserNotFoundExceptions` is left true - turning it off to improve logging discloses which usernames exist
+- `DaoAuthenticationProvider` encodes a fixed `userNotFoundPassword` at start-up and runs `matches()` against it when `loadUserByUsername` throws, so replacing a custom provider with a `UserDetailsService` plus a `PasswordEncoder` bean is usually the cheapest fix for a login-timing finding
+- If a custom provider stays, catch `UsernameNotFoundException` and run `PasswordEncoder.matches()` against a dummy hash before throwing `BadCredentialsException`; letting the exception propagate returns in 0.002 ms against 254 ms for a wrong password
+- That dummy must be a genuine 60-character BCrypt hash at the encoder's own strength, and must also stand in when `user.getPassword()` is null (an SSO-only row) - `BCryptPasswordEncoder` rejects `""` or a malformed hash on a format check without hashing and logs `Empty encoded password` on every failed login
 
 ## Taint Sinks
 
@@ -25,54 +30,4 @@ In Spring applications, Improper Authentication commonly appears as a custom `Au
 - Bind, encode, validate, or authorize - Verify the password via `PasswordEncoder.matches(rawPassword, user.getPassword())` and verify the JWT signature via a key whose algorithm family matches the expected header `alg`
 - Break taint after allowlist validation - Populate `SecurityContextHolder` only from the `Authentication` returned after a successful provider call or JWT verification, never from unverified claims
 - Harden configuration - Rotate JWT signing secrets, confirm the verification key type matches the intended algorithm family, and check the `SecurityFilterChain` leaves no route unauthenticated by omission
-- Test - Write `@WithMockUser` and forged-token tests: an invalid password must throw `BadCredentialsException`, and a token with `alg: none` or a mismatched algorithm must be rejected with 401
-
-## Safe Pattern
-
-```java
-// SAFE: jjwt 0.12+ - verify with a typed key; alg:none and mismatched algorithms are rejected
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Claims;
-import javax.crypto.SecretKey;
-
-SecretKey key = Jwts.SIG.HS256.key().build(); // load a persisted key in production
-
-Jws<Claims> jws = Jwts.parser()
-        .verifyWith(key)           // binds verification to an HMAC key family
-        .build()
-        .parseSignedClaims(token); // throws on unsigned, alg:none, or algorithm mismatch
-
-String subject = jws.getPayload().getSubject();
-```
-
-```java
-// SAFE: AuthenticationProvider that verifies the password before returning success
-@Component
-public class AccountAuthenticationProvider implements AuthenticationProvider {
-    private final UserDetailsService userDetailsService;
-    private final PasswordEncoder passwordEncoder;
-
-    public AccountAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
-        this.userDetailsService = userDetailsService;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @Override
-    public Authentication authenticate(Authentication auth) throws AuthenticationException {
-        String username = auth.getName();
-        String rawPassword = (String) auth.getCredentials();
-        UserDetails user = userDetailsService.loadUserByUsername(username);
-
-        if (rawPassword == null || !passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
-        return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-    }
-
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
-    }
-}
-```
+- Test - Write `@WithMockUser` and forged-token tests: an invalid password must throw `BadCredentialsException`, and a token with `alg: none` or a mismatched algorithm must be rejected with 401; time a right password, a wrong password, and an unknown username and assert all three are within noise of each other

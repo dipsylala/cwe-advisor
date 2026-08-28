@@ -12,6 +12,7 @@ In Spring applications, Incorrect Authorization commonly appears as `@PreAuthori
 - Apply the same `@PreAuthorize` expression (or a shared service-layer check) on every controller method that reaches the resource, including PUT/PATCH/DELETE and any bulk/admin variant endpoints
 - Avoid negated role comparisons (`!role.equals("ADMIN")`) in custom filters; use Spring Security's role/authority matching, which treats unmatched authorities as denied by default
 - Enable method security explicitly (`@EnableMethodSecurity`) and verify `@PreAuthorize` is actually active - a missing annotation processor or disabled method security silently allows all calls through
+- An `isOwner()`-style helper is only as good as the copy it reads: load the resource server-side and compare against the authenticated principal, never against an id supplied in the same request
 
 ## Taint Sinks
 
@@ -21,48 +22,8 @@ In Spring applications, Incorrect Authorization commonly appears as `@PreAuthori
 
 - Locate - Find `@PreAuthorize`/`@Secured` annotations that check role only, and any custom filters with inline `if` role comparisons
 - Trace data flow - Identify every controller method and repository call path that reaches the resource, including ones added after the original check was written
-- Replace the unsafe pattern - Convert role-only checks to a combined SpEL expression that also verifies ownership via a bean method
+- Replace the unsafe pattern - Convert role-only checks to a combined SpEL expression that also verifies ownership via a bean method, giving the bean an explicit name (`@Service("orderSecurity")`) so the `@beanName.isOwner(...)` reference resolves
 - Bind, encode, validate, or authorize - Implement the ownership bean method to load the resource server-side and compare its owner ID to `authentication.getName()` or the principal's user ID claim
 - Break taint after allowlist validation - Resolve the caller's authorities from `SecurityContextHolder`, not from any request parameter, before evaluating the expression
 - Harden configuration - Confirm `@EnableMethodSecurity` is present and add a default-deny rule in `SecurityFilterChain` for unmatched routes
 - Test - Add `@WithMockUser` tests for a non-owner with a valid role attempting access, and for a role not in the allowlist, confirming both return 403
-
-## Safe Pattern
-
-```java
-// SAFE: role check combined with a bean-backed ownership check
-@Service("orderSecurity")
-public class OrderSecurityService {
-
-    private final OrderRepository orderRepository;
-
-    public OrderSecurityService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
-
-    public boolean isOwner(Long orderId, String username) {
-        return orderRepository.findById(orderId)
-            .map(order -> order.getOwnerUsername().equals(username))
-            .orElse(false);
-    }
-}
-
-@RestController
-@RequestMapping("/orders")
-public class OrderController {
-
-    private final OrderRepository orderRepository;
-
-    public OrderController(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
-
-    // Admins pass on role alone; other authenticated users must own the order.
-    @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOwner(#id, authentication.name)")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        orderRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-```

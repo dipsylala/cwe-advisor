@@ -11,6 +11,9 @@ This vulnerability occurs when applications download code or executables from ex
 - Implement checksum verification for all packages, plugins, scripts, and executables
 - Use package managers with built-in integrity checking and signed repositories
 - Fail securely if integrity verification fails - never execute unverified code
+- Verify against something the *download server does not control*: a signature made with a publisher key you already hold, or a hash pinned in your own source. A checksum served from the same host as the artifact proves only that the transfer completed
+- TLS authenticates the channel, not the artifact - it says the bytes came from that host unmodified, which is a different claim from the bytes being the ones the publisher produced
+- Verify before executing, and treat an unverifiable artifact as a failure rather than proceeding with a warning
 
 ## Remediation Steps
 

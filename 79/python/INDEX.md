@@ -6,7 +6,8 @@ XSS occurs when untrusted data is included in web output without proper encoding
 
 ## Key Principles
 
-- Use framework auto-escaping: Django templates and Jinja2 `.html` files escape by default
+- Use framework auto-escaping: Django templates escape by default, and Flask enables Jinja2 autoescaping for `.html`/`.xhtml`/`.xml` templates - a standalone `jinja2.Environment` does not autoescape unless constructed with `autoescape=True`, and `render_template_string()` follows the same rule
+- Use the Django filter matching the context - `escapejs` inside a `<script>` block, `urlencode` for a URL component - rather than relying on the default HTML escaping everywhere
 - Never mark untrusted input as safe: Avoid `|safe`, `mark_safe()`, or `Markup()` on user data
 - Context-aware encoding: Use HTML escaping for HTML context, JavaScript encoding for `<script>` blocks
 - Sanitize rich content: Use `bleach.clean()` or `nh3.clean()` with strict allowlists for permitted HTML tags/attributes - prefer `nh3` for new code since `bleach` is in reduced maintenance
@@ -24,23 +25,3 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - For rich HTML, use `bleach.clean(user_input, tags=['b', 'i', 'u'], attributes={})` with minimal allowlists
 - Set `Content-Security-Policy` headers to restrict script execution
 - Audit all template rendering and ensure no raw user input reaches the DOM
-
-## Safe Pattern
-
-```python
-from flask import Flask, render_template_string, request
-import html
-
-app = Flask(__name__)
-
-@app.route('/profile')
-def profile():
-    username = request.args.get('name', '')
-    # Auto-escaped in template
-    return render_template_string('<h1>Welcome {{ name }}</h1>', name=username)
-
-# Or, when rendering outside a template (manual escaping):
-def render_greeting(username):
-    safe_name = html.escape(username)
-    return f'<h1>Welcome {safe_name}</h1>'
-```

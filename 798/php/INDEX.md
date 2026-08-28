@@ -12,6 +12,8 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 - Implement secrets rotation and access controls
 - Validate all credentials come from secure external sources
 - Environment variables reduce exposure versus hard-coding but are not foolproof - they can still leak through process inspection, debug output, or misconfigured server status pages
+- A `config.php` holding literals is still hard-coded even when it is not the application code: read from the environment through `config()`/`getenv()`, keep the file out of version control, and confirm it is not served (below the document root, or denied in the `VirtualHost`/`.htaccess`)
+- A `.env` deployed inside the web root is fetchable by name whether or not directory listing is on
 
 ## Taint Sinks
 
@@ -25,21 +27,3 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 - Add .env files to .gitignore and remove any committed secrets from git history
 - Test credential loading in all environments
 - Document the secrets management approach for the team
-
-## Safe Pattern
-
-```php
-// Load from environment variable
-$dbPassword = getenv('DB_PASSWORD');
-$apiKey = $_ENV['API_KEY'];
-
-// Database connection
-$conn = new PDO(
-    "mysql:host=" . getenv('DB_HOST'),
-    getenv('DB_USER'),
-    getenv('DB_PASSWORD')
-);
-
-// Never do this:
-// $password = "hardcoded123";
-```

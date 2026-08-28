@@ -11,6 +11,9 @@ PHP's loose equality operator (`==`) performs type juggling before comparison, c
 - Use `hash_equals()` for comparing MAC tags, tokens, and other secrets to prevent timing attacks
 - Never compare user-supplied values with `==` against numeric-looking strings, booleans, or `null`
 - Enable strict types (`declare(strict_types=1)`) at the file level to surface type mismatches early
+- `in_array()` and `array_search()` compare loosely unless the third argument is `true`, so an allowlist check with either is subject to the same coercion as `==`
+- The classic demonstration is two strings whose MD5 digests both begin `0e` (`md5('240610708')` and `md5('QNKCDZO')`), which `==` treats as equal because both parse as `0` in scientific notation - `===` and `hash_equals()` do not
+- Use `hash_equals()` for any secret comparison, which is both strict and constant-time
 
 ## Taint Sinks
 
@@ -24,30 +27,3 @@ PHP's loose equality operator (`==`) performs type juggling before comparison, c
 - Replace token comparisons with `hash_equals($knownGoodToken, $userToken)` to prevent timing attacks
 - Review comparisons involving values that could arrive as integers (`0`, `1`) alongside string role names
 - Enable `declare(strict_types=1)` and fix any resulting type errors to harden the codebase
-
-## Safe Pattern
-
-```php
-<?php
-declare(strict_types=1);
-
-// SAFE: strict equality for role/permission check
-function checkRole(string $userRole, string $requiredRole): bool {
-    return $userRole === $requiredRole;  // No type juggling
-}
-
-// SAFE: password verification using password_verify
-function authenticate(string $plainPassword, string $storedHash): bool {
-    return password_verify($plainPassword, $storedHash);
-}
-
-// SAFE: constant-time token comparison
-function validateToken(string $submittedToken, string $expectedToken): bool {
-    return hash_equals($expectedToken, $submittedToken);
-}
-
-// UNSAFE examples (do not use):
-// $role == "admin"         - type juggling risk
-// $token == $expectedToken - timing attack risk, and type juggling risk
-// md5($password) == $hash  - both weak hash and comparison risk
-```

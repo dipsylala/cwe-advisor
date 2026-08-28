@@ -12,6 +12,8 @@ In Node.js, the common concrete case of general CRLF injection (as opposed to CW
 - For log statements, use structured (JSON) logging, or explicitly encode `\r`/`\n` before writing to a plain-text log - see CWE-117's guidance for depth
 - Strip or reject `\r` and `\n` from untrusted input as defense in depth, regardless of sink
 - Keep the mail library (e.g. Nodemailer) at a current version, since header-neutralization behavior has been hardened in past releases after real CVEs
+- Node's own `ServerResponse.setHeader()` rejects CR and LF with `ERR_INVALID_CHAR`, and Koa's `ctx.set()` and Fastify's `reply.header()` inherit that - so an unvalidated value produces a 500 rather than a split response, which is a denial of service to fix rather than a control to rely on
+- Decode at most once and validate the decoded value: a check run before `decodeURIComponent()` inspects a string the header never sees
 
 ## Taint Sinks
 
@@ -26,18 +28,3 @@ In Node.js, the common concrete case of general CRLF injection (as opposed to CW
 - For any other line-oriented protocol - never hand-roll protocol commands by string concatenation with untrusted data; use a library that constructs and validates the protocol message, or strip/encode CRLF before writing to the socket
 - Strip `\r` and `\n` from untrusted input as defense in depth, regardless of sink category
 - Test with a payload containing `\r\nBcc: attacker@evil.com` (mail) or `\r\nX-Injected: true` (other sinks) and confirm no extra header or line is added
-
-## Safe Pattern
-
-```javascript
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({ host: 'smtp.example.com' });
-
-await transporter.sendMail({
-  from: 'noreply@example.com',
-  to: recipientEmail,           // library validates/rejects embedded CRLF
-  subject: userSuppliedSubject, // library validates/rejects embedded CRLF
-  text: userSuppliedBody,
-});
-```

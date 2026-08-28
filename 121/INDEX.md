@@ -11,6 +11,8 @@ A stack-based buffer overflow happens when more data is written into a fixed-siz
 - Use the destination buffer's actual declared size in the length check, never a separate hardcoded constant that can drift out of sync
 - Prefer a dynamically-sized, self-managing buffer or string type over a fixed-size stack array unless the maximum size is small and genuinely fixed
 - Reject oversized input explicitly rather than silently truncating it
+- Check the new bound carefully: `<=` where `<` was needed, or forgetting to reserve a byte for the string terminator, permits exactly the one byte that overflows
+- A length check at an outer boundary does not cover a second copy deeper in the call stack: re-check at each function that writes into a fixed-size buffer, since that function may also be reachable from another caller
 - Apply defence-in-depth: enable stack canaries, ASLR, and non-executable stack protections, understanding these reduce exploitability but do not fix the underlying write
 
 ## Remediation Steps

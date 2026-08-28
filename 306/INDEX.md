@@ -12,6 +12,10 @@ Missing authentication occurs when a critical function, route, or handler has no
 - New routes, handlers, and service endpoints must inherit the same authentication requirement as sibling endpoints unless intentionally public
 - Fail closed - if an authentication check cannot run or its configuration is missing, deny access rather than default to allow
 - Service-to-service calls must verify caller identity (mTLS, signed tokens, service credentials), not just trust that the request originated internally
+- Make authentication the default for the router rather than a per-route opt-in, then enumerate the routes and confirm each one: the handler is usually correct and the defect lives in the routing table, where a route registered outside the shared middleware group silently gets nothing and a diff shows nothing wrong
+- Authenticating at the gateway only leaves every backend reachable directly - another internal service, a misconfigured route, a debug port - trusting the request implicitly; each service verifies identity itself
+- An unlinked admin or debug route is not protected: test the endpoint directly rather than through the UI, since that is the path an attacker uses
+- Route by which check is missing: identity never established is this entry, a permission check missing after identity is CWE-862, and a permission check with wrong logic is CWE-863
 
 ## Remediation Steps
 

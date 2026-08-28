@@ -20,28 +20,7 @@ Inadequate Encryption Strength in Java occurs when weak cryptographic algorithms
 
 - Replace DES, 3DES, RC4, Blowfish with AES-256; replace MD5, SHA-1 with SHA-256 or SHA-512
 - Update `KeyGenerator.getInstance()` calls to specify explicit key sizes - default to 256 for AES (128 remains acceptable only where a specific constraint requires it), and 2048+ for RSA
-- Change cipher initialization to use explicit modes - prefer "AES/GCM/NoPadding" over "AES"
+- Change cipher initialization to use explicit modes - prefer "AES/GCM/NoPadding" over "AES", initialized with a `GCMParameterSpec(128, iv)` (128-bit tag) over a fresh 12-byte `SecureRandom` IV
 - Replace `new Random()` or `Math.random()` with `SecureRandom` for all cryptographic operations
 - Review and update key storage mechanisms to use Java KeyStore with strong passwords
 - Add cipher strength validation in security configuration or startup checks
-
-## Safe Pattern
-
-```java
-import javax.crypto.*;
-import javax.crypto.spec.*;
-import java.security.SecureRandom;
-
-// Generate strong AES-256 key
-KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-keyGen.init(256, new SecureRandom());
-SecretKey key = keyGen.generateKey();
-
-// Use authenticated encryption with GCM mode
-Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-byte[] iv = new byte[12];
-new SecureRandom().nextBytes(iv);
-GCMParameterSpec spec = new GCMParameterSpec(128, iv);
-cipher.init(Cipher.ENCRYPT_MODE, key, spec);
-byte[] encrypted = cipher.doFinal(plaintext);
-```

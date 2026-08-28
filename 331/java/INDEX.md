@@ -11,6 +11,10 @@ Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptograp
 - Generate sufficient entropy regardless of correct algorithm: 16+ bytes (128+ bits) for tokens/IVs, 32+ bytes (256+ bits) for keys
 - Be cautious of VM/container images built via templating or snapshotting; JVM/OS entropy or seed state captured at image-build time can be duplicated across clones unless reseeded
 - On embedded or virtualized hosts, verify the underlying OS entropy source is healthy - Java delegates entirely to the platform and does not generate its own entropy
+- Do not reach for `SecureRandom.getInstance("SHA1PRNG")` to get a "strong" instance - that names a specific legacy algorithm rather than the platform's choice; `new SecureRandom()` or `getInstanceStrong()` (or `"DRBG"` where a NIST DRBG is required) is what to ask for
+- `setSeed()` is not a way to improve output: in the SUN provider it supplements the existing seed, in others it replaces it, so a caller-supplied seed can only reduce entropy
+- `UUID.randomUUID()` draws from `SecureRandom` and carries 122 random bits - fine as an identifier, short of the usual bar for key material
+- `Math.random()`, `java.util.Random` and `ThreadLocalRandom.current()` are not CSPRNGs at all; using one for a secret is CWE-338 rather than this weakness
 
 ## Taint Sinks
 
@@ -24,22 +28,3 @@ Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptograp
 - Do not generate long-lived keys as part of an image/template build step; defer generation to first real boot of each deployed instance
 - On embedded or virtualized JVM hosts, verify the OS-level entropy source (`/dev/random`, hardware RNG) is healthy
 - Verify unpredictability across multiple instances launched from the same image, not only across repeated calls within one instance
-
-## Safe Pattern
-
-```java
-import java.security.SecureRandom;
-import java.util.Base64;
-
-public class SecureTokenGenerator {
-    private static final SecureRandom secureRandom = new SecureRandom();
-    
-    public static String generateSessionToken() {
-        byte[] randomBytes = new byte[32]; // 256 bits
-        secureRandom.nextBytes(randomBytes);
-        return Base64.getUrlEncoder()
-                     .withoutPadding()
-                     .encodeToString(randomBytes);
-    }
-}
-```

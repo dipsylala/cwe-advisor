@@ -11,6 +11,10 @@ Sensitive information in source code comments (passwords, API keys, internal IPs
 - Remove security-related TODOs or vulnerability discussions before committing code
 - Ensure client-visible code contains no development artifacts or internal information
 - Treat code comments as publicly accessible content
+- Delete rather than disable: commented-out code holding a real credential must be removed, since "temporary" comments become permanent and commenting a check out is not the same as removing the secret
+- Fix a security TODO before deleting it - a comment describing an unfixed weakness is a roadmap, and removing the comment without the fix only hides it
+- Rotate anything that was ever committed: deleting the line changes the working tree and not who has the secret, since it remains in history, in clones, and in built artifacts
+- Documentation that must exist belongs in a docs repository rather than inline in code that ships to clients
 
 ## Remediation Steps
 

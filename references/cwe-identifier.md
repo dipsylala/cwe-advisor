@@ -191,6 +191,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 1105 | Insufficient Encapsulation of Machine-Dependent Functionality | - |
 | 1174 | ASP.NET Misconfiguration: Improper Model Validation | - |
 | 1236 | Improper Neutralization of Formula Elements in a CSV File | CSV injection, formula injection |
+| 1321 | Improperly Controlled Modification of Object Prototype Attributes ('Prototype Pollution') | prototype pollution, __proto__ pollution |
 | 1333 | Inefficient Regular Expression Complexity | ReDoS, catastrophic backtracking |
 | 1426 | Improper Validation of Generative AI Output | unsafe LLM output handling |
 | 1427 | Improper Neutralization of Input Used for LLM Prompting | prompt injection, jailbreak |

@@ -34,6 +34,8 @@ Read the top-level index: `{CWE_ID}/INDEX.md`
 
 If the file doesn't exist, tell the user this CWE isn't in the knowledge base. You may explain what class of vulnerability the CWE ID belongs to (e.g., injection, broken auth) and recommend the user consult the MITRE CWE entry. Do not propose specific code changes.
 
+Some entries route rather than remediate: MITRE marks the ID Discouraged or Prohibited for mapping, so the guidance names a more specific child weakness instead of carrying the fix (CWE-20, CWE-119 and CWE-269 are the common cases). When the loaded guidance routes to a child CWE that matches the finding, read that child's `{CWE_ID}/INDEX.md` as well, treat it as the primary guidance, and use the child's ID for the language lookup in Step 3. Take one hop only, and keep the parent's guidance for context. If the child's directory doesn't exist, continue with the parent.
+
 ### Step 3: Load Language-Specific Guidance
 
 If code or a platform configuration/manifest file (e.g., `AndroidManifest.xml`) is provided, infer the language or platform from file extensions, syntax, or manifest files. If inference is uncertain (e.g., C vs. C++, JavaScript vs. TypeScript), ask the user to confirm. Map the confirmed language to the subfolder using the table below:
@@ -45,9 +47,12 @@ If code or a platform configuration/manifest file (e.g., `AndroidManifest.xml`) 
 | Java            | `java`       |
 | Python          | `python`     |
 | PHP             | `php`        |
-| C / C++         | `c`          |
+| C               | `c`          |
+| C++             | `cpp`        |
 | Ruby            | `ruby`       |
 | Perl            | `perl`       |
+
+C++ findings prefer `cpp/`; where a CWE has no `cpp/` folder, use `c/`. When C++ code manipulates raw buffers through C library calls, read both.
 
 If the language is not listed above, check whether a matching lowercase subfolder exists under the CWE directory (e.g., `go/`, `rust/`) and use it if found.
 

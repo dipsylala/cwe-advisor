@@ -11,6 +11,11 @@ Unchecked return values occur when code ignores error indicators from security-c
 - Never assume success for functions that can fail (setuid, malloc, chroot, read/write)
 - Validate both return codes and side effects (e.g., verify privileges actually changed)
 - Use compiler warnings and static analysis to detect unchecked returns
+- Logging the failure and continuing is functionally the same as not checking: the branch needs a `return`, an `abort`, or a thrown error after it
+- Check how much was done, not only that it did not error: a read that returns fewer bytes than requested is a short read, and treating it as complete truncates or corrupts the data silently
+- After a privilege-drop call returns success, re-query the actual privilege level - a partial drop that leaves a saved or effective identity unchanged still reports success
+- A "safe" wrapper whose own failure path only logs or returns a sentinel moves the bug one layer down unless every caller checks the wrapper's result
+- Route the neighbours correctly: an unchecked privilege-drop specifically is CWE-273, an unchecked result that is later dereferenced becomes CWE-476, an error that *is* detected but not acted on is CWE-390, and a tool still reporting CWE-391 for this shape is using a number MITRE is retiring
 
 ## Remediation Steps
 

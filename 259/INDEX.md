@@ -11,6 +11,11 @@ Hard-coded passwords embed credentials directly in source code, configuration fi
 - Treat credentials as replaceable with least-privilege access controls
 - Remove secrets from version control including commit history
 - Use environment variables or secret stores (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault)
+- A `DEFAULT_PASSWORD` constant used when nothing else is configured is the same hard-coded password with a different name
+- Obfuscation is not externalization: Base64, an XOR, or concatenated fragments defeat a plain grep and remain just as recoverable once decoded
+- Check the outbound uses, not only the login form: a background job, legacy integration, or service-to-service call embedding its own credential is a distinct manifestation MITRE treats separately
+- A "temporary" debug or backdoor account ships when nothing tracks its removal - if one is added, the removal needs a ticket, not an intention
+- The full secrets-management path (secrets store integration, rotation, history cleanup, detection tooling) is CWE-798; this entry is the password-specific case, and CWE-321 is the same problem for a cryptographic key
 
 ## Remediation Steps
 

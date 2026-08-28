@@ -11,6 +11,9 @@ Insufficient verification of data authenticity occurs when applications don't va
 - Validate data authenticity at trust boundaries before processing
 - Implement server-side verification; never rely solely on client-side checks
 - Apply defence-in-depth with multiple verification layers for critical data
+- Bind freshness into the authenticated bytes: a valid MAC or signature never expires, so a captured genuine message replays forever. Put a nonce, monotonic sequence number, or timestamp *inside* the region the tag covers and reject anything already seen or outside the window - a timestamp carried alongside the tag is attacker-controlled and worthless
+- Verify before use, not after: the MAC or signature check gates whether the data is parsed at all, not whether the result is trusted afterwards
+- For new signature designs prefer RSA-PSS over PKCS#1 v1.5 and size new RSA keys at 3072 bits; Ed25519 and P-256 are the modern defaults
 
 ## Remediation Steps
 

@@ -11,6 +11,9 @@ ASP.NET Misconfiguration: Improper Model Validation occurs when applications fai
 - Return appropriate validation error responses when validation fails
 - Protect against mass assignment/over-posting vulnerabilities using binding controls
 - Implement both attribute-based and custom validation logic where needed
+- Which *properties* may be bound and whether their *values* are valid are decided by the same model-binding step and fail together: a ViewModel that excludes `IsAdmin` addresses CWE-915, and the annotations on the properties it does expose address this one - fixing either alone leaves a real hole
+- `ModelState.IsValid` reports on the annotations of the type that was bound, so binding a request straight to a database entity passes the check while validating nothing the entity does not declare
+- Non-ASP.NET input-validation findings belong on CWE-20
 
 ## Remediation Steps
 

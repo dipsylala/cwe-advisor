@@ -11,6 +11,9 @@ This vulnerability occurs when an application includes code, libraries, plugins,
 - Verify integrity at the point of inclusion: Subresource Integrity (SRI) hashes for CDN scripts, checksum/signature verification and lockfiles for packages, signed releases for plugins
 - Restrict include/require/import paths so they cannot resolve to a user-controlled or externally-writable location
 - Apply defence-in-depth by combining source verification, integrity checks, and a runtime restriction such as Content-Security-Policy
+- Prefer the narrower entry where it fits: web functionality (a script, widget, or embedded content) is CWE-830, and PHP `include`/`require` of a remote path is CWE-98; this entry covers native libraries, package dependencies, dynamically loaded modules, and remote code reached through `eval`/`exec`
+- Pin what is included by version *and* by digest, so a mutable tag or a re-published package version cannot change what runs
+- Verify before executing against a key or hash you already hold, rather than against metadata the same source supplied (CWE-494)
 
 ## Remediation Steps
 

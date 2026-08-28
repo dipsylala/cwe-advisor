@@ -12,6 +12,9 @@ This weakness occurs when a signal handler accesses or modifies shared state - g
 - Do not acquire a lock inside a signal handler that the interrupted code might already hold, since this can deadlock the process
 - Mask or block signals during critical sections of the main program where a handler interrupting mid-update would leave inconsistent state
 - Prefer synchronous signal handling (blocking signals and consuming them with a wait primitive on a dedicated thread) over asynchronous handlers when the platform supports it
+- A signal arrives between two machine instructions rather than between two statements, so no point in the interrupted code is safe by construction - a struct half updated, a pointer half written, an allocator's free list mid-relink
+- The fix is the opposite of the thread case: a mutex taken in a handler deadlocks against the code it interrupted, because both run on the same thread. Block signals or restrict the handler instead
+- This is frequently the root cause behind a CWE-415 double free or a CWE-416 use-after-free, when a signal interrupts a function mid-allocation and the handler frees the same memory again; a handler calling any non-async-signal-safe function is CWE-479
 
 ## Remediation Steps
 

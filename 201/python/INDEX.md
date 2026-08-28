@@ -11,6 +11,9 @@ Python web applications commonly expose sensitive data through HTTP responses, e
 - Sanitize exceptions before exposing them to clients
 - Use structured logging that excludes sensitive fields
 - Implement response DTOs or serializers with only necessary fields
+- Use separate serializers for separate audiences rather than one with conditional fields - a public serializer that lists only what everyone may see cannot leak a field somebody later adds to the model
+- `record.getMessage()` renders the log message with its arguments interpolated, so a filter that inspects `record.msg` alone misses values passed as `record.args`
+- Let framework `HTTPException`s through the boundary handler so a 404 stays a 404, and build the body for everything else from a fixed contract
 
 ## Taint Sinks
 
@@ -19,26 +22,8 @@ Python web applications commonly expose sensitive data through HTTP responses, e
 ## Remediation Steps
 
 - Set `DEBUG = False` in Django/Flask production settings
-- Define explicit serializer fields instead of using `fields = '__all__'`
+- Define explicit serializer fields instead of using `fields = '__all__'`, and declare FastAPI routes with `response_model=` bound to a Pydantic model that lists only the allowed fields
 - Catch exceptions and return generic error messages to clients
 - Configure logging filters to redact sensitive data (passwords, tokens, keys)
 - Use environment variables for secrets, never hardcode in responses
 - Review API responses to ensure only required data is included
-
-## Safe Pattern
-
-```python
-# FastAPI/Pydantic example - explicit response model
-from pydantic import BaseModel
-
-class UserResponse(BaseModel):
-    id: int
-    username: str
-    email: str
-    # Exclude: password_hash, api_key, internal_id
-
-@app.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int):
-    user = db.get_user(user_id)
-    return UserResponse(**user.dict())  # Only allowlisted fields returned
-```

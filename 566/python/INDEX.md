@@ -11,6 +11,7 @@ CWE-566 here is the SQL-primary-key case: a user-controlled ID (URL parameter, f
 - Use framework-level authorization decorators for defense-in-depth, but do not rely on them as the only protection
 - Apply the same composite filter to every query path that reads, updates, or deletes the resource by ID
 - Return 404 instead of 403 - Avoid leaking resource existence information
+- Filter in `get_queryset()` with `owner=request.user` so the ownership predicate is part of the query rather than a check after the fetch - that also covers the list endpoint, which has no object-level hook
 
 ## Taint Sinks
 
@@ -24,21 +25,3 @@ CWE-566 here is the SQL-primary-key case: a user-controlled ID (URL parameter, f
 - Apply the same composite filter to every verb that touches the resource - GET, PUT, PATCH, DELETE
 - Handle missing resources uniformly - Return 404 for both non-existent and unauthorized resources
 - Test privilege escalation - Request another user's known primary key while authenticated as a different account
-
-## Safe Pattern
-
-```python
-from flask import abort
-from flask_login import current_user
-
-@app.route('/documents/<int:doc_id>')
-@login_required
-def get_document(doc_id):
-    # Query with BOTH resource ID and user ID
-    document = Document.query.filter_by(
-        id=doc_id,
-        user_id=current_user.id
-    ).first_or_404()
-    
-    return jsonify(document.to_dict())
-```

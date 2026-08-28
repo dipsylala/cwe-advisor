@@ -12,6 +12,7 @@ C's standard library includes functions that are dangerous by convention, not by
 - Terminate `strncpy()` output explicitly - it does not null-terminate when the source is exactly as long as the destination
 - Where a dangerous function must remain, document why the call site is safe (fixed, non-attacker-controlled input) and add a length or bounds check
 - Enforce the ban with static analysis (`cppcheck`, Clang static analyzer, `-Wformat-security`) in CI
+- `execvp()`/`execlp()` resolve the program through `PATH`, so a call that looks bounded still runs whatever an attacker-writable path element supplies - use `execve()` with an absolute path and an explicit environment
 
 ## Taint Sinks
 
@@ -26,25 +27,3 @@ C's standard library includes functions that are dangerous by convention, not by
 - Break taint after allowlist validation - If a filename or argument must be validated first, assign the validated value to a fresh variable and pass only that to `execve`/`snprintf`
 - Harden configuration - Enable `-D_FORTIFY_SOURCE=2` and `-fstack-protector-strong` at compile time as defence-in-depth
 - Test - Compile with AddressSanitizer and fuzz string-handling call sites with inputs at and beyond the destination capacity; test replaced shell calls with metacharacters (`; | & $() \``) to confirm they no longer trigger
-
-## Safe Pattern
-
-```c
-#include <unistd.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <stdio.h>
-
-// SAFE: bounded string copy/format, explicit destination capacity
-char dest[64];
-snprintf(dest, sizeof(dest), "%s", user_input);
-
-// SAFE: process execution without a shell, arguments passed as an array
-pid_t pid = fork();
-if (pid == 0) {
-    char *args[] = {"cp", filename, backup_name, NULL};
-    execvp("cp", args);
-    _exit(1); // only reached if execvp fails
-}
-waitpid(pid, NULL, 0);
-```

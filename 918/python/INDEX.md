@@ -11,6 +11,8 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Restrict protocols to `https://` only; deny `file://`, `gopher://`, `dict://`, and other dangerous schemes
 - Use DNS resolution checks to prevent DNS rebinding attacks
 - Disable HTTP redirects or validate redirect destinations
+- Include the IPv6 ranges alongside the IPv4 ones - `::1`, `fc00::/7`, `fe80::/10` and the NAT64 prefix `64:ff9b::/96` - and use `ipaddress.ip_address()` classification rather than string prefixes
+- `requests.get(url)` re-resolves the hostname when it connects, so validation of an earlier lookup does not bind the connection; pin the checked address (a custom adapter or `CURLOPT_RESOLVE`-equivalent) or accept the residual rebinding risk explicitly
 
 ## Taint Sinks
 
@@ -19,35 +21,8 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 ## Remediation Steps
 
 - Parse and validate the URL scheme - reject anything other than `https://`
-- Extract the hostname and resolve all A/AAAA records
+- Extract the hostname and resolve all A/AAAA records with `socket.getaddrinfo()`
 - Check every resolved IP against blocked ranges using `ipaddress.ip_address()` and `is_global`
 - Verify the hostname matches an allowlist of permitted domains
 - Make the request with redirects disabled (`allow_redirects=False`)
 - Set short timeouts to prevent resource exhaustion
-
-## Safe Pattern
-
-```python
-import ipaddress
-import socket
-import requests
-from urllib.parse import urlparse
-
-ALLOWED_DOMAINS = {"api.trusted-service.com"}
-
-def safe_request(url):
-    parsed = urlparse(url)
-    if parsed.scheme != "https":
-        raise ValueError("Only HTTPS allowed")
-    if parsed.hostname not in ALLOWED_DOMAINS:
-        raise ValueError("Domain not allowed")
-    
-    addresses = socket.getaddrinfo(parsed.hostname, 443, type=socket.SOCK_STREAM)
-    for _, _, _, _, sockaddr in addresses:
-        ip_obj = ipaddress.ip_address(sockaddr[0])
-        if not ip_obj.is_global:
-            raise ValueError("Private IP blocked")
-    
-    # Pair DNS validation with egress firewall rules to prevent second-resolution bypasses.
-    return requests.get(url, allow_redirects=False, timeout=5)
-```

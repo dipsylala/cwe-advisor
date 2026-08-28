@@ -10,6 +10,9 @@ Sensitive cookies (session IDs, authentication tokens) transmitted without the `
 - Cookie confidentiality must be enforced by transport layer (HTTPS) and server configuration
 - The `Secure` flag is mandatory for any cookie containing authentication or session data
 - Client behavior cannot be trusted; server-side enforcement is required
+- Consider a `__Host-` or `__Secure-` name prefix so the browser rejects the cookie when `Secure` is missing, making a deployment that loses the flag fail visibly rather than issuing a plaintext cookie - but apply it only after confirming the flag reaches the wire, since the browser silently discards a prefixed cookie without it and that presents as a login loop
+- Unlike `Secure`, the stricter `SameSite` value is not simply the safer one: choose `Strict` or `Lax` per flow, since `Strict` withholds the cookie from inbound links and SSO or OAuth callbacks
+- Apply the flag to every sensitive cookie - session, auth token, CSRF token, remember-me - not only the session id
 
 ## Remediation Steps
 

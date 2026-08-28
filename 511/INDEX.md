@@ -11,6 +11,9 @@ This weakness describes code that lies dormant until a date, event, execution co
 - Treat obfuscated code (encoded strings, dynamically evaluated conditions) as a red flag independent of what it turns out to do
 - Where a time- or condition-based behavior is a legitimate feature, such as trial expiration, require it to be transparent, documented, code-reviewed, and driven by configuration rather than a hardcoded condition buried in unrelated logic
 - Defence-in-depth: require independent code review for any change touching destructive operations, and log destructive operations with the acting user and call stack
+- Dynamic verification cannot find this: the condition is false throughout review, testing, staging and the early life of the release, so every test passes because the code genuinely does nothing yet
+- The shape alone is not the tell, since a feature flag and a deprecation cutoff look the same - what distinguishes it is the pairing of a date, counter, or identity comparison with a destructive action, and no ticket, configuration entry, or other code that knows the date matters
+- Remediate as CWE-506 does: remove and rebuild from reviewed source, and treat everything the trigger could have reached as compromised
 
 ## Remediation Steps
 

@@ -10,6 +10,9 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 - Use hybrid encryption for large data: generate random AES-256 key, encrypt data with AES-GCM/ChaCha20-Poly1305, encrypt symmetric key with RSA-OAEP
 - Never use "default" RSA without explicitly specifying OAEP padding mode
 - Choose appropriate key sizes with minimum 2048-bit RSA keys for current security requirements
+- Nothing in testing distinguishes this from the secure version: the encryption round-trips perfectly, and the weakness is in what the *decrypting* side gives away - Bleichenbacher's attack needs only a way to tell "the padding parsed" from "it did not", which an error message, a status code, a log line, or a response-time difference all supply
+- Raw textbook RSA is deterministic, so an attacker with the public key encrypts each candidate value and compares - for a PIN, an account number, or a yes/no answer that recovers the plaintext with no attack on RSA at all
+- Use hybrid encryption: RSA-OAEP wraps a short symmetric key and the symmetric algorithm carries the data, so the payload is not constrained by RSA's block size
 
 ## Remediation Steps
 

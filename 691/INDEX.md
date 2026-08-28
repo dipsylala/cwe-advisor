@@ -12,6 +12,9 @@ Insufficient control flow management occurs when code proceeds past a security-r
 - Fail closed on an unexpected, null, or error result: stop and deny rather than proceeding on a default assumption
 - Use guard clauses that reject invalid conditions early rather than nesting the valid path inside layered conditionals
 - Re-validate preconditions at every entry point that reaches sensitive code, not only at the start of a workflow
+- MITRE marks this Pillar Discouraged, so file a descendant: a race an attacker interleaves with is CWE-362, control leaving the frame meant to contain a failure is CWE-248, workflow ordering is CWE-841, a dispatch with no handler at all is CWE-431, and a handler that runs and is the wrong one is CWE-430
+- A return value nobody inspects is not a descendant of this pillar at all - it is CWE-252, under CWE-703 - and that is the shape findings most often arrive here as
+- The sink is every route into the protected code, not the one the feature was written for: an admin tool, an OAuth callback, a retry job, or a test helper is where this weakness lives, so re-establish the precondition at the sink rather than trusting the caller to have done it
 
 ## Remediation Steps
 

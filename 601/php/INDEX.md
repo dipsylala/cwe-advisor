@@ -20,36 +20,8 @@ Open redirect vulnerabilities occur when user-controlled input is used in `heade
 ## Remediation Steps
 
 - Identify all redirect points using `header()`, framework redirect methods, or client-side redirects
-- Replace direct user input with allowlist validation for external URLs
+- Replace direct user input with allowlist validation for external URLs, matching scheme and host with `in_array($value, $allowed, true)` - the strict third argument, or the comparison juggles types
 - For local redirects, verify paths start with `/` and don't contain `//` or absolute URLs
 - Use `parse_url()` to extract and validate URL components before redirecting
 - Apply framework security features (e.g., Laravel's `$request->validate()` with URL rules)
 - Add unit tests verifying malicious redirect attempts are blocked
-
-## Safe Pattern
-
-```php
-function safeRedirect($userUrl, $allowedDomains = ['example.com']) {
-    $parsed = parse_url($userUrl);
-    
-    // Allow relative paths only (local redirects)
-    if (!isset($parsed['host']) && isset($parsed['path']) && 
-        $parsed['path'][0] === '/' && substr($parsed['path'], 0, 2) !== '//' &&
-        strpos($parsed['path'], '\\') === false) {
-        header("Location: " . $parsed['path']);
-        exit;
-    }
-    
-    // For absolute URLs, validate scheme and host against allowlist
-    if (isset($parsed['host'], $parsed['scheme']) &&
-        in_array($parsed['scheme'], ['https', 'http'], true) &&
-        in_array($parsed['host'], $allowedDomains, true)) {
-        header("Location: " . $userUrl);
-        exit;
-    }
-    
-    // Default safe redirect
-    header("Location: /");
-    exit;
-}
-```

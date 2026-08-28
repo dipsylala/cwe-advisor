@@ -12,6 +12,9 @@ This weakness occurs when security- or business-critical state - a role, permiss
 - If state must travel with the client, protect it with a server-verified signature or encryption and a short expiry, and reject anything that fails verification before parsing its contents
 - Ignore unexpected privileged fields in client requests (role, is_admin) rather than applying them if present
 - Apply this at every trust boundary crossing: request bodies, query strings, cookies, and any client-writable storage
+- MITRE allows this Class with review because a Base-level child is usually the better fit: a web parameter assumed immutable is CWE-472, a configuration setting is CWE-15, a filesystem path is CWE-73, a search path is CWE-426, and a cookie trusted without integrity checking is CWE-565 (use CWE-472's guidance)
+- Use this entry when the state is somewhere none of those cover - a mobile app's own store, workflow state carried between steps, or a signed token whose payload is trusted without checking what it is bound to
+- Separate it from its neighbours: a user-controlled *identifier* bypassing an ownership check is CWE-639, while this is user-controlled *state* (a role, a price, a flag) trusted directly for a decision; and untrusted data written into a store the *server* trusts is the mirror image, CWE-501
 
 ## Remediation Steps
 

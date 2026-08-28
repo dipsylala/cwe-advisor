@@ -7,7 +7,8 @@ XSS occurs when untrusted data is included in web output without proper encoding
 ## Key Principles
 
 - Use Razor's automatic HTML encoding with `@variable` syntax (ASP.NET Core/MVC)
-- Apply context-specific encoders: `HtmlEncoder` for HTML, `JavaScriptEncoder` for JS contexts, `UrlEncoder` for URLs
+- Apply context-specific encoders from `System.Text.Encodings.Web`: `HtmlEncoder` for HTML, `JavaScriptEncoder` for JS contexts, `UrlEncoder` for URLs
+- Outside Razor (Web Forms, handlers, hand-built responses) use `System.Net.WebUtility.HtmlEncode()` or `System.Web.HttpUtility.HtmlEncode()`; neither is a substitute for the JavaScript encoder inside a `<script>` block, where the literal sequence `</script>` closes the block from inside a JS string
 - Sanitize rich HTML with HtmlSanitizer library before using `@Html.Raw()`
 - Implement Content Security Policy headers for defence-in-depth
 - Validate input format as secondary defence, never rely on it alone
@@ -24,23 +25,3 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Use `UrlEncoder.Default.Encode()` for query parameters and URL components
 - For rich text editors, integrate HtmlSanitizer with allowlist of safe tags before rendering with `@Html.Raw()`
 - Add CSP middleware to restrict script sources and enforce 'self' policy
-
-## Safe Pattern
-
-```csharp
-// Razor view - auto-encoded by default
-<div>Welcome, @Model.UserName</div>
-
-// Explicit HTML encoding in controller
-using System.Text.Encodings.Web;
-public IActionResult Display(string input)
-{
-    ViewBag.Safe = HtmlEncoder.Default.Encode(input);
-    return View();
-}
-
-// JavaScript context encoding
-<script>
-    var msg = '@JavaScriptEncoder.Default.Encode(ViewBag.Message)';
-</script>
-```

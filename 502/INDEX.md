@@ -11,6 +11,8 @@ Insecure Deserialization occurs when applications deserialize untrusted data wit
 - Enforce strict type whitelisting and class instantiation controls
 - Isolate deserialization operations in sandboxed, low-privilege environments
 - Apply defence-in-depth: validation, monitoring, and runtime restrictions
+- The test that separates this from mass assignment is what the attacker controls: *which fields of an expected type* get set is CWE-915, while *what type is constructed* - or code reached during reconstruction - is this weakness. MITRE notes the boundary needs further exploration, so expect scanners to disagree
+- In JavaScript the finding survives its own fix: replacing `eval`-based deserialization with `JSON.parse` removes the code execution and leaves the payload intact as data, so a later deep merge or path write can still reach `Object.prototype` (CWE-1321)
 
 ## Remediation Steps
 

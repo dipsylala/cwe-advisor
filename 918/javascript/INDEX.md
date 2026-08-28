@@ -12,6 +12,8 @@ SSRF in Node.js occurs when applications fetch remote resources using user-suppl
 - Block private networks: Reject private, loopback, link-local, metadata, and reserved IPv4/IPv6 ranges
 - Disable redirects: Prevent attackers from bypassing validation via HTTP redirects
 - Parse and validate: Use `URL` constructor to parse and validate scheme, hostname, and port
+- Handle every IPv6 spelling of an IPv4 address, not just the mapped form: `::ffff:127.0.0.1`, the compatible form `::7f00:1`, and the NAT64 prefix (`64:ff9b::7f00:1`) all reach loopback while looking like ordinary IPv6 to a string check
+- Resolve the hostname with `dns.promises.lookup(host, { all: true })` and check every returned address before connecting - with `ipaddr.js`, unmap via `toIPv4Address()` and require `ip.range() === 'unicast'` - then pin the connection to the address that was checked - Node's agent resolves again at connect time, which is the rebinding race
 
 ## Taint Sinks
 
@@ -22,43 +24,6 @@ SSRF in Node.js occurs when applications fetch remote resources using user-suppl
 - Create an allowlist of permitted domains/hosts for external requests
 - Parse user input with `new URL()` and validate hostname against allowlist
 - Reject private IP addresses and localhost addresses
-- Disable automatic redirect following in HTTP clients
+- Disable automatic redirect following in HTTP clients (`fetch(url, { redirect: 'manual' })`)
 - Validate resolved IPs before connecting (DNS rebinding protection)
 - Use network-level controls to restrict outbound connections
-
-## Safe Pattern
-
-```javascript
-const dns = require('dns').promises;
-const ipaddr = require('ipaddr.js');
-
-const ALLOWED_HOSTS = ['api.trusted-service.com', 'cdn.example.com'];
-
-function isGlobalAddress(address) {
-  const parsed = ipaddr.parse(address);
-  const normalized = parsed.kind() === 'ipv6' && parsed.isIPv4MappedAddress()
-    ? parsed.toIPv4Address()
-    : parsed;
-  return normalized.range() === 'unicast';
-}
-
-async function safeFetch(userUrl) {
-  const url = new URL(userUrl); // Throws on invalid URL
-  
-  if (!ALLOWED_HOSTS.includes(url.hostname)) {
-    throw new Error('Domain not allowed');
-  }
-  
-  if (url.protocol !== 'https:') {
-    throw new Error('Only HTTPS allowed');
-  }
-
-  const records = await dns.lookup(url.hostname, { all: true });
-  if (records.length === 0 || records.some((record) => !isGlobalAddress(record.address))) {
-    throw new Error('Blocked address range');
-  }
-  
-  // Pair DNS validation with egress firewall rules to prevent second-resolution bypasses.
-  return fetch(url.href, { redirect: 'manual' });
-}
-```

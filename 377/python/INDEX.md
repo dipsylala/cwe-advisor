@@ -11,6 +11,10 @@ Insecure temporary file creation occurs when applications create files with pred
 - Ensure file permissions are restrictive (mode 0o600) to prevent unauthorized access
 - Implement automatic cleanup using context managers or `delete=True` parameter
 - Avoid creating temporary files in world-writable directories like `/tmp` without proper protections
+- `tempfile.mkdtemp()` creates a private directory atomically, so files created inside it inherit its protection - the stronger option when several temp files are involved
+- Where a raw descriptor is needed, `os.open(path, os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)` is the safe primitive: `O_EXCL` refuses an existing name, `O_NOFOLLOW` refuses a planted symlink, and the mode is applied at creation
+- `os.path.exists()` followed by `open()` is the race this weakness is about; `os.makedirs(..., exist_ok=True)` on a shared path has the same problem, since the directory may already exist and belong to someone else
+- `tempfile` names come from `random.Random`, not from a CSPRNG - they are hard to guess and are not a secret
 
 ## Taint Sinks
 
@@ -18,29 +22,9 @@ Insecure temporary file creation occurs when applications create files with pred
 
 ## Remediation Steps
 
-- Replace manual file creation with `tempfile.NamedTemporaryFile()` or `tempfile.mkstemp()`
+- Replace manual file creation with `tempfile.NamedTemporaryFile()` or `tempfile.mkstemp()`, wrapping the raw descriptor `mkstemp()` returns with `os.fdopen()` and removing the path with `os.unlink()` in a `finally`
 - Use context managers (`with` statements) to ensure automatic cleanup
 - Set `delete=True` for auto-removal or explicitly handle cleanup in exception handlers
 - Verify file permissions are restrictive (default 0o600 is secure)
 - For temporary directories, use `tempfile.TemporaryDirectory()` with context managers
 - Avoid passing temporary file paths to untrusted code or processes
-
-## Safe Pattern
-
-```python
-import tempfile
-
-# Secure temporary file with auto-cleanup
-with tempfile.NamedTemporaryFile(mode='w+', delete=True, suffix='.txt') as tmp:
-    tmp.write("sensitive data")
-    tmp.flush()
-    # File automatically deleted when context exits
-
-# Alternative: Manual control with secure creation
-fd, path = tempfile.mkstemp(suffix='.txt')
-try:
-    with os.fdopen(fd, 'w') as tmp:
-        tmp.write("sensitive data")
-finally:
-    os.unlink(path)  # Ensure cleanup
-```

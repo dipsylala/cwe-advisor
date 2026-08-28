@@ -12,6 +12,9 @@ This vulnerability occurs when a process, service, or account holds more privile
 - This is not CWE-732 (Incorrect Permission Assignment for Critical Resource): CWE-732 is about a resource's permission bits or ACL being wrong; CWE-269 is about the standing privilege level of the process or account acting on resources
 - This is not CWE-862/CWE-863 (Missing/Incorrect Authorization): those CWEs govern whether a single request should be allowed at the caller's current privilege level; CWE-269 governs whether that privilege level was acquired, retained, or escalated correctly over time
 - Prefer capability-scoped or role-scoped grants over broad administrative or root-equivalent privilege, even when the broader grant is more convenient
+- MITRE marks this Class Discouraged for new findings - prefer the child that fits: a component configured to run over-privileged for its whole lifetime is CWE-250, a privilege not dropped after the operation that needed it is CWE-272, an unverified drop is CWE-273, and mishandling a privilege that was *denied* is CWE-274
+- Scope the elevation to the call, not the request: wrapping a whole handler in an elevated context because one internal step needs it puts every line of untrusted-input handling at the higher level
+- Treat a broad cloud role or container capability set chosen for convenience as the finding itself - any compromise of that component then becomes a full-account compromise
 
 ## Remediation Steps
 

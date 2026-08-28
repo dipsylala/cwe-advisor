@@ -11,6 +11,10 @@ XML Injection occurs when untrusted user input is embedded into XML documents wi
 - Apply `SecurityElement.Escape()` only when string manipulation is unavoidable
 - Validate input against strict allowlists before XML construction
 - Parse and reconstruct XML rather than modifying as strings
+- Build XML with a writer or object model that escapes for you - `XmlWriter.WriteElementString()`, `XDocument`/`XElement` - rather than concatenating markup; the writer escapes *values*, so an element or attribute *name* taken from input is still structural injection
+- `XmlSerializer` on a type you control emits a well-formed document; the risk is a caller-supplied type name deciding what gets constructed, which is CWE-502
+- For XPath, bind through an `XsltContext`/`XsltArgumentList` variable rather than concatenating the value into the expression - XPath string literals have no escape for their own delimiter
+- Set the declaration explicitly (`XDeclaration`) so the encoding the document claims matches the bytes actually written
 
 ## Taint Sinks
 
@@ -24,18 +28,3 @@ String-concatenated/interpolated XML (`$"<tag>{input}</tag>"`), `XmlWriter.Write
 - Use parameterized XML construction methods consistently
 - Test with XML metacharacters (`<test>`, `&payload;`, `"value"`) to verify escaping
 - Review existing code for `.ToString()` concatenation patterns
-
-## Safe Pattern
-
-```csharp
-// Safe: LINQ to XML automatically escapes content
-string userInput = GetUserInput();
-XElement root = new XElement("user",
-    new XElement("name", userInput),
-    new XAttribute("id", userId)
-);
-
-// Safe: Manual escaping when necessary
-string escapedInput = SecurityElement.Escape(userInput);
-string xml = $"<user>{escapedInput}</user>";
-```

@@ -19,24 +19,8 @@ Inadequate Encryption Strength occurs when C# applications use weak algorithms (
 ## Remediation Steps
 
 - Search for weak algorithms - Grep for `DES`, `TripleDES`, `MD5`, `SHA1`, `RC2`, `RSA.Create(1024)`
-- Replace symmetric encryption with `AesGcm` using 32-byte keys from `RandomNumberGenerator`
+- Replace symmetric encryption with `AesGcm` using 32-byte keys from `RandomNumberGenerator`; the constructor takes the tag size (`AesGcm.TagByteSizes.MaxSize`), the nonce is sized by `AesGcm.NonceByteSizes.MaxSize`, and nonce, ciphertext, and tag must all be persisted
 - Upgrade hashing from MD5/SHA1 to `SHA256` or `SHA512`
 - Fix key derivation - Use `Rfc2898DeriveBytes` with ≥600k iterations and random salts
 - Add authentication if using CBC - apply HMAC-SHA256 (encrypt-then-MAC pattern)
 - Validate key storage - Ensure keys are in secure vaults (Azure Key Vault, DPAPI), not config files
-
-## Safe Pattern
-
-```csharp
-using System.Security.Cryptography;
-
-byte[] key = RandomNumberGenerator.GetBytes(32);
-byte[] nonce = RandomNumberGenerator.GetBytes(AesGcm.NonceByteSizes.MaxSize);
-byte[] plaintext = Encoding.UTF8.GetBytes("sensitive data");
-byte[] ciphertext = new byte[plaintext.Length];
-byte[] tag = new byte[AesGcm.TagByteSizes.MaxSize];
-
-using var aes = new AesGcm(key, AesGcm.TagByteSizes.MaxSize);
-aes.Encrypt(nonce, plaintext, ciphertext, tag);
-// Store - nonce + ciphertext + tag
-```

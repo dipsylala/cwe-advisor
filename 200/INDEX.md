@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Information exposure occurs when applications reveal sensitive data to unauthorized users through error messages, APIs, configuration files, or exposed resources. Information that appears harmless individually (user enumeration, timing differences, stack traces) can be combined to enable sophisticated attacks like account compromise. Never return sensitive or internal information to clients unless explicitly required for their authorized function.
+Information exposure occurs when applications reveal sensitive data to unauthorized users through error messages, APIs, configuration files, or exposed resources. Information that appears harmless individually (user enumeration, timing differences, stack traces) can be combined to enable sophisticated attacks like account compromise. Never return sensitive or internal information to clients unless explicitly required for their authorized function. Treat this entry as a router: where the finding names a mechanism, use that page instead - response or API payload (CWE-201), error message or stack trace (CWE-209), debugging code (CWE-215), personal information (CWE-359), system information (CWE-497), log file (CWE-532), or a backup/config/VCS file reachable in the webroot (CWE-538).
 
 ## Key Principles
 
@@ -11,6 +11,9 @@ Information exposure occurs when applications reveal sensitive data to unauthori
 - Implement generic error handling that reveals no internal system details
 - Validate what information each user role legitimately needs before exposing it
 - Assume attackers will combine multiple small leaks to build attack chains
+- Build the response from an allowlist *before* serializing, never by serializing an internal object and redacting afterwards - a field added to the record later ships exposed by default, and there is no statement of intent for a reviewer to check
+- Return identical responses for "not found" and "not authorized", including the status code and, where the check is measurable, the timing - a 403/404 split enumerates valid resources without disclosing any data
+- A masked or truncated value is not automatically safe: judge what the remaining fragment enables (a last-four, an unsalted hash, a truncated token) rather than accepting that it looks redacted
 
 ## Remediation Steps
 

@@ -17,24 +17,8 @@ XXE injection occurs when XML parsers process external entity references, allowi
 
 ## Remediation Steps
 
-- Configure `libxmljs` with `noent - false`, `nonet - true`, `dtdload - false` options
+- Configure `libxmljs` with `noent - false`, `nonet - true`, `dtdload - false`, `dtdvalid - false` options
 - For `xml2js` v0.5.0+, verify external entities are disabled (default behavior)
 - Set `fast-xml-parser` with `processEntities - false` option
 - Review all XML parsing code and apply secure configurations consistently
 - Add input validation to reject XML containing DOCTYPE declarations or entity references
-
-## Safe Pattern
-
-```javascript
-// libxmljs with XXE protection
-const libxmljs = require('libxmljs');
-
-const parseXMLSafely = (xmlString) => {
-  return libxmljs.parseXml(xmlString, {
-    noent: false,    // Disable entity substitution
-    nonet: true,     // Disable network access
-    dtdload: false,  // Disable DTD loading
-    dtdvalid: false  // Disable DTD validation
-  });
-};
-```

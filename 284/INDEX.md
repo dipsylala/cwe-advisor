@@ -11,6 +11,7 @@ CWE-284 is the broad parent weakness for any failure to properly restrict access
 - Grant access along the correct dimension - by specific resource and operation, not merely by resource type or role membership
 - Never allow a capability or permission to persist beyond the scope or duration it was granted for
 - Apply deny-by-default and re-evaluate access on every request rather than caching an authorization decision beyond its intended lifetime
+- Route to the specific descendant: no check runs on the path is CWE-862, a check runs with wrong logic is CWE-863, an unauthenticated critical function is CWE-306, a resource's permission bits are wrong is CWE-732, a user-controlled object key is trusted is CWE-639/CWE-566, privilege acquisition or drop is CWE-269, resource ownership is CWE-282, request-origin trust is CWE-346, and a privileged API or scripting bridge reachable without a check is CWE-749
 
 ## Remediation Steps
 

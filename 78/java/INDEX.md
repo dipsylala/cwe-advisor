@@ -12,6 +12,8 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Use java.util.zip for archive operations instead of tar/zip commands
 - Never concatenate user input into command strings
 - Only use ProcessBuilder as a last resort with validated argument lists (no shell invocation)
+- `Runtime.exec(String)` tokenizes its argument with `StringTokenizer`, so one concatenated string becomes several arguments; use `Runtime.exec(String[])` or `ProcessBuilder` with a list
+- On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself, so an argument list is not sufficient - launch the executable the batch file wraps. Keep `jdk.lang.Process.allowAmbiguousCommands` at `false` so the JVM does not fall back to the legacy, less-quoted Windows command-line handling
 - A separate argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Taint Sinks
@@ -26,38 +28,3 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Replace process execution - Delete Runtime.exec()/ProcessBuilder code and use the appropriate Java library
 - For unavoidable commands - Use ProcessBuilder with separate arguments (never shell), validate all inputs
 - Test thoroughly - Verify the Java library replacement provides the same functionality
-
-## Safe Pattern
-
-```java
-// UNSAFE: Executing ping command
-Runtime.getRuntime().exec("ping -c 1 " + host);
-
-// SAFE (last resort): ProcessBuilder with an argument array avoids shell
-// injection, but prefer a native Java API over process execution when one exists
-ProcessBuilder pb = new ProcessBuilder("ping", "-c1", host);
-Process proc = pb.start();
-
-// SAFE: Use InetAddress for reachability check
-import java.net.InetAddress;
-
-private boolean isHostReachable(String host, int timeout) throws IOException {
-    return InetAddress.getByName(host).isReachable(timeout);
-}
-
-// SAFE: File copy with Files API
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-
-Files.copy(Paths.get(source), Paths.get(dest), StandardCopyOption.REPLACE_EXISTING);
-
-// SAFE: HTTP request with HttpClient
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-HttpClient client = HttpClient.newHttpClient();
-HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
-HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-```

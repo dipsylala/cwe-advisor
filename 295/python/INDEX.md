@@ -11,6 +11,10 @@ Improper certificate validation occurs when Python applications disable SSL/TLS 
 - Handle certificate errors properly - Log and investigate certificate failures rather than disabling validation
 - Keep dependencies updated - Ensure `requests`, `urllib3`, and `certifi` libraries are current
 - Use certificate pinning for critical connections - Pin specific certificates for high-security requirements
+- `ssl.create_default_context()` is the correct starting point - it sets `check_hostname=True` and `verify_mode=CERT_REQUIRED` - while a bare `ssl.SSLContext(...)` starts with verification off, so constructing one directly is the quiet form of this weakness
+- Pass `server_hostname=` to `SSLContext.wrap_socket()`: without it the chain is verified and the name is not, which authenticates nobody, and nothing in the code reads as disabled
+- `urllib.request.urlopen()` uses the default context and verifies; the finding is usually an explicitly constructed unverified context handed to it
+- `REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE` replace the trust store from the environment, so a CA added there is a deployment-time change nothing in the code shows - check the environment as well as the source
 
 ## Taint Sinks
 
@@ -24,21 +28,3 @@ Improper certificate validation occurs when Python applications disable SSL/TLS 
 - Specify custom CA bundles with `verify='/path/to/ca-bundle.crt'` only when necessary
 - Update certificate-related packages - `pip install --upgrade requests urllib3 certifi`
 - Test connections to ensure certificate validation works in all environments
-
-## Safe Pattern
-
-```python
-import requests
-
-# Secure: Certificate validation enabled (default)
-response = requests.get('https://api.example.com/data')
-
-# Secure: Explicit verification
-response = requests.get('https://api.example.com/data', verify=True)
-
-# Secure: Custom CA bundle when needed
-response = requests.get(
-    'https://internal-api.company.com/data',
-    verify='/etc/ssl/certs/company-ca-bundle.crt'
-)
-```

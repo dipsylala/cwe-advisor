@@ -11,6 +11,8 @@ CSRF vulnerabilities in Java web applications occur when state-changing endpoint
 - Use SameSite cookie attributes to provide defence-in-depth
 - Validate CSRF tokens on the server side for all non-safe HTTP methods
 - Never disable CSRF protection globally without explicit security review
+- Generate the token with `SecureRandom` and compare it with `MessageDigest.isEqual()`, which is constant-time - Spring Security's `CsrfFilter` does both, so the finding is usually a filter that was disabled or a path excluded from it
+- Bind the token to the `HttpSession` and re-issue it when the session is regenerated at login, so a pre-authentication token cannot be replayed
 
 ## Taint Sinks
 
@@ -19,30 +21,8 @@ CSRF vulnerabilities in Java web applications occur when state-changing endpoint
 ## Remediation Steps
 
 - Add Spring Security dependency and enable CSRF protection in configuration
-- Include `${_csrf.token}` hidden field in all HTML forms or add CSRF header to AJAX requests
+- Include a hidden field named `${_csrf.parameterName}` with value `${_csrf.token}` in all HTML forms, or add the CSRF header to AJAX requests
 - Configure SameSite=Strict or Lax on session cookies
 - Use POST/PUT/DELETE for state-changing operations (never GET)
 - Ensure Spring Security's CSRF filter is active in the filter chain
 - Test that requests without valid tokens are rejected with 403 Forbidden
-
-## Safe Pattern
-
-```java
-// Spring Boot Controller with CSRF protection
-@Controller
-public class AccountController {
-    
-    @PostMapping("/transfer")
-    public String transfer(@RequestParam String recipient, 
-                          @RequestParam BigDecimal amount) {
-        // Spring Security automatically validates CSRF token
-        accountService.transfer(recipient, amount);
-        return "redirect:/success";
-    }
-}
-
-// Thymeleaf template with CSRF token
-// <form method="post" action="/transfer">
-//   <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-// </form>
-```

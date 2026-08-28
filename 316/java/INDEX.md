@@ -11,6 +11,10 @@ Storing sensitive data (passwords, cryptographic keys, tokens) in memory as clea
 - Minimize lifetime: Process and discard sensitive data as quickly as possible
 - Avoid string conversions: Never call `new String(charArray)` or similar on credentials
 - Use secure APIs such as `javax.crypto.SecretKey`, `java.security.KeyStore`, and `Destroyable` interfaces
+- Take passwords as `char[]` and clear them (`Arrays.fill(password, '\0')`) - `JPasswordField.getPassword()` returns one for that reason, and `getText()` returns a `String` that cannot be erased
+- APIs that accept `CharSequence` (`BCryptPasswordEncoder.matches()`, most Spring Security encoders) copy internally, so wrapping with `CharBuffer.wrap(password)` avoids creating a `String` but does not guarantee the library holds no copy
+- `PBEKeySpec` holds its own copy and offers `clearPassword()`; call it, and drop `SecretKeySpec` material as soon as the operation completes
+- A `Cleaner` runs after the object is unreachable, so it bounds how long a secret lingers rather than removing it promptly - prefer an explicit clear in a `finally` block
 
 ## Taint Sinks
 
@@ -24,18 +28,3 @@ Storing sensitive data (passwords, cryptographic keys, tokens) in memory as clea
 - Use `Destroyable`, `SecretKey`, `KeyStore`, or clearly documented framework wrappers such as `GuardedString` where available
 - Implement `AutoCloseable` or `Destroyable` for credential holder classes
 - Review heap dump and debugging configurations to prevent memory exposure
-
-## Safe Pattern
-
-```java
-char[] password = null;
-try {
-    password = getPasswordFromUser();
-    byte[] hash = hashPassword(password);
-    authenticate(hash);
-} finally {
-    if (password != null) {
-        Arrays.fill(password, '\0');
-    }
-}
-```

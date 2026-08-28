@@ -20,36 +20,7 @@ Improper certificate validation in C# occurs when `HttpClientHandler.ServerCerti
 
 - Search for `ServerCertificateCustomValidationCallback` returning `true` or ignoring the `errors` parameter
 - Remove the callback assignment; `HttpClient` validates correctly by default
-- For internal CA: add the CA certificate to the Windows Trusted Root store, or load it into an `X509Store` and build a custom callback that verifies the chain against that store
+- For internal CA: add the CA certificate to the Windows Trusted Root store, or build an `X509Chain` with `ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust`, the CA added to `ChainPolicy.CustomTrustStore`, and `RevocationMode = X509RevocationMode.Online`
+- A custom chain build does not check the hostname, so the callback must still reject `SslPolicyErrors.RemoteCertificateNameMismatch` and return `true` immediately when `errors == SslPolicyErrors.None`
 - Replace `ServicePointManager` usage with `HttpClient` + `HttpClientHandler` (required for .NET Core / .NET 5+)
 - Test that connections to hosts with untrusted certificates now throw `HttpRequestException` with an inner `AuthenticationException`
-
-## Safe Pattern
-
-```csharp
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-
-// SAFE: no custom callback - certificate validation uses system trust store
-var client = new HttpClient();
-var response = await client.GetAsync("https://api.example.com/data");
-
-// SAFE: custom internal CA - build a custom chain and do not bypass hostname/chain errors
-X509Certificate2 internalCaCertificate = LoadInternalCaCertificate();
-var handler = new HttpClientHandler();
-handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-{
-    if (errors == System.Net.Security.SslPolicyErrors.None)
-        return true;  // Standard validation passed
-
-    if (cert is null || errors.HasFlag(System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch))
-        return false;
-
-    using var customChain = new X509Chain();
-    customChain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
-    customChain.ChainPolicy.CustomTrustStore.Add(internalCaCertificate);
-    customChain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-    return customChain.Build(new X509Certificate2(cert));
-};
-var clientWithInternalCA = new HttpClient(handler);
-```

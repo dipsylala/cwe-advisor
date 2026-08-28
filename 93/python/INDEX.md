@@ -12,6 +12,8 @@ In Python, the common concrete case of general CRLF injection (as opposed to CWE
 - For log statements, use structured (JSON) logging, or explicitly encode `\r`/`\n` before writing to a plain-text log - see CWE-117's guidance for depth
 - Strip or reject `\r` and `\n` from untrusted input as defense in depth, regardless of sink, even when using `EmailMessage`
 - Validate recipient/sender addresses with `email.utils.parseaddr()`/`getaddresses()` before use, since a crafted display name can also carry CRLF
+- Django raises `BadHeaderError` and the `h11`-based stacks raise `LocalProtocolError` for a header value containing CR or LF - so an unvalidated value surfaces as a 500 rather than a split response, which is a denial of service to fix rather than a control to rely on
+- Validate with a whole-string match (`re.fullmatch()`), since `$` in Python's `re` also matches before a trailing newline and `^...$` therefore admits the exact character being excluded
 
 ## Taint Sinks
 
@@ -26,19 +28,3 @@ In Python, the common concrete case of general CRLF injection (as opposed to CWE
 - For any other line-oriented protocol - never hand-roll protocol commands by string concatenation with untrusted data; use a library that constructs and validates the protocol message, or strip/encode CRLF before writing to the socket
 - Strip `\r` and `\n` from untrusted input as defense in depth, regardless of sink category
 - Test with a payload containing `\r\nBcc: attacker@evil.com` (mail) or `\r\nX-Injected: true` (other sinks) and confirm no extra header or line is added
-
-## Safe Pattern
-
-```python
-from email.message import EmailMessage
-import smtplib
-
-msg = EmailMessage()
-msg['Subject'] = user_supplied_subject  # header folding/validation applied
-msg['From'] = 'noreply@example.com'
-msg['To'] = recipient_email
-msg.set_content(user_supplied_body)
-
-with smtplib.SMTP('smtp.example.com') as server:
-    server.send_message(msg)  # sends the validated message object, not a raw string
-```

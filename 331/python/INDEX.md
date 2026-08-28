@@ -11,6 +11,8 @@ Insufficient entropy in Python is not about picking the wrong random API - `secr
 - Ensure sufficient entropy regardless of correct API: 16+ bytes (128+ bits) for tokens, 32+ bytes (256+ bits) for keys
 - Never bake long-lived secrets into a VM/container image at build time; generate them at first real startup so cloned instances don't inherit identical secret or seed material
 - On embedded or minimal container systems without a hardware RNG or entropy daemon (`rngd`, `haveged`), verify the OS entropy source is healthy before assuming `secrets` calls return strong output promptly
+- Size the request as well as choosing the API: `secrets.token_hex(4)` is 32 bits - `token_hex(n)`/`token_urlsafe(n)` take a *byte* count, so pass 16 for a token and 32 for key material
+- `uuid.uuid1()` is built from a timestamp and the MAC address rather than randomness, and `uuid.uuid4()` carries 122 random bits; `random.seed()`, `random.shuffle()` and `random.sample()` are not CSPRNG operations at all, and using one for a secret is CWE-338
 
 ## Taint Sinks
 
@@ -24,23 +26,3 @@ Insufficient entropy in Python is not about picking the wrong random API - `secr
 - On Linux, rely on `os.urandom()`'s blocking `getrandom()` behavior rather than adding manual entropy checks; on other platforms, `secrets` already delegates to the OS CSPRNG
 - On embedded or minimal systems, confirm a hardware or software entropy source is present so the OS CSPRNG seeds promptly at boot
 - Verify unpredictability across multiple instances launched from the same image, not only across repeated calls within one instance
-
-## Safe Pattern
-
-```python
-import secrets
-
-# Generate secure token (32 bytes = 256 bits)
-token = secrets.token_urlsafe(32)
-
-# Generate secure random bytes for keys
-encryption_key = secrets.token_bytes(32)
-
-# Secure random selection
-allowed_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-secure_code = ''.join(secrets.choice(allowed_chars) for _ in range(8))
-
-# Compare tokens safely
-if secrets.compare_digest(user_token, stored_token):
-    session['authenticated'] = True
-```

@@ -10,6 +10,7 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 - Use SHA-256 or stronger hash functions for OAEP (avoid SHA-1)
 - Configure OAEPParameterSpec explicitly with MGF1 and appropriate hash algorithm
 - Use RSA key sizes of 2048 bits minimum (4096 recommended for sensitive data)
+- Do not report the difference: `BadPaddingException` and `IllegalBlockSizeException` distinguish "padding parsed" from "it did not", which is exactly the oracle the attack needs - catch both, return one generic failure, and log the detail server-side
 
 ## Taint Sinks
 
@@ -22,20 +23,3 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 - Initialize cipher with the OAEP parameter spec using `cipher.init()` with AlgorithmParameterSpec
 - Generate RSA keys with minimum 2048-bit key size using KeyPairGenerator
 - Test encryption/decryption with sample data to verify proper OAEP implementation
-
-## Safe Pattern
-
-```java
-import javax.crypto.Cipher;
-import javax.crypto.spec.OAEPParameterSpec;
-import java.security.spec.MGF1ParameterSpec;
-import javax.crypto.spec.PSource;
-
-// Secure RSA encryption with OAEP
-Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-OAEPParameterSpec oaepParams = new OAEPParameterSpec(
-    "SHA-256", "MGF1", MGF1ParameterSpec.SHA256, PSource.PSpecified.DEFAULT
-);
-cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams);
-byte[] ciphertext = cipher.doFinal(plaintext);
-```

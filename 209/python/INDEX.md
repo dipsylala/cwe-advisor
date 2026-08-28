@@ -10,6 +10,8 @@ Error Message Information Leak occurs when Python applications expose sensitive 
 - Disable debug mode in production: Set `DEBUG=False` in Django/Flask and disable verbose tracebacks
 - Sanitize all error responses: Never expose stack traces, file paths, or internal state in API/web responses
 - Use structured logging: Log exceptions with context to secure locations inaccessible to users
+- Register the framework's own HTTP exception ahead of a catch-all: `@app.errorhandler(Exception)` in Flask, or a broad handler in FastAPI, also catches `HTTPException`/`fastapi.HTTPException` and turns a 404 or 405 into a 500 - nothing leaks, so a re-scan passes while every client that distinguishes them breaks
+- Redact `record.msg` *and* `record.args` in a logging filter, since the message is not interpolated until it is formatted
 
 ## Taint Sinks
 
@@ -19,25 +21,7 @@ Error Message Information Leak occurs when Python applications expose sensitive 
 
 - Configure production settings to disable debug mode and detailed error pages
 - Implement custom exception handlers that return generic HTTP error responses
-- Add centralized logging for all exceptions with full traceback details
+- Add centralized logging for all exceptions with full traceback details, using `logger.error(..., exc_info=True)` so the traceback goes to the log rather than the response
 - Review all try-except blocks to ensure user-facing messages are generic
 - Implement error monitoring with tools that capture exceptions server-side
 - Test error scenarios to verify no sensitive information leaks through responses
-
-## Safe Pattern
-
-```python
-import logging
-
-logger = logging.getLogger(__name__)
-
-def process_request(data):
-    try:
-        result = perform_operation(data)
-        return {"status": "success", "data": result}
-    except Exception as e:
-        # Log full details server-side
-        logger.error(f"Operation failed: {e}", exc_info=True)
-        # Return generic message to user
-        return {"status": "error", "message": "An error occurred processing your request"}, 500
-```

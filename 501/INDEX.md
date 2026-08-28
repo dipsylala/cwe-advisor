@@ -11,6 +11,9 @@ Trust boundary violations occur when untrusted data (user input, HTTP requests) 
 - Never assume session, cache, or internal object data is inherently safe
 - Validate and sanitize before storing untrusted data in trusted contexts
 - Separate trusted and untrusted data storage mechanisms
+- The defect is the change of trust level, not the absence of validation: the value may have been validated correctly for its original purpose, and what is wrong is that it entered a store the rest of the application treats as authoritative
+- Validate and re-authorize at the moment of the *write* into the trusted store, since every later reader is entitled to skip the check by design
+- Distinguish the mirror image: security-critical state kept where the *client* controls it is CWE-642, the same shape at startup is CWE-454, and trusted data reaching a context that should not hold it is CWE-668/CWE-200
 
 ## Remediation Steps
 

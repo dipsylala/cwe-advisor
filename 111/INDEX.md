@@ -7,11 +7,16 @@ This weakness occurs when Java code calls native (JNI) functions and passes data
 ## Key Principles
 
 - Validate all parameters (null, length, encoding, range) in Java before they cross into native code; do not rely on the native side to catch bad input
-- Minimize the JNI surface: prefer pure Java or a managed native-interop layer over hand-written JNI wherever performance or platform needs allow
+- Express the bound in bytes on the side that owns the buffer: `String.length()` counts UTF-16 code units, so a 100-character check passes a 300-byte UTF-8 encoding, and a Java-side character check does not bound a native `char[]`
+- Validate on both sides deliberately - in Java for the error message and the fast rejection, in native code for the safety property, since the native function owns the buffer and may be reachable from another caller or binding
+- Throwing a Java exception from JNI does not unwind: execution continues to the next statement, so check for a pending exception (`ExceptionCheck`) after every JNI call and return immediately rather than continuing with a NULL result
+- Minimize the JNI surface: prefer pure Java or a managed interop layer over hand-written JNI
 - In native code, use bounds-aware accessor functions and check every return value for null or error before use
-- Always release every acquired JNI resource (strings, array elements, local references), including on error paths
-- Treat data returned from native code as untrusted; validate it again in Java before use, especially if it flows into a further sink such as SQL or HTML output
+- Release every acquired JNI resource (strings, array elements, local references) on every path, including errors
+- Treat data returned from native code as untrusted and validate it again in Java, especially where it flows into a further sink
 - Apply defence-in-depth: fuzz native entry points and run memory sanitizers against them in testing
+- Use `GetPrimitiveArrayCritical`/`GetStringCritical` only where profiling shows the copy matters: they return a direct pointer into the JVM heap and can suspend garbage collection, so calling almost any other JNI function or blocking between acquire and release can deadlock the VM
+- Where the native layer exists only to reach a library, the Foreign Function & Memory API (final in Java 22) does the same work from Java with bounds-checked memory segments and no hand-written C - removing the boundary removes the weakness
 
 ## Remediation Steps
 
@@ -19,5 +24,5 @@ This weakness occurs when Java code calls native (JNI) functions and passes data
 - Trace data flow - follow parameters from their untrusted source through the Java call into the native function, and follow any values the native function returns back into Java
 - Identify the unsafe pattern - missing length or null validation before the native call, or in native code: unchecked accessor return values, fixed-size buffers copied without a bounds check, or missing resource release
 - Replace with the safe pattern - add explicit validation (null, length, encoding) in Java before the call, and in native code use length-aware accessor functions with buffers sized from actual validated data length
-- Add secondary controls - check for pending exceptions after every JNI call, release all acquired references on every exit path including errors, and re-validate any data returned from native code before using it downstream
-- Test - exercise the native boundary with oversized, null, and malformed input, and confirm with a memory sanitizer that no out-of-bounds access or leak occurs
+- Add secondary controls - check for pending exceptions after every JNI call and release all acquired references on every exit path
+- Test - build the native library with `-fsanitize=address` and run the JVM with `-Xcheck:jni`, which reports unreleased references, wrong reference types, and calls made while an exception is pending that the normal runtime accepts silently. Send input at, one byte over, and far over the byte limit *as non-ASCII*, send a string containing `U+0000`, force each error path, and assert native heap usage returns to baseline afterwards

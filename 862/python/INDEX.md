@@ -12,6 +12,8 @@ In Django and Django REST Framework, Missing Authorization typically appears as 
 - Do not rely on filtering only the objects visible to the user in a list view while leaving the detail/update/delete view unfiltered - each action needs its own check
 - Use `@permission_required('app.change_order', raise_exception=True)`, not the default redirect-to-login behavior, so an authenticated but unauthorized user gets a 403, not a login prompt
 - Centralize permission classes and Django permission checks in reusable modules so new views import consistent rules rather than reimplementing checks inline
+- `has_object_permission()` runs only when something calls `self.get_object()`, so a custom `retrieve()`, an `@action`, or a hand-written `get_object_or_404(Order, pk=pk)` bypasses it - call `self.check_object_permissions(request, obj)` explicitly on those paths
+- Scope `get_queryset()` to the requesting user so a list endpoint, which has no object-level hook, cannot return other people's rows
 
 ## Taint Sinks
 
@@ -26,32 +28,3 @@ Django view functions, DRF `ViewSet` methods, `@api_view` functions lacking `per
 - Reconcile with existing endpoints - Audit `urls.py` and viewset registrations to confirm the new view uses the same permission classes as comparable views
 - Harden configuration - Review `DEFAULT_PERMISSION_CLASSES` in DRF settings and ensure it is not set to `AllowAny` for authenticated-only projects
 - Test - Write tests using Django's test client or DRF's `APIClient` that call each endpoint as an authenticated user lacking the required permission or ownership and assert a 403 response
-
-## Safe Pattern
-
-```python
-# SAFE: Django view with explicit permission check
-from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-
-@login_required
-@permission_required("orders.change_order", raise_exception=True)
-def refund_order(request, order_id):
-    order = get_object_or_404(Order, pk=order_id)
-    order.refund()
-    return JsonResponse({"status": "refunded"})
-
-# SAFE: DRF object-level permission class
-from rest_framework.permissions import BasePermission, IsAuthenticated
-from rest_framework import viewsets
-
-class IsOrderOwner(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return obj.owner_id == request.user.id
-
-class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated, IsOrderOwner]
-```

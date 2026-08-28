@@ -9,10 +9,15 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 ## Key Principles
 
 - Validate all URLs against an allowlist of permitted domains before making requests
-- Block private, loopback, link-local, multicast, any-local, IPv4-mapped IPv6, and cloud metadata address ranges
+- Block private, loopback, link-local, multicast, any-local, IPv4-mapped IPv6, and cloud metadata address ranges, unmapping with `MapToIPv4()` when `IsIPv4MappedToIPv6` is set so the range test sees the v4 address
 - Disable automatic redirects with `AllowAutoRedirect = false` to prevent redirect-based SSRF bypasses
 - Resolve DNS and validate resulting IP addresses to prevent DNS rebinding attacks
 - Enforce HTTPS-only and implement request timeouts to prevent DoS
+- Use `IsIPv6UniqueLocal` (.NET 6+) for `fc00::/7` - `IsIPv6SiteLocal` sounds like private IPv6 and matches only the deprecated `fec0::/10` - and write byte tests for `0.0.0.0/8`, `100.64.0.0/10` and `192.0.0.0/24`, which have no property at all
+- Block the whole `169.254.0.0/16` range rather than the single AWS metadata address, which covers the Azure and Alibaba endpoints too
+- Check every answer `Dns.GetHostAddresses()` returns, not the first
+- Set `UseProxy = false`: validation established what the host resolves to from *this* process, and .NET opts into a proxy from the environment without being asked, which forwards the hostname to be resolved at the other end
+- Close the rebinding race with `SocketsHttpHandler.ConnectCallback` (.NET 6+), which owns the socket and so validates the address actually connected to rather than one from an earlier lookup
 
 ## Taint Sinks
 
@@ -26,44 +31,3 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Configure HttpClient with `AllowAutoRedirect = false` and `UseProxy = false`
 - Block cloud metadata endpoints (169.254.169.254, metadata.google.internal) explicitly
 - Return generic error messages to prevent information disclosure during validation failures
-
-## Safe Pattern
-
-```csharp
-private static readonly HashSet<string> AllowedHosts = new() 
-    { "api.example.com", "cdn.example.com" };
-
-private Uri ValidateUrl(string url)
-{
-    if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) || 
-        uri.Scheme != "https" || !AllowedHosts.Contains(uri.Host.ToLowerInvariant()))
-        throw new SecurityException("Invalid URL");
-    
-    foreach (var addr in Dns.GetHostAddresses(uri.Host))
-    {
-        if (!IsGlobalAddress(addr))
-            throw new SecurityException("Private IP blocked");
-    }
-    return uri;
-}
-
-private static bool IsGlobalAddress(IPAddress address)
-{
-    if (address.IsIPv4MappedToIPv6)
-        address = address.MapToIPv4();
-    if (IPAddress.IsLoopback(address) || address.Equals(IPAddress.Any) ||
-        address.Equals(IPAddress.IPv6Any) || address.IsIPv6LinkLocal ||
-        address.IsIPv6Multicast)
-        return false;
-
-    var bytes = address.GetAddressBytes();
-    if (address.AddressFamily == AddressFamily.InterNetwork)
-        return !(bytes[0] == 10 || bytes[0] == 127 ||
-                 (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) ||
-                 (bytes[0] == 192 && bytes[1] == 168) ||
-                 (bytes[0] == 169 && bytes[1] == 254));
-
-    // Unique local fc00::/7
-    return (bytes[0] & 0xfe) != 0xfc;
-}
-```

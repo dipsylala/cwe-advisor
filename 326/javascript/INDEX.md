@@ -10,6 +10,8 @@ Inadequate Encryption Strength in JavaScript/Node.js applications occurs when de
 - Generate keys with cryptographically secure random sources (`crypto.randomBytes()`) at minimum 256-bit length
 - Derive keys from passwords using PBKDF2 (600,000+ iterations), scrypt, or Argon2
 - Avoid deprecated algorithms: DES, 3DES, RC4, MD5, SHA1, AES-ECB mode
+- Compare secrets with `crypto.timingSafeEqual()`, which requires equal-length buffers and throws otherwise - hash both sides first where the lengths can differ
+- `bcrypt.compare()` performs its own constant-time comparison, so the remaining exposure is the surrounding control flow rather than the digest check
 
 ## Taint Sinks
 
@@ -21,22 +23,4 @@ Inadequate Encryption Strength in JavaScript/Node.js applications occurs when de
 - Generate 256-bit keys using `crypto.randomBytes(32)` or derive from passwords with `crypto.pbkdf2()` (600,000+ iterations)
 - Use authenticated encryption modes (GCM, CCM) that provide both confidentiality and integrity
 - Generate unique IVs/nonces per encryption operation using `crypto.randomBytes(12)` for GCM
-- Store algorithm, IV, salt, and ciphertext together; never hardcode encryption keys
-
-## Safe Pattern
-
-```javascript
-const crypto = require('crypto');
-
-function encryptData(plaintext, password) {
-  const salt = crypto.randomBytes(16);
-  const key = crypto.pbkdf2Sync(password, salt, 600000, 32, 'sha256');
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-  
-  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-  const authTag = cipher.getAuthTag();
-  
-  return Buffer.concat([salt, iv, authTag, encrypted]);
-}
-```
+- Store salt, IV, ciphertext, and the `cipher.getAuthTag()` value (readable only after `cipher.final()`) together; never hardcode encryption keys

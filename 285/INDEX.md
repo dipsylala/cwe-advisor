@@ -11,6 +11,9 @@ Improper Authorization occurs when applications fail to enforce or incorrectly i
 - Authorization checks must occur server-side and cannot be bypassed by client manipulation
 - Use centralized authorization logic to ensure consistent enforcement across the application
 - Default to deny: require explicit permission grants rather than assuming access
+- Check both levels: that the caller may invoke the function *and* that they may act on the specific object; an object-level hook never fires on a collection endpoint, which is the one that leaks the whole table
+- Make the two denials indistinguishable - "not yours" and "does not exist" must return the same status and the same body, or the pair enumerates the table one request at a time
+- Test the accept side first: a control that refuses everyone passes every rejection assertion identically, and that is the most common way an authorization fix ships broken
 
 ## Remediation Steps
 

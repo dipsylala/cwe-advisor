@@ -2,13 +2,14 @@
 
 ## LLM Guidance
 
-Integer coercion errors occur when an implicit conversion between integer types - a narrowing cast, a sign change, or a parameter conversion at a function call - silently changes a value instead of raising an error. The converted value then flows into a size, index, comparison, or security check as if it were still correct, producing a truncated buffer size, a flipped comparison outcome, or a bypassed check. The fix is to never rely on an implicit conversion: convert explicitly and validate that the value fits the target type's range before converting.
+Integer coercion errors occur when a conversion between integer types - a narrowing cast, a sign change, or a parameter conversion at a function call - silently changes a value instead of raising an error. This is not confined to unmanaged code: C and C++ perform the conversion implicitly, while Java and C# demand a visible cast that still truncates without complaint (`(int) longValue` keeps the low 32 bits, and C# does the same outside a `checked` block). The language decides where the wrong value surfaces, not whether it is produced. The converted value then flows into a size, index, comparison, or security check as if it were still correct, producing a truncated buffer size, a flipped comparison outcome, or a bypassed check. The fix is to never rely on an implicit conversion: convert explicitly and validate that the value fits the target type's range before converting.
 
 ## Key Principles
 
 - Never let a narrowing or sign-changing conversion happen implicitly; cast explicitly and check the value against the target type's range first
 - On a failed range check, reject the value or raise an error rather than silently clamping or truncating, since either substitutes a different but still-incorrect value
 - Compare and combine values using one consistent type rather than mixing signed and unsigned; a signed value mixed with an unsigned one is implicitly converted to unsigned, and a negative value becomes very large
+- Know which arrangement is actually hazardous: `if (signed_value < unsigned_size)` converts the signed operand and answers *false* for a negative value, skipping the guarded branch - the safe direction, which is why it is easy to miss. The dangerous shape is an upper-bound-only check evaluated in signed arithmetic (`if (len > max) reject`), which accepts a negative `len` that then becomes an enormous value at an unsigned sink such as an allocation or a copy length. Check the sign explicitly before either
 - Prefer the language's overflow/range-checked conversion primitives over a bare cast
 - Wrap the check-then-cast pattern in a small reusable helper so every conversion site applies the same validation
 - Enable and treat as errors the compiler/linter warnings that catch unsafe or implicit numeric conversions

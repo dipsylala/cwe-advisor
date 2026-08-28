@@ -11,6 +11,9 @@ Insecure Direct Object Reference (IDOR) occurs when applications expose direct r
 - Use query filters or ACL lookups to enforce object-level permissions
 - Return consistent error responses (403/404) that don't reveal whether objects exist
 - Consider indirect references (UUIDs, session mappings) to prevent enumeration
+- Derive the ownership check from the server-side session or token context, never from anything in the request that identified the object
+- Test horizontal escalation across every verb: as user B, request user A's resource by id with `GET`, `PUT`, `DELETE`, and a create carrying another user's id in the body - each must be refused rather than returning the record
+- Distinguish the neighbours: flawed authorization logic generally is CWE-863, no check on the path at all is CWE-862, and the SQL primary-key manifestation is CWE-566
 
 ## Remediation Steps
 

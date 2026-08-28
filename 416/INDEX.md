@@ -11,6 +11,11 @@ A use-after-free occurs when a program continues to access memory or a handle-li
 - Pay particular attention to callbacks, event handlers, and asynchronous operations that may run after the object they reference has already been released
 - Prefer ownership and lifetime constructs (smart pointers, reference counting, scope-bound lifetimes) over manually tracked raw pointers passed across components
 - Invalidate cached pointers or references when the underlying resource is closed or freed elsewhere, rather than assuming the cache stays in sync
+- Freeing does not make memory inaccessible: the allocator returns the block to its free list while the pages stay mapped, so the write succeeds with no fault and no symptom at the line that holds the defect
+- Nulling is weaker here than for double free, because there is no way to find every alias - MITRE's own note records that its usefulness falls away as the data structure grows, and the pointer that gets used is usually not the one that was nulled
+- Make every reference an owner where the language allows it, so release is whatever happens last and no enumeration of aliases is required
+- Use a weak reference for an alias that must not extend the lifetime, and note why `upgrade()`/`lock()` beats a null check: it answers the liveness question *by producing an owner*, so the object cannot be released between the check and the use
+- Where the access happens because a signal handler ran concurrently, the root cause is CWE-364
 
 ## Remediation Steps
 

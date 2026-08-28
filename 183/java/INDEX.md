@@ -11,6 +11,7 @@ Permissive input validation occurs when regex patterns or validation logic fails
 - Implement strict length validation before regex processing to prevent ReDoS attacks
 - Use specialized validation classes (`URI`, `Path`, `InetAddress`) for structured data instead of regex
 - Apply defence-in-depth with multiple validation layers for critical inputs
+- Resolve with `toRealPath()` before comparing, since a lexical `normalize()` cannot see a symlink and the allowlist then approves a path that resolves elsewhere
 
 ## Taint Sinks
 
@@ -24,28 +25,3 @@ Permissive input validation occurs when regex patterns or validation logic fails
 - Compile patterns with anchors - `Pattern pattern = Pattern.compile("^[a-zA-Z0-9]{3,20}$")`
 - Test validation with boundary cases including partial matches, empty strings, and oversized inputs
 - Log validation failures for security monitoring
-
-## Safe Pattern
-
-```java
-private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]{3,20}$");
-private static final int MAX_LENGTH = 20;
-
-public boolean validateUsername(String username) {
-    if (username == null || username.length() > MAX_LENGTH) {
-        return false;
-    }
-    return USERNAME_PATTERN.matcher(username).matches();
-}
-
-// For URLs, use specialized classes instead of regex
-public boolean validateUrl(String urlString) {
-    try {
-        URI uri = URI.create(urlString);
-        return "https".equals(uri.getScheme())
-            && Set.of("example.com", "api.example.com").contains(uri.getHost());
-    } catch (IllegalArgumentException e) {
-        return false;
-    }
-}
-```

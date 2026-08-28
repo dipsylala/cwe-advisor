@@ -11,6 +11,9 @@ Insecure temporary files occur when applications create predictable filenames, u
 - Avoid shared directories like /tmp when possible; use user-specific temp directories
 - Always delete temporary files after use; use auto-cleanup mechanisms where available
 - Never use predictable patterns (timestamps, PIDs, sequential numbers) in filenames
+- Apply the mode at creation rather than afterwards: a `chmod` after the fact leaves a window in which the file exists at the umask default, and on some platforms the temp API already applies 0600
+- What the platform temp APIs actually guarantee is that the name is generated and the file claimed in *one* operation - that is the part which closes the race, not the name's quality
+- Do not treat a temp filename as a secret: OpenJDK's comes from `SecureRandom`, but Go's comes from the runtime's general-purpose generator, Python's from `random.Random`, and C `mkstemp()` names vary by libc
 
 ## Remediation Steps
 

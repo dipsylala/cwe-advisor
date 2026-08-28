@@ -11,6 +11,8 @@ Java's `java.util.Random` and `Math.random()` are predictable and unsuitable for
 - Initialize `SecureRandom` once and reuse the instance to avoid performance overhead
 - Never seed `SecureRandom` with predictable values (timestamps, constants)
 - Ensure sufficient entropy by relying on OS-level random sources
+- Fill a byte array with `SecureRandom.nextBytes()` sized to the purpose rather than composing a value from `nextInt()` calls, which is easy to bias
+- `ThreadLocalRandom.current()` is a performance helper for non-security work and is not a CSPRNG
 
 ## Taint Sinks
 
@@ -24,27 +26,3 @@ Java's `java.util.Random` and `Math.random()` are predictable and unsuitable for
 - Remove any manual seeding with `setSeed()` unless using truly random entropy
 - Validate that the default provider offers cryptographic strength for your platform
 - Test for performance impact and optimize instance reuse if needed
-
-## Safe Pattern
-
-```java
-import java.security.SecureRandom;
-
-public class SecureTokenGenerator {
-    private static final SecureRandom secureRandom = new SecureRandom();
-    
-    public static String generateToken() {
-        byte[] randomBytes = new byte[32];
-        secureRandom.nextBytes(randomBytes);
-        return bytesToHex(randomBytes);
-    }
-    
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-        return sb.toString();
-    }
-}
-```

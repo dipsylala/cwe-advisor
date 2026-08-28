@@ -11,6 +11,10 @@ CWE-331 occurs when a security-sensitive value is generated with insufficient ac
 - Never seed a random generator from a low-entropy or guessable source (timestamp, process ID, MAC address), even if the generator's output function is itself cryptographically strong
 - Be cautious of cloned or templated virtual machine/container images, which can share identical PRNG seed state unless explicitly re-seeded after cloning
 - Verify entropy source health on embedded and virtualized systems, where hardware entropy may be scarce or slow to accumulate at boot
+- Treat 128 bits as the floor for anything an attacker gains by guessing; below that, brute-force becomes a question about the attacker's budget rather than a settled no
+- Prefer 256 bits for long-lived values such as password-reset tokens and API keys - the extra bits cost nothing and these end up in logs, referrer headers, and support tickets
+- A v4 UUID carries 122 random bits whatever generator produced it, since 6 of its 128 bits are fixed version and variant markers: adequate as an identifier, below the usual minimum for key material
+- A 6-digit out-of-band code carries about 20 bits and is defensible only behind a strict attempt limit, a short expiry, and single use - write those three controls down as part of the fix, because without them the code is the whole authenticator
 
 ## Remediation Steps
 

@@ -11,6 +11,7 @@ Cross-Site Scripting (CWE-80) occurs when untrusted data is included in web page
 - Validate and sanitize input when encoding alone is insufficient
 - Apply Content Security Policy headers to restrict script execution
 - Never trust user input, even from authenticated users
+- Writing markup through `PrintWriter`/`response.getWriter()` bypasses whatever escaping the template layer applies, so those call sites need the encoder applied explicitly
 
 ## Taint Sinks
 
@@ -20,23 +21,7 @@ Cross-Site Scripting (CWE-80) occurs when untrusted data is included in web page
 
 - Replace direct JSP expressions (`<%= %>`) with JSTL `<c:out>` tags
 - Enable auto-escaping in templating frameworks (Thymeleaf, Freemarker)
-- Use OWASP Java Encoder for manual encoding in servlets
+- Use OWASP Java Encoder (`Encode.forHtml()`, `Encode.forHtmlAttribute()`) for manual encoding in servlets
 - Set `HttpOnly` and `Secure` flags on session cookies
 - Implement Content Security Policy headers to block inline scripts
 - Review all output points where user data appears
-
-## Safe Pattern
-
-```jsp
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<!-- Safe: Auto-escaped output -->
-<c:out value="${userInput}" />
-
-<!-- Safe: Explicit escaping in attributes -->
-<input type="text" value="<c:out value='${userInput}' />" />
-
-<!-- Servlet-side encoding -->
-import org.owasp.encoder.Encode;
-response.getWriter().write(Encode.forHtml(userInput));
-```

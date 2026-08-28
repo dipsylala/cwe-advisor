@@ -11,6 +11,7 @@ CWE-183 occurs when input validation uses overly permissive patterns that fail t
 - Use Set-based lookups for discrete allowlists instead of pattern matching
 - Enforce strict length limits before validation
 - Validate normalized/canonical forms to prevent bypass techniques
+- Compare with `path.relative()` rather than `BASE_DIR + path.sep` string prefixing, and check the *final* extension rather than whether an allowed one appears anywhere - `evil.php.jpg` and `evil.jpg.php` both contain `.jpg`
 
 ## Taint Sinks
 
@@ -24,21 +25,3 @@ unanchored regex (missing `^`/`$`), loose `String.includes()`/`startsWith()` che
 - Add maximum length checks before validation logic
 - Normalize inputs (lowercase, trim) before allowlist comparison
 - Throw errors on validation failure; never fall back to permissive defaults
-
-## Safe Pattern
-
-```javascript
-function validateAllowedDomain(input) {
-  const ALLOWED_DOMAINS = new Set(['example.com', 'trusted.org']);
-  const MAX_LENGTH = 253;
-  
-  if (!input || input.length > MAX_LENGTH) return false;
-  
-  try {
-    const url = new URL(input);
-    return ALLOWED_DOMAINS.has(url.hostname.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-```

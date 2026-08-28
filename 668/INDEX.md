@@ -10,6 +10,8 @@ Exposing resources (files, database connections, memory) to the wrong sphere of 
 - Close file descriptors after fork() so child processes do not inherit sensitive resources from the parent
 - Use thread-local storage, connection-per-request patterns, and per-user resource allocation to isolate by security context
 - Close or clear resources explicitly when crossing security boundaries: connection pool returns, thread completion, process transitions
+- Treat this as a router and take the fix from the child: information exposure is CWE-200, a handle inherited across `fork`/`exec` is CWE-402, a temporary file is CWE-377, a search path element is CWE-427, credentials are CWE-522, client-controlled critical state is CWE-642, permission bits are CWE-732, a cloneable secret-holding class is CWE-498, and a format string is CWE-134
+- Per-request state held in a singleton, a servlet member field, or a module-level variable and then read by a concurrent request belonging to someone else is CWE-488 - the child most often filed here by mistake
 
 ## Remediation Steps
 

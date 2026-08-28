@@ -8,6 +8,7 @@ In Flask, Django, and FastAPI applications this occurs when request data (`reque
 
 - Load configuration once at startup with Pydantic `BaseSettings` (`model_config = {"frozen": True}`) or an equivalent Flask `Config` class/Django settings module populated from environment variables, never from `request.form`/`request.json`
 - Never call `os.environ[key] = value`, `app.config[key] = value`, or `setattr(settings, key, value)` with a key or value taken directly from the request
+- Treat a request-reachable config write as high severity because of which keys it reaches: Flask's `DEBUG` (exposes the Werkzeug console), `SECRET_KEY` (forges sessions), `SESSION_COOKIE_SECURE`/`SESSION_COOKIE_HTTPONLY`/`SESSION_COOKIE_SAMESITE`, and Django's `ALLOWED_HOSTS`
 - Use `Literal[...]` (Pydantic) or an `Enum` (FastAPI path/query parameter) for constrained settings so the framework rejects out-of-range values automatically
 - Any admin endpoint that changes a setting must require an admin-only decorator (Flask `admin_required`, Django `@staff_member_required`, or a FastAPI `Depends(require_admin)`) and check both the key and value against a `dict`/`set` allowlist before applying it
 - Never pass a request-controlled path to `configparser.read()`/`open()` for config loading, and use `yaml.safe_load()` (never `yaml.load()`/`yaml.Loader`) for any uploaded YAML configuration
@@ -26,30 +27,3 @@ In Flask, Django, and FastAPI applications this occurs when request data (`reque
 - Break taint after allowlist validation - assign the matched allowlist entry to a fresh local variable before calling `logging.getLogger().setLevel()` or `config_service.apply()`, never the raw request value
 - Harden configuration - use Pydantic validators or `Literal[...]` types so invalid configuration raises `ValidationError` at startup instead of degrading security silently
 - Test - submit values outside the allowlist and confirm 400, confirm unauthenticated calls to admin config endpoints return 401/403, and confirm assigning to a frozen `BaseSettings` field raises an error
-
-## Safe Pattern
-
-```python
-# SAFE: startup-loaded, immutable configuration - no request can reach it
-from pydantic_settings import BaseSettings
-from typing import Literal
-
-class AppSettings(BaseSettings):
-    log_level: Literal["INFO", "WARN", "ERROR"] = "INFO"
-    model_config = {"env_file": ".env", "frozen": True}
-
-settings = AppSettings()
-
-# SAFE: runtime log-level change gated by auth + allowlist
-ALLOWED_LOG_LEVELS = {"INFO", "WARN", "ERROR"}
-
-@app.route('/admin/log-level', methods=['POST'])
-@admin_required
-def set_log_level():
-    level = request.json.get('level', '').upper()
-    if level not in ALLOWED_LOG_LEVELS:
-        return jsonify({'error': 'Invalid log level'}), 400
-    # Allowlist-checked value is what reaches the sink, not the raw request field
-    logging.getLogger().setLevel(level)
-    return jsonify({'status': 'updated', 'level': level})
-```

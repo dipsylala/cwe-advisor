@@ -11,6 +11,8 @@ HTTP Response Splitting in Python occurs when user-supplied strings are placed i
 - Use `flask.redirect()` or `django.shortcuts.redirect()` with a validated URL instead of setting `Location` manually
 - Validate redirect destinations against an allowlist of permitted paths or use `urllib.parse.urlparse()` to confirm the scheme and host are safe
 - Avoid `response.headers.add()` with unsanitized user input; prefer framework-level cookie and header helpers
+- Werkzeug's `Headers.set()` and Django's `HttpResponse.__setitem__` raise `ValueError`/`BadHeaderError` for CR or LF, so an unvalidated value is a 500 rather than a split response - fix the validation rather than relying on the raise
+- Anchor the validation with `re.fullmatch()`: `$` in Python's `re` also matches before a trailing newline, and `\z` is not a valid escape before Python 3.14, so `re.compile(r'\A[a-z]+\z')` raises rather than protecting anything
 
 ## Taint Sinks
 
@@ -24,38 +26,3 @@ HTTP Response Splitting in Python occurs when user-supplied strings are placed i
 - For `Content-Disposition` headers (file downloads), use `werkzeug.utils.secure_filename()` and encode the filename
 - In Django, avoid `HttpResponse` header assignment with user data; use typed response classes or `response.set_cookie()` for cookies
 - Test by submitting `%0d%0aX-Injected: evil` in inputs that end up in headers
-
-## Safe Pattern
-
-```python
-import re
-from urllib.parse import urlparse
-from flask import Flask, redirect, request, abort, make_response
-from werkzeug.utils import secure_filename
-
-app = Flask(__name__)
-
-# Example allowlist policy: matches local absolute paths that start with
-# one "/" and reject "//", allowing only letters, digits, "/", "_", and "-".
-ALLOWED_REDIRECT_PATTERN = re.compile(r'^/(?!/)[a-zA-Z0-9/_\-]*$')
-CRLF_PATTERN = re.compile(r'[\r\n\u0085\u2028\u2029]|%0[aAdD]')
-
-def sanitize_header_value(value: str) -> str:
-    return CRLF_PATTERN.sub('', value)
-
-# Safe redirect - validate before redirecting
-@app.route('/redirect')
-def safe_redirect():
-    url = request.args.get('next', '/')
-    if not ALLOWED_REDIRECT_PATTERN.match(url):
-        abort(400)
-    return redirect(url)
-
-# Safe custom header - strip CRLF first
-@app.route('/download')
-def download():
-    filename = secure_filename(sanitize_header_value(request.args.get('filename', 'file.txt')))
-    response = make_response('file contents')
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
-```

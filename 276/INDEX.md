@@ -12,6 +12,9 @@ This vulnerability occurs when a file, directory, database, cloud storage bucket
 - Review installer scripts, container images, IaC templates (Terraform, CloudFormation, Helm charts), and platform/cloud defaults as explicitly as application code, since this is the class of finding most often surfaced by hardening checklists and IaC scanners
 - Distinguish from CWE-732: CWE-276 is about the baseline state a resource is created or provisioned with (a default umask, a template, a platform default); CWE-732 is about a specific permission assignment set incorrectly in application logic (a bad chmod call, an ACL bug). Fix CWE-276 by changing the default; fix CWE-732 by fixing the specific assignment
 - Apply defence-in-depth: keep an authorization check at the point of use so a future default regression is not the only barrier
+- Fix the template, not the instance: tightening an existing bucket or file by hand leaves the module, installer, or image build that created it producing the same permissive default for the next deployment
+- Do not assume a managed platform's default is safe - several major providers have shipped permissive defaults (public-read storage, open management ports) that require an explicit opt-out
+- Where the finding is an unchanged default administrative account or password rather than a permission, it is CWE-1392/CWE-1393 with CWE-798 carrying the credential remediation; this entry is about permissions and policies
 
 ## Remediation Steps
 

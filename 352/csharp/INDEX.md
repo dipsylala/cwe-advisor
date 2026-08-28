@@ -13,6 +13,8 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify requests o
 - Ensure tokens are included in forms via `@Html.AntiForgeryToken()` or auto-generated
 - Validate SameSite cookie attributes are set to `Strict` or `Lax`
 - Never disable CSRF protection for authenticated endpoints
+- Use the framework's `IAntiforgery` service rather than a hand-rolled token: it generates with `RandomNumberGenerator`, compares with `CryptographicOperations.FixedTimeEquals`, and binds the `__RequestVerificationToken` to the authenticated user
+- API endpoints that accept JSON still need the check - a token in a header (`RequestVerificationToken`) is the usual form, since a cookie alone is not proof of intent
 
 ## Taint Sinks
 
@@ -26,24 +28,3 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify requests o
 - Apply `[ValidateAntiForgeryToken]` to individual controllers/actions if not using global filters
 - Configure SameSite cookies - `options.Cookie.SameSite = SameSiteMode.Strict`
 - Test protected endpoints reject requests without valid tokens
-
-## Safe Pattern
-
-```csharp
-// Startup.cs - Global configuration
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddControllersWithViews(options =>
-    {
-        options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-    });
-}
-
-// Controller action (token validated automatically)
-[HttpPost]
-public IActionResult UpdateProfile(ProfileModel model)
-{
-    // Token validation happens automatically
-    return View();
-}
-```

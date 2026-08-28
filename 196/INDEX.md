@@ -8,6 +8,8 @@ This weakness appears when an unsigned value larger than a signed type's maximum
 
 - Primary defence: compare the unsigned value against the destination signed type's maximum before casting or assigning it.
 - Never assign a size/length/count result (string length, container size) directly into a plain signed type without a range check.
+- The damage is usually done by a *pair* of conversions: the value goes negative crossing into the signed type, passes an upper-bound-only check written for small positive numbers, then converts straight back at an allocator whose size parameter is unsigned - so a small negative becomes a value near the type's maximum, and the check meant to keep the request small is what let it through. Check the sign as well as the bound.
+- A mixed signed/unsigned *comparison* does not produce this direction and belongs to CWE-195; what belongs here is a value somebody has already cast.
 - Where the conversion is not actually required, keep the value unsigned for its entire lifetime instead of converting to signed to satisfy convenience or a legacy interface.
 - Do not trust "the value is usually small" as a substitute for enforcing the range; the failure only appears once an input crosses the boundary.
 - Prefer a single consistent type family for a given quantity (all unsigned, or a validated signed type) rather than converting back and forth.

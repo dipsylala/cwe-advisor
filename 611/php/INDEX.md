@@ -13,6 +13,10 @@ PHP's XML parsers can process external entities by default, leading to file disc
 - Validate and sanitize XML input to reject documents containing entity declarations
 - Prefer JSON over XML when possible to eliminate XXE risk entirely
 - Keep PHP updated (8.0+ has safer defaults with entity loader disabled by default)
+- On PHP 8.4+ pass `LIBXML_NO_XXE` to the loader, which disables entity substitution regardless of other flags; `libxml_disable_entity_loader()` is deprecated in 8.0 and removed in 8.4, so code relying on it is not protected on a current runtime
+- Never pass `LIBXML_NOENT` - the name reads like "no entities" and it does the opposite, enabling entity substitution
+- Reject the document outright when `DOMDocument::$doctype` is non-null where a DTD has no legitimate use, which is stronger than disabling entity resolution
+- `SoapClient` parses responses with the same libxml stack, so a malicious or compromised endpoint reaches it - override `__doRequest()` to parse hardened, and treat a `SoapFault` as a rejection
 
 ## Taint Sinks
 
@@ -26,23 +30,3 @@ PHP's XML parsers can process external entities by default, leading to file disc
 - Never use `LIBXML_DTDLOAD` unless absolutely required with trusted input only
 - Test with payloads containing `<!ENTITY>` declarations to verify protection
 - Review all usages of `simplexml_*`, `DOMDocument`, `XMLReader`, and `xml_parse` functions
-
-## Safe Pattern
-
-```php
-<?php
-// PHP < 8.0: Disable entity loading globally
-libxml_disable_entity_loader(true);
-
-// Safe XML parsing with DOMDocument
-$dom = new DOMDocument();
-$dom->loadXML($xmlString, LIBXML_NONET);
-
-// Safe XML parsing with SimpleXML
-$xml = simplexml_load_string($xmlString, 'SimpleXMLElement', LIBXML_NONET);
-
-// Safe XML parsing with XMLReader
-$reader = new XMLReader();
-$reader->XML($xmlString, null, LIBXML_NONET);
-?>
-```

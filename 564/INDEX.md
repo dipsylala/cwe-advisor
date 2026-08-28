@@ -11,6 +11,9 @@ Hibernate injection occurs when user input is concatenated into HQL (Hibernate Q
 - Never concatenate user input into query strings, even for ORDER BY or IN clauses
 - Use Criteria API or QueryDSL for dynamic queries requiring type safety
 - Validate and whitelist user input for non-parameterizable elements like column names
+- `createNativeQuery()` is not a special case: it accepts the same `:name` binding as HQL, so a native query is bound the same way rather than concatenated because "it is raw SQL anyway"
+- Binding covers values, not syntax: a table name, a column name, an `ORDER BY` direction, or an `IN` list built by concatenation stays injectable and needs allowlist validation against a fixed set
+- The root cause and the fix are CWE-89's - only the API surface differs, so use that entry when Hibernate is not involved
 
 ## Remediation Steps
 

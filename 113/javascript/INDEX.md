@@ -11,6 +11,9 @@ HTTP Response Splitting in Node.js occurs when user-supplied values are passed t
 - Use `res.redirect()` with a validated, allowlisted URL rather than `res.setHeader('Location', userInput)`
 - Validate redirect targets against an allowlist of known-safe paths or origins before redirecting
 - Avoid manually constructing `Set-Cookie` header values - use `res.cookie()` with `httpOnly` and `sameSite` options
+- Node rejects a bad header *name* with `ERR_INVALID_HTTP_TOKEN` and a bad value with `ERR_INVALID_CHAR`, so both surface as a 500 rather than a split response - fix the validation instead of relying on the throw, and note neither applies to bytes written directly to the socket
+- Use the framework's cookie API rather than composing a `Set-Cookie` string: a hand-built one silently loses `Secure`, `HttpOnly` and `SameSite` along with the escaping
+- `res.setHeader('Location', url)` takes a destination value - validate it against an allowlist, since rejecting control characters says nothing about where the redirect points
 
 ## Taint Sinks
 
@@ -24,28 +27,3 @@ HTTP Response Splitting in Node.js occurs when user-supplied values are passed t
 - For `Content-Disposition` (file downloads), use a fixed filename or encode it with `encodeURIComponent()` rather than interpolating user input directly
 - Use `res.cookie('name', value, { httpOnly: true, sameSite: 'strict' })` instead of setting `Set-Cookie` manually
 - Test by submitting `%0d%0aInjected-Header: evil` in redirect/cookie parameters and confirm the injected header does not appear
-
-## Safe Pattern
-
-```javascript
-const express = require('express');
-const app = express();
-
-// Safe redirect with example allowlist validation
-app.get('/redirect', (req, res) => {
-  const { url } = req.query;
-  // Example allowlist policy: matches local absolute paths that start with
-  // one "/" and reject "//", allowing only letters, digits, "/", "_", and "-".
-  if (!url || !/^\/(?!\/)[a-zA-Z0-9/_-]*$/.test(url)) {
-    return res.redirect('/');
-  }
-  res.redirect(url); // Express encodes the Location header
-});
-
-// Safe cookie - use res.cookie(), not res.setHeader
-app.get('/set-pref', (req, res) => {
-  const theme = req.query.theme?.replace(/[\r\n\u0085\u2028\u2029]/g, '') ?? 'light';
-  res.cookie('theme', theme, { httpOnly: true, sameSite: 'strict', secure: true });
-  res.sendStatus(204);
-});
-```

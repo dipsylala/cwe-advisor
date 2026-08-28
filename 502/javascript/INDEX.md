@@ -11,9 +11,10 @@ JavaScript deserialization vulnerabilities occur when `eval()`, `Function()`, `v
 - Replace `eval()`, `Function()`, and `vm` module usage with `JSON.parse()` for all data deserialization
 - Validate deserialized data with schema validation libraries (Joi, Ajv, Zod) before use
 - Remove dependencies on insecure libraries like node-serialize, serialize-javascript, or funcster
-- Implement allowlists for expected object types and reject unexpected properties
+- Implement allowlists for expected object types and reject unexpected properties - in an Ajv/JSON Schema this is `additionalProperties: false` plus an explicit `required` list
 - `JSON.parse()` itself is safe, but merging its output into an existing object with `Object.assign()`, bracket-notation assignment (`target[key] = value`), or a recursive deep-merge library can still cause prototype pollution if `__proto__`/`constructor`/`prototype` keys are not rejected - validate keys before merging, or use `Object.create(null)`/`Map` for untrusted data
 - Use Content Security Policy and strict input validation at API boundaries
+- `JSON.parse` removes the code execution and leaves the payload intact as data: a later `_.merge`, `_.defaultsDeep` or `_.set` walking that object can still reach `Object.prototype`, which is CWE-1321 - current lodash refuses the three prototype keys, an old vendored copy does not
 
 ## Taint Sinks
 
@@ -27,23 +28,3 @@ JavaScript deserialization vulnerabilities occur when `eval()`, `Function()`, `v
 - Add integrity checks (HMAC signatures) to serialized data from untrusted sources
 - Configure CSP headers to prevent inline script execution
 - Test with malicious payloads to verify protections
-
-## Safe Pattern
-
-```javascript
-const Ajv = require('ajv');
-const ajv = new Ajv();
-
-const schema = {
-  type: 'object',
-  properties: { name: { type: 'string' }, age: { type: 'number' } },
-  required: ['name', 'age'],
-  additionalProperties: false
-};
-
-function safeDeserialize(jsonString) {
-  const data = JSON.parse(jsonString); // Safe parsing
-  if (!ajv.validate(schema, data)) throw new Error('Invalid data');
-  return data;
-}
-```

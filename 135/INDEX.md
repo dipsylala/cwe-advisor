@@ -10,7 +10,9 @@ This weakness occurs when code measures a string with a byte-counting function b
 - Use byte length for buffer allocation and raw copy sizing
 - Use a real character count, obtained by decoding the encoding, for user-facing limits and truncation
 - Prefer an encoding-aware library or a runtime with native Unicode strings over hand-computed character counts from raw bytes
-- Validate that byte sequences are well-formed for their declared encoding before trusting any count derived from them
+- Validate that byte sequences are well-formed for their declared encoding before trusting any count derived from them, and pass the encoding explicitly to every counting or conversion call - the wrong encoding hint miscounts silently rather than obviously
+- Validate the length *after* decoding, transcoding, or normalizing: a raw string that passes a limit can expand or contract into a different count once processed
+- Enlarging the buffer is not a fix - it makes the miscount less often visible as a crash while the same wrong unit still drives the validation check and the truncation point
 - Truncate only on character boundaries, never at a raw byte offset that could split a multi-byte sequence
 
 ## Remediation Steps

@@ -11,6 +11,9 @@ In ASP.NET Core, cookies created without `CookieOptions.Secure = true` can be tr
 - Use ASP.NET Core's built-in session and authentication cookie configuration (both have `SecurePolicy` settings)
 - Combine with `HttpOnly = true` and `SameSite = SameSiteMode.Strict` for defence-in-depth
 - Enable HSTS (`UseHsts()`) so browsers only connect over HTTPS
+- `CookieSecurePolicy.SameAsRequest` issues a plaintext cookie whenever the request arrived over HTTP, so it is not equivalent to `Always` - and `CookieSecurePolicy.None` disables the flag outright
+- Behind a TLS-terminating proxy the request looks like HTTP to Kestrel unless forwarded headers are processed, which is what silently turns `SameAsRequest` into "never secure"
+- A `__Host-` name prefix makes the browser reject a cookie that loses the flag, so a misconfiguration fails visibly - apply it only once the flag is confirmed on the wire
 
 ## Taint Sinks
 
@@ -19,35 +22,8 @@ In ASP.NET Core, cookies created without `CookieOptions.Secure = true` can be tr
 ## Remediation Steps
 
 - Find all `Response.Cookies.Append()` calls and add `Secure = true` to their `CookieOptions`
-- In `Program.cs`, add `app.UseCookiePolicy()` and configure `services.Configure<CookiePolicyOptions>(o => o.Secure = CookieSecurePolicy.Always)`
+- In `Program.cs`, add `app.UseCookiePolicy()` and configure `services.Configure<CookiePolicyOptions>(o => o.Secure = CookieSecurePolicy.Always)` and `o.HttpOnly = HttpOnlyPolicy.Always`
 - For authentication cookies, set `options.Cookie.SecurePolicy = CookieSecurePolicy.Always` in `AddCookie()` configuration
 - For session cookies, configure `options.Cookie.SecurePolicy = CookieSecurePolicy.Always` in `AddSession()`
 - Add `app.UseHsts()` and `app.UseHttpsRedirection()` to enforce HTTPS at the application level
 - Test by proxying traffic over HTTP and confirming sensitive cookies are not transmitted
-
-## Safe Pattern
-
-```csharp
-// Program.cs
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    options.Secure = CookieSecurePolicy.Always;
-    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
-});
-
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = SameSiteMode.Strict;
-    });
-
-// Explicit cookie creation
-Response.Cookies.Append("pref", value, new CookieOptions
-{
-    Secure   = true,
-    HttpOnly = true,
-    SameSite = SameSiteMode.Strict,
-});
-```

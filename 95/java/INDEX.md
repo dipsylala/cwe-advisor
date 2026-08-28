@@ -11,6 +11,9 @@ Java eval injection occurs when untrusted input flows into dynamic code executio
 - Apply strict input validation: Validate against narrow patterns before any dynamic processing
 - Isolate execution contexts: Use separate processes/containers with resource limits; do not rely on Java SecurityManager for modern Java
 - Prefer safe alternatives: Use configuration files, domain-specific languages, or rule engines with declarative syntax
+- Evaluate Spring expressions against a `SimpleEvaluationContext` rather than a `StandardEvaluationContext`, which permits `T(...)` type references, constructors and bean lookups; in OGNL the equivalent lever is the `MemberAccess` implementation, and the default allows reflection
+- `Class.forName()` with a name from the expression turns name selection into code loading, since the class's static initializer runs on load
+- Bound the evaluation as well as restricting it: an expression like `while(true){}` is a denial of service that no allowlist of members prevents
 
 ## Taint Sinks
 
@@ -24,24 +27,3 @@ Java eval injection occurs when untrusted input flows into dynamic code executio
 - Configure script engine bindings to expose only required, safe objects
 - Run unavoidable scripted code in a separate locked-down process/container with minimal privileges and resource limits
 - Add automated scanning to detect new eval injection vectors in code reviews
-
-## Safe Pattern
-
-```java
-// Replace dynamic evaluation with safe lookup map
-public class SafeCalculator {
-    private static final Map<String, BiFunction<Double, Double, Double>> OPS = Map.of(
-        "add", (a, b) -> a + b,
-        "subtract", (a, b) -> a - b,
-        "multiply", (a, b) -> a * b
-    );
-    
-    public double calculate(String operation, double a, double b) {
-        BiFunction<Double, Double, Double> op = OPS.get(operation);
-        if (op == null) {
-            throw new IllegalArgumentException("Invalid operation");
-        }
-        return op.apply(a, b);
-    }
-}
-```

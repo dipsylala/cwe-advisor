@@ -12,6 +12,8 @@ Go exposes two distinct random-number APIs: `math/rand` (and `math/rand/v2`), a 
 - Avoid predictable inputs mixed into token construction, such as concatenating a user ID or timestamp instead of relying solely on the random bytes
 - For random integers in a bounded range (OTPs, random selection), use `crypto/rand.Int(rand.Reader, big.NewInt(n))`, which performs rejection sampling and avoids modulo bias
 - `math/rand`/`math/rand/v2` remain acceptable for tests, simulations, and non-security shuffling - keep those usages clearly separated from security code paths
+- `math/rand` is not a CSPRNG whatever it is seeded with: `rand.New(rand.NewSource(x))` produces a reproducible stream, and `math/rand/v2` is a newer API for the same non-cryptographic generator
+- `crypto/rand` is the security source, and its `Read` returns an error that must be checked - Go 1.24 makes it panic rather than fail silently, but earlier versions do not
 
 ## Taint Sinks
 
@@ -25,22 +27,3 @@ Go exposes two distinct random-number APIs: `math/rand` (and `math/rand/v2`), a 
 - Size the output - use 16+ bytes for tokens and 32 bytes for keys, and encode with base64 or hex before storage or transmission
 - Harden configuration - centralize token and key generation in one reviewed helper so new code cannot accidentally import `math/rand` for a security path
 - Test - verify generated values are non-sequential across repeated calls and that production security paths never depend on a fixed seed
-
-## Safe Pattern
-
-```go
-// SAFE: cryptographically secure session token
-import (
-    "crypto/rand"
-    "encoding/base64"
-    "io"
-)
-
-func generateSessionToken() (string, error) {
-    b := make([]byte, 32) // 256 bits
-    if _, err := io.ReadFull(rand.Reader, b); err != nil {
-        return "", err
-    }
-    return base64.URLEncoding.EncodeToString(b), nil
-}
-```

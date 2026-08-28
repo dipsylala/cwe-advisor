@@ -11,6 +11,8 @@ Insufficient entropy in PHP is not about `random_bytes()`/`random_int()` being t
 - Be cautious of PHP running in containers/VMs built from a shared image or snapshot; secret or seed material generated at build time can be duplicated across clones unless generation is deferred to first real runtime
 - On embedded or minimal container systems, verify the OS-level entropy source is healthy, since PHP relies entirely on the platform CSPRNG and does not manage entropy itself
 - Treat an `Exception` from `random_bytes()`/`random_int()` as a signal that the platform's entropy source is unavailable and needs fixing - never catch it and silently fall back to a weaker function
+- Size the request as well as choosing the API: `random_bytes(4)` is 32 bits and guessable regardless of how good the source is - 16 bytes for a token, 32 for key material
+- `uniqid()`, `lcg_value()`, `str_shuffle()` and `md5(time())` are not CSPRNGs and no amount of hashing repairs them; using one for a secret is CWE-338
 
 ## Taint Sinks
 
@@ -24,16 +26,3 @@ Insufficient entropy in PHP is not about `random_bytes()`/`random_int()` being t
 - Do not catch and suppress exceptions from `random_bytes()`/`random_int()`, or fall back to `rand()`/`mt_rand()` on failure - fix the underlying entropy-source problem instead
 - On embedded or minimal container hosts, verify the OS entropy source is healthy, since PHP has no independent entropy source
 - Verify unpredictability across multiple instances launched from the same image or container, not only across repeated calls within one instance
-
-## Safe Pattern
-
-```php
-// Generate secure random token (32 bytes = 256 bits)
-$token = bin2hex(random_bytes(32));
-
-// Generate secure random integer
-$randomNumber = random_int(1000, 9999);
-
-// Generate session token
-$sessionToken = base64_encode(random_bytes(24));
-```
