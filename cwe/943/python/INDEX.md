@@ -20,6 +20,14 @@ NoSQL injection in Python happens when a decoded request body is handed to a que
 - Redis: build key names from validated components, and pass request data to `eval` as `KEYS`/`ARGV` arguments rather than as script text
 - Run the application's database account with least privilege, so a reshaped query reaches only what the credential permits
 
+- `$regex` is a sink in its own right, not just a probe: an attacker-supplied pattern runs on the
+  MongoDB server under its own engine, so nothing configured in the application's regex library
+  applies. Escape the term before it becomes a pattern - `re.escape`, `Pattern.quote`, `Regex.Escape` -
+  or match exactly instead
+- Watch the failure direction when a filter is built conditionally: silently dropping a condition that
+  could not be validated leaves the query *wider* than the caller asked for, and an endpoint that has
+  quietly stopped filtering still answers 200
+
 ## Taint Sinks
 
 `collection.find()`/`find_one()`/`update_one()` filter argument, `aggregate()` pipeline, `$where` expressions, `mongoengine` `__raw__`, `redis.eval()`, `boto3` DynamoDB `FilterExpression`/`ExpressionAttributeValues`

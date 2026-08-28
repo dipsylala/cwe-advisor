@@ -24,6 +24,13 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - `ArgumentList` does not protect a `.bat`/`.cmd` target: Windows has no argv array at the system-call level, so `cmd.exe` re-parses the command line for a batch file and .NET leaves that to the caller. Launch the executable the batch file wraps instead. The same applies to `powershell.exe -Command`, which re-parses its argument as script - use `-File` with a fixed script path and `-NoProfile` where PowerShell is genuinely required, passing user data as declared script parameters - `-File` is what stops the value being re-parsed as script; signing governs which scripts may run at all, not how their arguments are parsed
 - ArgumentList prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+- Anchor the allowlist with `\A` and `\z`, not `^` and `$`. In .NET both `$` and `\Z` also match
+  immediately before a trailing newline, so the anchored pattern accepts `report.csv\n`
+
+- `IPAddress.TryParse` is not a validator by itself: it accepts `010.1.1.1` and returns `8.1.1.1`,
+  and accepts the three-part form `8.8.8` as `8.8.0.8`. Compare `parsed.ToString()` back against the
+  input and reject any mismatch, or the value that reaches the command is not the one you checked
+
 ## Taint Sinks
 
 `Process.Start()`, `ProcessStartInfo`

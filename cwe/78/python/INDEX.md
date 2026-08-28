@@ -24,6 +24,15 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
   it is not a mitigation at all
 - An argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+- Anchor the allowlist with `re.fullmatch()`, not `re.match()` against `^...$`. In Python `$` also
+  matches immediately before a trailing newline, so the anchored pattern accepts `report.csv\n` and
+  the value reaches the command with a newline attached
+
+- Make the argument-injection check concrete: `['tar', 'czf', archive, filename]` with a filename of
+  `--to-command=...` hands `tar` an option and no shell was involved. Note also that
+  `['ping', '-c', '4', ip]` and `['python3', script]` have the same shape and very different
+  exposure - the second hands its argument to an interpreter, so any value is code
+
 ## Taint Sinks
 
 `subprocess.run()`, `subprocess.call()`, `subprocess.Popen()`, `os.system()`, `os.popen()`

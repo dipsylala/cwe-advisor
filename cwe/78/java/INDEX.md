@@ -16,6 +16,10 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself, so an argument list is not sufficient - launch the executable the batch file wraps. Set `jdk.lang.Process.allowAmbiguousCommands=false` explicitly: leaving it unset behaves the same as `true` and selects the lenient legacy encoding, so this is an opt-in to harden, not a default to preserve
 - A separate argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+- Use `Matcher.matches()` over a `find()` with `^...$`, and prefer `\A`/`\z` where the pattern is
+  reused - a `$` also matches before a trailing line terminator, so an anchored pattern can accept a
+  value with a newline appended
+
 ## Taint Sinks
 
 `Runtime.exec()`, `ProcessBuilder()`, `ProcessBuilder.start()`

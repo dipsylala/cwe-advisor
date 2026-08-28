@@ -19,6 +19,11 @@ Since libxml 2.9.0 entity substitution is off by default, so on a modern build t
 - Reject the document outright when `DOMDocument::$doctype` is non-null where a DTD has no legitimate use, which is stronger than disabling entity resolution
 - `SoapClient` parses responses with the same libxml stack, so a malicious or compromised endpoint reaches it - override `__doRequest()` to parse hardened, and treat a `SoapFault` as a rejection
 
+- Hardening usually makes the reference expand to nothing rather than rejecting the document: the
+  parse succeeds, the element is empty, and a handler that treats a missing value as optional carries
+  on with silently wrong data. Where the document must be refused rather than emptied, install a
+  resolver that throws, and check for an absent value on every element read
+
 ## Taint Sinks
 
 `simplexml_load_string()`, `DOMDocument::loadXML()`, `XMLReader::XML()`, `xml_parse()`

@@ -20,6 +20,13 @@ SSRF in Node.js occurs when applications fetch remote resources using user-suppl
 - Handle every IPv6 spelling of an IPv4 address, not just the mapped form: `::ffff:127.0.0.1`, the compatible form `::7f00:1`, and the NAT64 prefix (`64:ff9b::7f00:1`) all reach loopback while looking like ordinary IPv6 to a string check
 - Resolve the hostname with `dns.promises.lookup(host, { all: true })` and check every returned address before connecting - with `ipaddr.js`, unmap via `toIPv4Address()` and require `ip.range() === 'unicast'` - then pin the connection to the address that was checked - Node's agent resolves again at connect time, which is the rebinding race
 
+- A proxy silently voids the pinning: `axios` reads `http_proxy`/`https_proxy` from the environment by
+  default, and a proxied request resolves the target at the proxy, so the pinned lookup is bypassed.
+  `proxy: false` is what keeps the pin in the path
+- Do not return the fetch error to the caller. A distinguishable timeout, DNS failure or connection
+  refusal turns a blocked SSRF into a working oracle: the attacker cannot read the response but can
+  still map internal names one submission at a time
+
 ## Taint Sinks
 
 `fetch()`, `axios.get()`, `http.request()`, `https.request()`, `XMLHttpRequest.open()`

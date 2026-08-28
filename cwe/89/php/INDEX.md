@@ -21,6 +21,13 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - An identifier - a table, a column, an `ORDER BY` direction - cannot be bound and needs allowlist validation against a fixed set
 - Construct PDO with `PDO::ATTR_EMULATE_PREPARES => false` so a real prepared statement reaches the server. Emulation is on by default for MySQL, and with it PDO assembles the final SQL client-side, which is precisely what makes the connection charset security-relevant - set it in the DSN as `charset=utf8mb4` rather than issuing `SET NAMES` afterwards, which changes the server's view but not the client library's
 
+- Treat a dynamic identifier as a key into a server-side map of permitted names, not as input to
+  validate and then use - the value reaching the query should be the map's, never the caller's. Ask
+  first whether it needs to be caller-controlled at all: a sort parameter accepting `created_at` or
+  `total` is usually a fixed set of queries wearing a dynamic costume
+- Re-apply the allowlist at every endpoint consuming the same parameter; reusing the raw request value
+  in a second handler is how the check gets skipped
+
 ## Taint Sinks
 
 `mysqli_query()`, `mysqli::query()`, `PDO::query()`, `PDO::exec()`

@@ -15,6 +15,10 @@ Path Traversal in Python starts with a request value reaching `open()`, `send_fi
 - In web code prefer the framework's own containment helper - `flask.send_from_directory()` (which applies `werkzeug.utils.safe_join()` and returns 404 on rejection) or Django's `FileSystemStorage` (which raises `SuspiciousFileOperation`) - over rebuilding the check
 - Containment is not authorization: confirming a path is inside the upload directory says nothing about whether this user may read that file
 
+- A resolved path can stop being correct between the check and the open. On Linux `os.O_NOFOLLOW`
+  narrows that window to the final component, and holding a directory file descriptor and passing
+  `dir_fd` closes it properly
+
 ## Taint Sinks
 
 `open()`, `os.remove()`, `shutil.copy()`, `shutil.move()`, `send_file()`, `tarfile.extractall()`, `ZipFile.namelist()` joined manually (Zip Slip)

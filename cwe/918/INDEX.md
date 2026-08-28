@@ -16,6 +16,14 @@ Server-Side Request Forgery (SSRF) occurs when an application fetches remote res
 - Handle redirects explicitly - follow none, or re-run the full address check on every hop - since a permitted host can redirect the client out of the allowlist after the check passed
 - Constrain egress at the network as well: a deny rule covering link-local (169.254.0.0/16, including the cloud metadata endpoint), loopback, and RFC 1918 ranges catches what the application-level check misses
 
+- Test both directions. An allowlist that blocks everything looks identical to a working one in a
+  re-scan, so assert that a public address such as `8.8.8.8` still fetches alongside asserting that
+  the metadata address does not. Over-blocking is the usual way these fixes get reverted
+- Where the target runs on a cloud instance, enforcing IMDSv2 is the strongest available mitigation
+  and sits outside the application: it requires a `PUT` to obtain a token before any metadata read, so
+  an SSRF limited to `GET` without header control fails against it even where the code fix is
+  imperfect
+
 ## Remediation Steps
 
 - Locate SSRF vulnerabilities by tracing untrusted data flow from input sources to the HTTP client call that issues the outbound request - see the language-specific guidance's Taint Sinks for concrete function names

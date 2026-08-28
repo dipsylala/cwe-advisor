@@ -14,6 +14,11 @@ XXE vulnerabilities occur when XML parsers process external entity references in
 - Use secure parser configurations consistently across all XML processing code
 - Consider using simpler data formats like JSON when XML features aren't required
 
+- Hardening usually makes the reference expand to nothing rather than rejecting the document: the
+  parse succeeds, the element is empty, and a handler that treats a missing value as optional carries
+  on with silently wrong data. Where the document must be refused rather than emptied, install a
+  resolver that throws, and check for an absent value on every element read
+
 ## Taint Sinks
 
 `DocumentBuilder.parse()`, `SAXParser.parse()`, `XMLReader.parse()`, `XMLInputFactory.createXMLStreamReader()`

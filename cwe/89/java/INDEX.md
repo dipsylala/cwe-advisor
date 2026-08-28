@@ -18,6 +18,13 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Apply least privilege principles to database accounts
 - Use stored procedures with parameterized inputs where appropriate
 
+- Treat a dynamic identifier as a key into a server-side map of permitted names, not as input to
+  validate and then use - the value reaching the query should be the map's, never the caller's. Ask
+  first whether it needs to be caller-controlled at all: a sort parameter accepting `created_at` or
+  `total` is usually a fixed set of queries wearing a dynamic costume
+- Re-apply the allowlist at every endpoint consuming the same parameter; reusing the raw request value
+  in a second handler is how the check gets skipped
+
 ## Taint Sinks
 
 `Statement.executeQuery()`, `Statement.executeUpdate()`, `createNativeQuery()`, `EntityManager.createQuery()` (JPQL injects the same way), Spring `JdbcTemplate.query()`/`queryForObject()` given a built string, MyBatis `${}` substitution

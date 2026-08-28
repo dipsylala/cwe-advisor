@@ -29,6 +29,11 @@ library calls that are already safe.
 - Where the XML comes from a trusted internal service, say so at the call site; the fix for a parser
   that is already safe by default is to record why, not to add configuration that does nothing
 
+- Hardening usually makes the reference expand to nothing rather than rejecting the document: the
+  parse succeeds, the element is empty, and a handler that treats a missing value as optional carries
+  on with silently wrong data. Where the document must be refused rather than emptied, install a
+  resolver that throws, and check for an absent value on every element read
+
 ## Taint Sinks
 
 `lxml.etree.parse()`/`fromstring()` with a default parser, `lxml.etree.XMLParser(resolve_entities=True)`,

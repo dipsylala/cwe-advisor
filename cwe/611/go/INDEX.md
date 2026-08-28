@@ -18,6 +18,10 @@ Go's standard `encoding/xml` package does not resolve external SYSTEM/PUBLIC ent
   the toolchain current (CVE-2022-28131 and CVE-2022-30633, then a `DecodeElement` regression that
   reset the depth counter, fixed August 2026), so treat patching Go as part of this remediation
 
+- A `containsDOCTYPE` byte-scan is a filter with a precondition: a document encoded as UTF-16 contains
+  no literal `<!DOCTYPE` byte sequence and passes it untouched, so decode to a known encoding first or
+  reject encodings the format does not need
+
 ## Taint Sinks
 
 `xml.Unmarshal()`, `xml.NewDecoder().Decode()`, `Decoder.Token()`, CGo `libxml2`/`expat` bindings

@@ -17,6 +17,9 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - On Windows a `.bat`/`.cmd` target re-enters `cmd.exe` even with `bypass_shell` set, because `CreateProcess` starts the shell for a batch file. PHP fixed `proc_open()` with an argument array in 8.1.28, 8.2.18 and 8.3.6 (CVE-2024-1874), then fixed a trailing-space bypass of that fix in 8.1.29, 8.2.20 and 8.3.8 (CVE-2024-5585). Set the floor at 8.1.29 / 8.2.20 / 8.3.8, since the first fix alone is bypassable. The patch does not reach `exec()`, `system()`, `shell_exec()` or backticks, which invoke a shell by design and are unaffected either way, and it cannot help when the batch file itself interpolates `%1` into a further command - invoke the executable the batch file wraps
 - An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
+- Anchor the allowlist with `\A` and `\z`, not `^` and `$`. In PCRE `$` also matches immediately
+  before a trailing newline, so `/^[\w.-]+$/` accepts `report.csv\n`
+
 ## Taint Sinks
 
 `exec()`, `system()`, `shell_exec()`, `passthru()`, `` `backticks` ``, `proc_open()`, `popen()`

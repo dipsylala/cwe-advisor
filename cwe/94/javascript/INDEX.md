@@ -14,6 +14,12 @@ Code injection occurs when untrusted input flows into code execution functions l
 - `node:vm` is not a security boundary: code inside a context can reach out through `this.constructor.constructor('return process')()` and through `process.mainModule.require`, so use a separate process or a real sandbox (`isolated-vm`) where isolation is required
 - Where an expression really must be evaluated, parse it and walk the AST against an allowlist of node types and operators, rejecting anything else - that leaves no call, member access, or identifier lookup for an attacker to use
 
+- If validating by parsing, use an entry point that consumes the whole input.
+  `acorn.parseExpressionAt` returns as soon as the first expression ends and silently ignores the
+  rest, so a validator built on it accepts `1; require('child_process').execSync('whoami')`
+- A grep for the literal token `eval(` misses the indirect forms, including `(0, eval)(code)` and a
+  `Function` constructor reached through an alias
+
 ## Taint Sinks
 
 `eval()`, `new Function()`, `setTimeout(string)`, `setInterval(string)`, `vm.runInContext()`, `vm.runInNewContext()`, `require(userInput)`, `import(userInput)`, `Handlebars.compile(userInput)`

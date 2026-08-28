@@ -14,6 +14,13 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 - Use least privilege - Database accounts should have minimal necessary permissions
 - Dynamic identifiers are allowlisted, not escaped - a table, column, or `ORDER BY` direction cannot be bound as a parameter, so validate it against a fixed set of permitted names. With psycopg2/psycopg3, build the statement from `sql.SQL()` and `sql.Identifier()`, which quotes the identifier correctly once the allowlist has chosen it
 
+- Treat a dynamic identifier as a key into a server-side map of permitted names, not as input to
+  validate and then use - the value reaching the query should be the map's, never the caller's. Ask
+  first whether it needs to be caller-controlled at all: a sort parameter accepting `created_at` or
+  `total` is usually a fixed set of queries wearing a dynamic costume
+- Re-apply the allowlist at every endpoint consuming the same parameter; reusing the raw request value
+  in a second handler is how the check gets skipped
+
 ## Taint Sinks
 
 `cursor.execute()` with f-string/concatenation, Django `.raw()`, `.extra()`, SQLAlchemy `text()` with interpolated values

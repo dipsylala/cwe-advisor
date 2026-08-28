@@ -19,6 +19,14 @@ The primary defence is to validate URLs against an allowlist of permitted domain
 - Handle every IPv6 form carrying an IPv4 address: the JDK normalizes `::ffff:127.0.0.1` to an `Inet4Address`, but the compatible form `::7f00:1` is not normalized and every predicate returns false for it, and NAT64 (`64:ff9b::7f00:1`), 6to4 and Teredo addresses spell a v4 address inside an ordinary-looking v6 prefix - NAT64 is the one that routes in practice
 - Fail closed when resolution raises, so a name that cannot be checked is not fetched, and disable redirect following so a permitted host cannot redirect out of the allowlist - checking which client is in use first, because the defaults already differ. `java.net.http.HttpClient` (JDK 11+) defaults to `Redirect.NEVER` and Reactor Netty behind `WebClient` defaults to not following, so neither needs the change; `HttpURLConnection`, reached through `URL.openConnection()`, `URL.openStream()` and `RestTemplate` on `SimpleClientHttpRequestFactory`, follows by default and is the one that does. Apache HttpClient offers `disableRedirectHandling()` on its builder
 
+- A proxy silently voids the pinning: without disabling it the client uses the JVM's default proxy
+  selector, which reads `http.proxyHost`/`https.proxyHost`, and a proxied request resolves the target
+  at the proxy - so the address just validated is not the one reached
+- `java.net.http.HttpClient` cannot be pinned at all: its builder exposes no DNS, socket or connection
+  hook, so plan around Apache HttpClient 5's `DnsResolver` instead. And never return `null` from a
+  custom resolver - that hands back an unresolved address which the socket layer then resolves itself,
+  at connect time, with no validation
+
 ## Taint Sinks
 
 `URL.openConnection()`, `URL.openStream()`, `HttpClient.send()`, `RestTemplate.getForObject()`, `HttpURLConnection.connect()`

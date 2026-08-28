@@ -14,6 +14,13 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 - Use ORMs cautiously, ensuring raw query methods still use parameterization
 - Never trust client-side validation alone; always validate on the server
 
+- Treat a dynamic identifier as a key into a server-side map of permitted names, not as input to
+  validate and then use - the value reaching the query should be the map's, never the caller's. Ask
+  first whether it needs to be caller-controlled at all: a sort parameter accepting `created_at` or
+  `total` is usually a fixed set of queries wearing a dynamic costume
+- Re-apply the allowlist at every endpoint consuming the same parameter; reusing the raw request value
+  in a second handler is how the check gets skipped
+
 ## Taint Sinks
 
 `connection.query()`/`pool.query()` with a concatenated string or template literal, `sequelize.query()`, `Sequelize.literal()`, `knex.raw()`, TypeORM `dataSource.query()` and `createQueryBuilder().where()` with an interpolated condition

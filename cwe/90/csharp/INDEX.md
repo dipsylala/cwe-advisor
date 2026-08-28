@@ -14,6 +14,11 @@ LDAP Injection occurs when untrusted data is used to construct LDAP queries with
 - Avoid DN construction - Never concatenate user input into Distinguished Names or filter strings
 - Principle of least privilege - Use service accounts with minimal LDAP permissions
 
+- A distinguished name uses a different escape set from a filter: RFC 4514 gives structural meaning to
+  `,`, `+`, `"`, `\`, `<`, `>`, `;` and `=`, and additionally to a leading `#` and to a space at
+  either end, which the DN parser discards unless escaped. Trimming or stripping those instead of
+  escaping them quietly changes which object the DN addresses
+
 ## Taint Sinks
 
 `DirectorySearcher.Filter` built by concatenation, `DirectoryEntry.Path` built from user input, `String.Format()` into an LDAP filter

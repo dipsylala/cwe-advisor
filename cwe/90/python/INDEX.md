@@ -14,6 +14,11 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 - Implement least-privilege access for LDAP service accounts
 - Use DN (Distinguished Name) sanitization for attribute values
 
+- A distinguished name uses a different escape set from a filter: RFC 4514 gives structural meaning to
+  `,`, `+`, `"`, `\`, `<`, `>`, `;` and `=`, and additionally to a leading `#` and to a space at
+  either end, which the DN parser discards unless escaped. Trimming or stripping those instead of
+  escaping them quietly changes which object the DN addresses
+
 ## Taint Sinks
 
 `Connection.search()` (ldap3) with a concatenated filter string
