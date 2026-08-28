@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-XSS occurs when untrusted data is rendered in web pages without proper encoding, allowing attackers to inject malicious scripts. Always use `htmlspecialchars()` with `ENT_QUOTES | ENT_HTML5` flags and UTF-8 encoding for HTML output, or leverage framework auto-escaping (Laravel Blade `{{ }}`, Twig `{{ }}`). Apply context-specific encoding for JavaScript, URLs, and CSS contexts.
+XSS occurs when untrusted data is rendered in web pages without proper encoding, allowing attackers to inject malicious scripts. Always use `htmlspecialchars()` with `ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5` and an explicit `'UTF-8'` for HTML output, or leverage framework auto-escaping (Laravel Blade `{{ }}`, Twig `{{ }}`). Apply context-specific encoding for JavaScript, URLs, and CSS contexts.
 
 ## Key Principles
 
@@ -26,4 +26,6 @@ XSS occurs when untrusted data is rendered in web pages without proper encoding,
 - For JavaScript contexts, use `json_encode($data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)`
 - For URLs, apply `urlencode()` or `rawurlencode()` to user data
 - Review all instances of `echo`, `print`, and template rendering
-- Add CSP header - `Content-Security-Policy: default-src 'self'`
+- Add a CSP header built on a per-response nonce or hash rather than an allowlist, with
+  `object-src 'none'` and `base-uri 'none'` - `default-src 'self'` alone is the allowlist form MDN
+  says does not effectively mitigate XSS

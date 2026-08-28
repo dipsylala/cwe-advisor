@@ -37,5 +37,7 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Check hostname against an allowlist of permitted domains
 - Ensure only HTTPS protocol is used via `parse_url()`
 - Disable `CURLOPT_FOLLOWLOCATION` or validate all redirect targets
-- Set timeouts and restrict allowed protocols with `CURLOPT_PROTOCOLS => CURLPROTO_HTTPS`
+- Set timeouts and restrict allowed protocols, preferring `CURLOPT_PROTOCOLS_STR` where PHP 7.3 and
+  cURL 7.85 are available and falling back to `CURLOPT_PROTOCOLS => CURLPROTO_HTTPS` below that, and
+  constrain `CURLOPT_REDIR_PROTOCOLS` separately
 - Pin the connection to the validated IP with `CURLOPT_RESOLVE` so cURL cannot independently re-resolve or re-parse the host

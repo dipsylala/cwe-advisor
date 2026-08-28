@@ -38,4 +38,5 @@ XSS occurs when untrusted data is included in web output without proper encoding
   attacker-chosen scheme safe, so validate that a URL is `http`/`https` before emitting it rather than
   relying on encoding to neutralise `javascript:`
 - For rich text editors, integrate HtmlSanitizer with allowlist of safe tags before rendering with `@Html.Raw()`
-- Add CSP middleware to restrict script sources and enforce 'self' policy
+- Add CSP middleware issuing a per-response nonce rather than a `'self'` allowlist, with
+  `object-src 'none'` and `base-uri 'none'`

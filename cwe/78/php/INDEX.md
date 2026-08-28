@@ -27,5 +27,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Determine the operation's purpose - Understand what the command is trying to accomplish
 - Find the PHP function alternative - Use copy/rename for file ops, cURL for HTTP, fsockopen for network
 - Replace process execution - Delete exec()/system()/shell_exec() code and use the appropriate PHP function
-- For unavoidable commands - Use proc_open() with argument array and bypass_shell option, validate all inputs
+- For unavoidable commands - use `proc_open()` with an argument array on PHP 7.4 or later, which is
+  itself what avoids the shell; `bypass_shell` matters only for the Windows string-command form.
+  Validate all inputs
 - Test thoroughly - Verify the PHP function replacement provides the same functionality

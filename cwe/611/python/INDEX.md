@@ -37,9 +37,13 @@ library calls that are already safe.
 
 ## Remediation Steps
 
-- Install `defusedxml` - `pip install defusedxml`
-- Replace imports - `from defusedxml.ElementTree import parse` instead of `from xml.etree.ElementTree import parse`
+- Establish the interpreter version first - on a supported Python the standard-library parsers are
+  not the finding, and the work is in `lxml` and in the Expat version
+- Where a legacy interpreter or a hostile-input boundary still warrants it, `defusedxml` remains a
+  drop-in - `from defusedxml.ElementTree import parse` - but check its maintenance status first
 - For `lxml`, configure the parser directly with `resolve_entities=False`, `no_network=True`, and `load_dtd=False`
-- If `defusedxml` cannot be used, explicitly disable dangerous features - set `forbid_dtd=True`, `forbid_entities=True`, `forbid_external=True`
+- Note `forbid_dtd`, `forbid_entities` and `forbid_external` are `defusedxml`'s own arguments, not
+  standard-library ones, so they are not the fallback for when it is unavailable - two of the three
+  are already its defaults
 - Review all XML parsing code paths for unsafe configurations
 - Add security tests with XXE payloads to validate protections

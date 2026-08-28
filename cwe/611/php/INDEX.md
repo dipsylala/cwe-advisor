@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-PHP's XML parsers can process external entities by default, leading to file disclosure, SSRF attacks, and denial of service. Proper configuration is essential to prevent XXE vulnerabilities.
+Since libxml 2.9.0 entity substitution is off by default, so on a modern build the finding is usually one of three things: code that passes `LIBXML_NOENT` (which enables substitution despite its name), a parser reached through a wrapper that sets it, or an older libxml. Establish which before changing anything, and note the remaining exposure is file disclosure and SSRF where substitution is on.
 
 **Primary Defence:** Call `libxml_disable_entity_loader(true)` before parsing XML (PHP < 8.0), omit `LIBXML_NOENT`, avoid `LIBXML_DTDLOAD` for untrusted XML, and use `LIBXML_NONET` as defense in depth.
 

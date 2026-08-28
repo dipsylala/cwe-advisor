@@ -24,7 +24,9 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 
 - Parse and validate the URL scheme - reject anything other than `https://`
 - Extract the hostname and resolve all A/AAAA records with `socket.getaddrinfo()`
-- Check every resolved IP against blocked ranges using `ipaddress.ip_address()` and `is_global`
+- Check every resolved IP with `ipaddress.ip_address()`, but do not rest the decision on `is_global`
+  alone: multicast addresses such as `224.0.0.1` and `ff02::1` report `is_global` as true, as does the
+  NAT64 form `64:ff9b::7f00:1`, so test `is_multicast` and the NAT64 prefix explicitly alongside it
 - Verify the hostname matches an allowlist of permitted domains
 - Make the request with redirects disabled (`allow_redirects=False`)
 - Set short timeouts to prevent resource exhaustion

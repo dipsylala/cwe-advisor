@@ -30,4 +30,7 @@ Go's `database/sql` supports safe parameterization through placeholders (`?` for
 - Bind, encode, validate, or authorize - pass every user-controlled value through `db.Query`/`db.Exec`'s variadic arguments, never through the query string
 - Break taint after allowlist validation - for identifiers like a sort column, look up the user value in a `map[string]string` allowlist and use only the map's resolved value in the query, never the raw input
 - Harden configuration - use a least-privilege database role for the application connection
-- Test - verify with payloads such as `' OR '1'='1` and stacked-query/comment sequences (`--`, `;`) against each parameterized sink
+- Test - verify with a payload such as `' OR '1'='1` against each parameterised sink, and confirm it
+  is stored and compared as a literal. A stacked statement is not a useful probe: most Go drivers
+  refuse multiple statements regardless of the fix, so it fails identically whether the code is
+  parameterised or not

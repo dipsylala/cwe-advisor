@@ -29,5 +29,7 @@ XSS in Go usually stems from using `text/template` for HTML output, building HTM
 - Replace the unsafe pattern - convert `text/template` to `html/template`, or replace string concatenation with a parsed `html/template`
 - Bind, encode, validate, or authorize - let `html/template`'s context-aware escaping handle output encoding; do not hand-roll an escaper
 - Break taint after allowlist validation - if input feeds a URL or resource selection, resolve it through an allowlist map first and only pass the resolved value into the template
-- Harden configuration - add a `Content-Security-Policy` header (`default-src 'self'; script-src 'self'`) as defence-in-depth
+- Harden configuration - add a `Content-Security-Policy` header, built on a per-response nonce or hash
+  rather than an allowlist, with `object-src 'none'` and `base-uri 'none'`; a bare `script-src 'self'`
+  is the allowlist form MDN says does not effectively mitigate XSS
 - Test - verify with `<script>`, event-handler, and attribute-breakout payloads (for example `"><svg onload=...>`) in each output context

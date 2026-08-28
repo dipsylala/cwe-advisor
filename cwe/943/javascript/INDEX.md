@@ -40,4 +40,4 @@ NoSQL injection in Node.js happens when a decoded request body reaches a query f
 - Replace with the safe pattern - validate each value's `typeof`, build the filter literal in code, and pass only validated primitives
 - Break taint after allowlist validation - use the allowlist's own field-name constant for the query key, not the request's string
 - Harden configuration - enable `sanitizeFilter` in Mongoose, disable server-side JavaScript execution on the server, and scope the database user's privileges
-- Test - submit `{"$ne": null}`, `{"$gt": ""}`, `{"$regex": ".*"}` and a `$where` payload in every string field, and confirm each is rejected with a 400 rather than matching a document
+- Test - submit `{"$ne": null}`, `{"$gt": ""}`, `{"$regex": ".*"}` in every string field, and confirm each is rejected with a 400 rather than matching a document. Leave `$where` out of that list: it is a top-level query operator and does not execute inside a nested document, so submitting one as a field value proves nothing. Check the Express version too - Express 4 and 5 parse `username[$ne]` differently, so the same probe can mean different things

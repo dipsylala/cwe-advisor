@@ -18,8 +18,15 @@ LDAP Injection occurs when untrusted user input is used to construct LDAP querie
 
 - Trace the vulnerability - Identify the source of untrusted data and trace its flow to the LDAP query construction sink
 - Replace string concatenation - Use LDAP filter builders or escape filter values and DNs with LDAP-specific escaping APIs
-- Escape user input - Apply LDAP-specific escaping for special characters - `*`, `(`, `)`, `\`, `NUL`, `/`
+- Escape user input - Apply LDAP-specific escaping for the characters RFC 4515 gives meaning to in a
+  filter: `*`, `(`, `)`, `\` and NUL. `/` is not among them - escaping it is not required and mangles
+  legitimate values. A distinguished name is a different rule set (RFC 4514) with a different
+  character list
 - Validate with allowlists - Restrict input to known-safe patterns using allowlists for attribute names and values
 - Limit query scope - Use specific base DNs and restrict search depth to minimize exposure
 - Apply least privilege to the bind account - escaping is the control, but a read-only, narrowly scoped bind account limits what any missed field can reach
-- Test thoroughly - Verify fixes with injection payloads like `*)(objectClass=*)` and review authentication/authorization logic
+- Test thoroughly - note that `*)(objectClass=*)` is the wrong probe: it yields two top-level filters,
+  which the JNDI, ldapts, ldap3 and .NET clients reject in their own parsers before any request
+  leaves, so it raises whether or not the fix works. Against a single-term filter the payload that
+  distinguishes them is a bare `*`, which is a valid presence match - confirm it returns nothing
+  rather than every entry. Then review the authentication and authorization logic

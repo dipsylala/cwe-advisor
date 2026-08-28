@@ -8,7 +8,9 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 
 - Use libraries that support safe LDAP filter builders or prepared filters
 - Validate and sanitize all user inputs with strict allowlists before using in LDAP queries
-- Escape LDAP special characters: `*`, `(`, `)`, `\`, `/`, `NUL` as a backslash followed by the two-digit hex code per RFC 4515 - `\2a`, `\28`, `\29`, `\5c`, `\2f`, `\00` - and if escaping by sequential replacement, replace `\` first so the inserted sequences are not escaped again
+- Escape LDAP special characters: `*`, `(`, `)`, `\` and NUL as a backslash followed by the
+  two-digit hex code per RFC 4515 - `\2a`, `\28`, `\29`, `\5c`, `\00`. RFC 4515 assigns no meaning
+  to `/`, so escaping it is unnecessary and corrupts legitimate values - and if escaping by sequential replacement, replace `\` first so the inserted sequences are not escaped again
 - Implement least-privilege access controls on LDAP directory operations
 - Use framework-provided LDAP query builders instead of string concatenation
 
