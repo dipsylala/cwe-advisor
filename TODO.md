@@ -237,11 +237,16 @@ Top 25 and none previously recorded:
   *designed* to change between releases, which is why `password_needs_rehash()` is not optional. Java
   has no password hasher in the JDK, and `MessageDigest` is not thread-safe, so a shared static
   instance corrupts digests under concurrency. `javascript` and `go` are still to add.
-- **CWE-327 and CWE-501 have root guidance but no language directories.** Still open. Note CWE-327
-  overlaps `cwe/326`, which already has five language entries covering cipher and mode selection, so
-  the split needs deciding before authoring rather than after.
-- **CWE-916 is referenced by CWE-327 but has no entry.** The reference now says so and points at
-  CWE-328 for the password-hashing guidance.
+- **CWE-327 needs no language entries.** Settled by checking MITRE rather than by authoring: 327 is a
+  Class marked Allowed-with-Review whose ParentOf list is CWE-328, CWE-780 and CWE-1240, and it now
+  states that decision procedure in its guidance - weak hash to CWE-328, a sound-but-fast password
+  hash to CWE-916, RSA without OAEP to CWE-780, and laterally to CWE-326 for key size and mode, which
+  is a *sibling* under CWE-693 rather than a child. All of those already have language entries
+  (326 and 780 have five each, 328 now has four), so authoring a parallel `327/{language}` set would
+  duplicate them. 327 keeps direct guidance for what has no better child: an algorithm broken outright
+  (DES, 3DES, RC4) and protocol or cipher-suite selection.
+- **CWE-501 has root guidance but no language directories.** Still open, and unrelated to the crypto
+  pair - it is about mixing trusted and untrusted data in one store, typically session attributes.
 
 None is a defect in existing guidance; they are absences. Recorded here rather than fixed, since
 adding entries is authoring work and a separate decision.

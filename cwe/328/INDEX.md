@@ -7,6 +7,10 @@ Weak cryptographic hashes (MD5, SHA-1) are broken and vulnerable to collision at
 ## Key Principles
 
 - Use purpose-appropriate hashing - bcrypt/Argon2 for passwords, SHA-256+ for integrity
+- Separate this from CWE-916: here the hash function itself is broken, so MD5 or SHA-1 fails for
+  integrity and signatures as well as for passwords. Where the algorithm is sound and the defect is
+  that it is fast or unsalted - a plain SHA-256 password digest - CWE-916 is the closer entry, and the
+  fix is a work factor rather than a different digest
 - Never use fast hashes (MD5, SHA-1, plain SHA-256) for password storage; use purpose-specific hashes for other security operations
 - Apply key derivation functions with sufficient iteration counts (bcrypt cost 12+, PBKDF2 600k+ iterations)
 - Upgrade legacy systems by rehashing on user login without forcing password resets
