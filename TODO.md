@@ -4,10 +4,17 @@ What remains of the top-15 CWE review (MITRE Top 25 ranks 1-15) and the `Safe Pa
 retirement. Every graded finding from that review has been applied, along with the sweep audit's
 regressions and the version-sensitive items it depended on.
 
-The review's `docs/` process findings have been dropped rather than actioned: `docs/` is temporary
-scaffolding carried over from another repository, so it being untracked, carrying its own errors,
-and being skipped by the linter are all expected rather than defects. Entries here are expected to
-stand on their own against current sources, which is how this pass verified them.
+The review's `docs/` process findings have been dropped rather than actioned: `docs/` is the
+human-readable guidance and education corpus this knowledge base was originally derived from, kept
+here as a working copy and deliberately outside this repository's history. Its being untracked and
+skipped by the linter follows from what it is, rather than being a defect. The two have drifted
+since the derivation - this repo toward LLM-facing remediation, `docs/` toward human explanation -
+so entries here are expected to stand on their own against current sources, which is how this pass
+verified them. Where the two disagree, that is a question about which is right, not automatically
+a fault here. `docs/` has since been through actor/critic review between two model families
+(Claude and Codex), which this repo has not, and the version-claim pass found it correct and this
+repo behind on several claims - so on a factual disagreement the working assumption is that
+`docs/` is right until checked against the vendor.
 
 ## 1. Open
 
@@ -33,6 +40,37 @@ Remaining, in rank order:
 | 23 | CWE-190 Integer Overflow | yes | 3 | Only c/cpp/java; likely needs go/csharp |
 | 24 | CWE-400 Uncontrolled Resource Consumption | **missing** | - | Not in the knowledge base at all |
 | 25 | CWE-306 Missing Authentication | yes | 6 | Language entries added this session; root not graded |
+
+### Rebuild the eval corpus around incomplete fixes
+
+Runs 1-3 exhausted the original corpus as a measuring instrument. Of 17 run-3 outputs on the
+current skill, exactly one scored below the maximum on any criterion, so the remaining headroom
+(0.08 on `no_harm`) is smaller than the effect of a single case flipping (0.083). A further change
+to the skill would register as nothing whether it helped or not.
+
+What the three runs established about *what* to build instead:
+
+- **Chain depth is inert.** Source tracing scored 2.00 in every arm at depths 2, 4 and 5, unguided
+  included. More multi-file cases would buy nothing.
+- **Every harm was sink-local.** Output the original discarded, an argument the original left
+  `null`, a dropped URI fragment - all fit in one function.
+- **The gap is between a correct fix and a plausible one**, not between fixing and not fixing.
+
+Ten cases now cover that axis, drawn from `docs/` `Common Pitfalls` bullets and carrying explicit
+`trap` and `must_preserve` fields: CWE-326/java, 338/python, 338/go, 117/java, 190/java,
+434/csharp, 434/javascript, 78/php, 347/csharp, 209/javascript.
+
+Open:
+
+- **Unrun.** No arm has been executed against them, so their difficulty is asserted, not measured.
+  The first run should check the assertion before the batch is extended - if the unguided arm
+  clears them, the trap was not a trap.
+- **No false positives in the batch.** All ten are true positives. The FP path needs its own cases
+  at this shape, where the plausible-but-wrong move is to *fix* something already safe.
+- **Labels are an authoring claim.** Benchmark and Juliet ship external ground truth; these do not.
+  A judge disagreeing with `kind` on one of these is a finding about the case.
+- **Nothing is compiled or executed.** `must_preserve` is checked by reading, so a fix that fails
+  to compile would be scored on its intent.
 
 ### Coverage gaps surfaced by building the eval corpus
 
