@@ -65,8 +65,14 @@ Open:
 - **Unrun.** No arm has been executed against them, so their difficulty is asserted, not measured.
   The first run should check the assertion before the batch is extended - if the unguided arm
   clears them, the trap was not a trap.
-- **No false positives in the batch.** All ten are true positives. The FP path needs its own cases
-  at this shape, where the plausible-but-wrong move is to *fix* something already safe.
+- **True positives only, by decision.** The scenario being measured is a static analysis tool
+  having found a real issue and the developer being helped to resolve it, so the arm can be told
+  the finding is confirmed rather than asked to adjudicate it. That drops the verdict criterion
+  and concentrates scoring on the fix, which is where all three runs found the signal. Note the
+  cost: SKILL.md Step 4's no-exploitable-path exit is then exercised by nothing, and the five
+  Juliet false-positive cases already in the corpus are the only coverage it has. Both arms
+  handled all five correctly in runs 2 and 3, so it is untested rather than unmeasured - but a
+  future change to that branch would not be caught.
 - **Labels are an authoring claim.** Benchmark and Juliet ship external ground truth; these do not.
   A judge disagreeing with `kind` on one of these is a finding about the case.
 - **Nothing is compiled or executed.** `must_preserve` is checked by reading, so a fix that fails
