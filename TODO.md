@@ -34,6 +34,18 @@ Remaining, in rank order:
 | 24 | CWE-400 Uncontrolled Resource Consumption | **missing** | - | Not in the knowledge base at all |
 | 25 | CWE-306 Missing Authentication | yes | 6 | Language entries added this session; root not graded |
 
+### Coverage gaps surfaced by building the eval corpus
+
+Mapping OWASP Benchmark's categories onto the knowledge base exposed three gaps, all outside the
+Top 25 and none previously recorded:
+
+- **CWE-643 (XPath Injection) has no entry at all.** It is a Benchmark category with 15 true
+  positives, so it is a weakness real scanners report.
+- **CWE-327 and CWE-501 have root guidance but no language directories.** CWE-328 likewise.
+
+None is a defect in existing guidance; they are absences. Recorded here rather than fixed, since
+adding entries is authoring work and a separate decision.
+
 Two things worth settling before starting:
 
 - **CWE-400 is absent.** It is the only Top 25 entry with no directory. Creating it is authoring
