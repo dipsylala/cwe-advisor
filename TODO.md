@@ -62,9 +62,16 @@ Ten cases now cover that axis, drawn from `docs/` `Common Pitfalls` bullets and 
 
 Open:
 
-- **Unrun.** No arm has been executed against them, so their difficulty is asserted, not measured.
-  The first run should check the assertion before the batch is extended - if the unguided arm
-  clears them, the trap was not a trap.
+- **Run 4 answered this: the traps mostly are not traps.** 19 of 20 runs closed the real vector,
+  and all three judges reported independently that both arms saw through the decoy in every case
+  but one. Extending the batch in the same style would add cost without adding resolution. The
+  ten cases are worth keeping as a regression guard; they are not a measuring instrument.
+- **Settle the `no_harm` rubric before using it to compare arms again.** Judges disagreed on 9 of
+  20 runs, all on the same question: whether a behaviour change the author declared (a new size
+  cap, a filename allowlist, a changed key charset) should cost a point. That is a rubric
+  ambiguity, not a model behaviour. Related: `must_preserve` exists in `case.json`, which judges
+  are barred from reading, so they applied their own reading of the contract instead. Passing the
+  stated contract into the judge prompt without revealing the trap is the fix.
 - **True positives only, by decision.** The scenario being measured is a static analysis tool
   having found a real issue and the developer being helped to resolve it, so the arm can be told
   the finding is confirmed rather than asked to adjudicate it. That drops the verdict criterion
@@ -77,6 +84,33 @@ Open:
   A judge disagreeing with `kind` on one of these is a finding about the case.
 - **Nothing is compiled or executed.** `must_preserve` is checked by reading, so a fix that fails
   to compile would be scored on its intent.
+
+### Fix CWE-117/java, and check the class it belongs to
+
+Run 4's one failure was arm B on `LogForgeOnFailure`, and the guidance caused it. All three judges
+scored it `fix_quality` 1, on a criterion with zero disagreement across the whole pool.
+
+`cwe/117/java/INDEX.md` states the trap correctly in its guidance paragraph - *"Parameterized
+logging alone is insufficient without structured output formats"* - but its `Remediation Steps`
+open with adding `logstash-logback-encoder`, configuring a JSON encoder, and replacing
+concatenation with `{}`. Call-site control-character encoding, which is what actually closes the
+finding in the file the scanner named, is fifth and framed as a legacy fallback. The guided arm
+followed the order given: it shipped a code edit that neutralises nothing and deferred closure to
+an assumed Logback binding and an unversioned dependency. The unguided arm encoded at the call site
+and scored 2.00.
+
+This is the CWE-78 shape a second time - **an entry whose leading remediation is an infrastructure
+or configuration change produces a fix that leaves the reported line open**. Two entries, four
+runs, one root cause.
+
+Open:
+
+- Reorder `cwe/117/java` so the call-site fix leads and the structured-logging change is the
+  durable follow-up, without losing the (correct) point that placeholders alone do not neutralise.
+- Check `cwe/117/INDEX.md` and the other 117 language entries for the same ordering.
+- Sweep for the class: entries whose first remediation step changes build files, config files or
+  deployment rather than the code the finding names. CWE-78 and CWE-117 were both found by
+  accident; nothing has looked for the pattern deliberately.
 
 ### Coverage gaps surfaced by building the eval corpus
 
