@@ -6,7 +6,8 @@ Insecure deserialization in .NET occurs when untrusted data is deserialized usin
 
 ## Key Principles
 
-- Replace `BinaryFormatter`, `NetDataContractSerializer`, and `ObjectStateFormatter` with `System.Text.Json` or `DataContractSerializer` - these have no safe configuration
+- Replace `BinaryFormatter`, `NetDataContractSerializer`, and `ObjectStateFormatter` with `System.Text.Json` or `DataContractSerializer` - these have no safe configuration, and Microsoft states `BinaryFormatter` cannot be made secure rather than merely being risky
+- Establish which target framework the code builds for before proposing the fix: `BinaryFormatter` is obsolete from .NET 5, and from .NET 9 the in-box implementation throws on use with the compatibility switches that previously re-enabled it removed. On .NET 9+ the finding is a runtime failure rather than a live vulnerability, and re-enabling is not an option to offer
 - Never use `Newtonsoft.Json` with `TypeNameHandling` set to `All`, `Objects`, or `Auto` on untrusted input; use `TypeNameHandling.None` (the default)
 - Allowlist types explicitly: if polymorphic deserialization is unavoidable with Newtonsoft.Json, pair `TypeNameHandling` with a `SerializationBinder` that restricts to known types
 - Apply input validation after deserialization when using safe serializers like `System.Text.Json`

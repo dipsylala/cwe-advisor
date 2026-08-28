@@ -27,14 +27,14 @@ without its root being graded.
 
 Remaining, in rank order:
 
-| Rank | CWE | Entry | Language dirs | Note |
+| Rank | CWE | Entry | Language dirs | Status |
 |---|---|---|---|---|
-| 15 | CWE-269 Improper Privilege Management | yes | 0 | Missed by the first pass. Router-style entry, like CWE-20/119 |
-| 16 | CWE-502 Deserialization | yes | 6 | Full graded review |
-| 17 | CWE-200 Information Exposure | yes | 0 | Abstract; check it routes rather than remediates |
+| 15 | CWE-269 Improper Privilege Management | yes | 0 | **Reviewed.** Router; all four children it names (250, 272, 273, 274) exist. No changes |
+| 16 | CWE-502 Deserialization | yes | 6 | **Reviewed.** Four corrections - see below |
+| 17 | CWE-200 Information Exposure | yes | 0 | **Reviewed.** Routes correctly; all seven children exist. Added to SKILL.md's router list |
 | 18 | CWE-863 Incorrect Authorization | yes | 6 | Pairs with CWE-862, already reviewed - check they agree |
 | 19 | CWE-918 SSRF | yes | 6 | Only the sweep-audit fix so far; needs a graded pass |
-| 20 | CWE-119 Buffer bounds | yes | 0 | Router to 125/787/121; verify the mapping is complete |
+| 20 | CWE-119 Buffer bounds | yes | 0 | **Reviewed.** Read/write split to 125/787 is complete; now also names 121 for a stack buffer |
 | 21 | CWE-476 NULL Pointer Dereference | yes | 0 | Warrants `c`/`cpp`/`java` entries |
 | 22 | CWE-798 Hard-coded Credentials | yes | 6 | Full graded review |
 | 23 | CWE-190 Integer Overflow | yes | 3 | Only c/cpp/java; likely needs go/csharp |
@@ -84,6 +84,30 @@ Open:
   A judge disagreeing with `kind` on one of these is a finding about the case.
 - **Nothing is compiled or executed.** `must_preserve` is checked by reading, so a fix that fails
   to compile would be scored on its intent.
+
+### CWE-502 review findings
+
+Four corrections, each traced to a vendor source rather than recall:
+
+- `java` - XStream's operative floor is **1.4.21**, not 1.4.18. 1.4.18 is where the allowlist became
+  the default; 1.4.21 (2024-11-07) fixes CVE-2024-47072, a stack-overflow DoS reachable through
+  `BinaryStreamDriver`. The entry gave the first fix rather than the floor.
+- `csharp` - `BinaryFormatter`'s lifecycle was missing. Obsolete from .NET 5; from .NET 9 the in-box
+  implementation throws on use and the switches that previously re-enabled it are removed. On .NET
+  9+ the finding is a runtime failure, not a live vulnerability, and re-enabling is not an option to
+  offer.
+- `python` - PyYAML deprecated the Loader-less `yaml.load` in 5.1 (warns) and made `Loader` required
+  in 6.0, so a bare `yaml.load(data)` raises `TypeError` there. Same live-versus-stale distinction
+  the go entry already made for `math/rand`.
+- `javascript` - **factual error.** `serialize-javascript` was listed as an unsafe deserializer and
+  its Taint Sinks line named a `serialize-javascript` "unsafe unserialize". No such function exists;
+  it is an output-side serializer whose weakness is injection into the output it writes
+  (CVE-2019-16769, CVE-2020-7660). Naming an API that does not exist sends a remediation somewhere
+  there is nothing to fix. Replaced with `funcster.deepDeserialize()`, which is a real sink.
+
+The `go` and `php` entries needed no changes; both already carried the version-sensitive detail
+(`gopkg.in/yaml.v3` constructing no arbitrary types, and phar deserialization narrowing at PHP 8.0).
+
 
 ### Config-first remediation ordering - swept and fixed
 

@@ -34,7 +34,7 @@ Read the top-level index: `cwe/{CWE_ID}/INDEX.md`
 
 If the file doesn't exist, tell the user this CWE isn't in the knowledge base. You may explain what class of vulnerability the CWE ID belongs to (e.g., injection, broken auth) and recommend the user consult the MITRE CWE entry. Do not propose specific code changes.
 
-Some entries route rather than remediate: MITRE marks the ID Discouraged or Prohibited for mapping, so the guidance names a more specific child weakness instead of carrying the fix (CWE-20, CWE-119 and CWE-269 are the common cases). When the loaded guidance routes to a child CWE that matches the finding, read that child's `cwe/{CWE_ID}/INDEX.md` as well, treat it as the primary guidance, and use the child's ID for the language lookup in Step 3. Take one hop only, and keep the parent's guidance for context. If the child's directory doesn't exist, continue with the parent.
+Some entries route rather than remediate: MITRE marks the ID Discouraged or Prohibited for mapping, so the guidance names a more specific child weakness instead of carrying the fix (CWE-20, CWE-119, CWE-200 and CWE-269 are the common cases). When the loaded guidance routes to a child CWE that matches the finding, read that child's `cwe/{CWE_ID}/INDEX.md` as well, treat it as the primary guidance, and use the child's ID for the language lookup in Step 3. Take one hop only, and keep the parent's guidance for context. If the child's directory doesn't exist, continue with the parent.
 
 ### Step 3: Load Language-Specific Guidance
 

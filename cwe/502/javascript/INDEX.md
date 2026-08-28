@@ -10,7 +10,8 @@ JavaScript deserialization vulnerabilities occur when `eval()`, `Function()`, `v
 
 - Replace `eval()`, `Function()`, and `vm` module usage with `JSON.parse()` for all data deserialization
 - Validate deserialized data with schema validation libraries (Joi, Ajv, Zod) before use
-- Remove dependencies on insecure libraries like node-serialize, serialize-javascript, or funcster
+- Remove dependencies on libraries that deserialize by evaluating, such as `node-serialize` (whose `unserialize()` executes an embedded IIFE) and `funcster`
+- `serialize-javascript` is the opposite direction and is not a deserialization sink - it has no `unserialize`. It writes JS intended to be evaluated later, so its weakness is injection into that output (CVE-2019-16769, CVE-2020-7660); take its minimum version from advisory or SCA data, since fixes landed across several releases
 - Implement allowlists for expected object types and reject unexpected properties - in an Ajv/JSON Schema this is `additionalProperties: false` plus an explicit `required` list
 - `JSON.parse()` itself is safe, but merging its output into an existing object with `Object.assign()`, bracket-notation assignment (`target[key] = value`), or a recursive deep-merge library can still cause prototype pollution if `__proto__`/`constructor`/`prototype` keys are not rejected - validate keys before merging, or use `Object.create(null)`/`Map` for untrusted data
 - Use Content Security Policy and strict input validation at API boundaries
@@ -18,7 +19,7 @@ JavaScript deserialization vulnerabilities occur when `eval()`, `Function()`, `v
 
 ## Taint Sinks
 
-`eval()`, `Function()`, `vm.runInNewContext()`, `node-serialize.unserialize()`, `serialize-javascript` unsafe unserialize
+`eval()`, `Function()`, `vm.runInNewContext()`, `node-serialize.unserialize()`, `funcster.deepDeserialize()`
 
 ## Remediation Steps
 

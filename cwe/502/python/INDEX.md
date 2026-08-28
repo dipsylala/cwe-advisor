@@ -12,6 +12,7 @@ Python's `pickle` module executes arbitrary code during deserialization, enablin
 - For pandas DataFrames, use CSV, Parquet, or Feather formats instead of pickle
 - If pickle is absolutely required, implement a restricted unpickler with class allowlisting
 - The `Loader=` argument decides safety, not the function name: `yaml.load(data, Loader=yaml.Loader)` and `yaml.full_load()` construct objects, while `yaml.safe_load()` does not
+- Check the installed PyYAML version before treating a bare `yaml.load(data)` as live: 5.1 deprecated the Loader-less call and warns, and 6.0 made `Loader` a required argument, so on 6.0+ that call raises `TypeError` and never reaches a parser
 
 ## Taint Sinks
 

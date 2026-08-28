@@ -16,7 +16,7 @@ This is the general buffer-bounds weakness: a read, write, or pointer/index oper
 ## Remediation Steps
 
 - Locate - find every buffer, array, or pointer operation whose index, offset, or length is not a compile-time constant
-- Classify - determine whether each operation is a read, a write, or both, routing read-only findings to CWE-125 and write findings to CWE-787 for detailed steps
+- Classify - determine whether each operation is a read, a write, or both, routing read-only findings to CWE-125 and write findings to CWE-787 for detailed steps; where the overflowed buffer is plainly a local array, CWE-121 carries the stack-specific guidance
 - Trace data flow - follow the index, offset, or length back to its source and note whether external input or a derived calculation influences it
 - Identify the unsafe pattern - raw pointer arithmetic or unchecked indexing with no validation against the buffer's real capacity, or a bounds check whose own arithmetic can overflow
 - Replace with the safe pattern - use a bounds-checked container, span, or accessor type where available, or add an explicit, overflow-safe bounds check immediately before the operation
