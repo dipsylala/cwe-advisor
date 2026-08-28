@@ -90,6 +90,8 @@ def check_links(path):
     text = path.read_text(encoding="utf-8")
     # Strip fenced code so code-syntax like `foo[x](y)` isn't parsed as a markdown link.
     prose = re.sub(r"```.*?```", "", text, flags=re.S)
+    # Strip inline code spans too: `globalThis['ev'+'al'](code)` otherwise reads as a link.
+    prose = re.sub(r"`[^`\n]*`", "", prose)
     for match in re.finditer(r"]\(([^)]+)\)", prose):
         target = match.group(1)
         if target.startswith(("http://", "https://", "#", "mailto:")):
