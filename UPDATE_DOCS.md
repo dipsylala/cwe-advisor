@@ -19,6 +19,12 @@ This is **not** a full audit of all 492 files. It covers three things:
 
 Prose accuracy across the roughly 480 files not touched by those passes was not reviewed.
 
+Each finding below was checked by reading the enclosing section, not by grepping for a token and
+judging from the lines around it. One earlier finding was withdrawn for exactly that mistake: a
+search for `mysql_real_escape_string` matched four lines, while the two sentences stating the
+function's removal used the wording "mysql_* functions" and "These functions" and so matched
+nothing. Treat any residual finding here as worth confirming in context before acting on it.
+
 ## Confirmed errors
 
 ### 1. PHP `proc_open` CVE fix versions are wrong, and the follow-up CVE is missing
@@ -75,18 +81,7 @@ weaker option as the recommendation. The surrounding note about glibc needing `_
 **Suggested wording:** recommend `=3`, noting the GCC 12+ / Clang 15+ requirement and `=2` as the
 fallback for older toolchains.
 
-### 4. `mysql_real_escape_string` presented without noting its removal
-
-`docs/CWE-89/php/index.md:231-244`
-
-The vulnerable example uses `mysql_real_escape_string()` and the note beneath it explains the
-multi-byte/GBK bypass. Both are fine as an illustration of legacy code, but nothing says the
-`mysql_*` extension was **removed in PHP 7.0**, so the function does not exist on any supported
-version. As written it reads as a weak-but-available option rather than as code that cannot run.
-
-**Impact:** low. Worth one clause.
-
-### 5. `java.net.URL` constructors described as "deprecated for removal"
+### 4. `java.net.URL` constructors described as "deprecated for removal"
 
 `docs/CWE-88/java/index.md:120-121`
 
@@ -121,6 +116,11 @@ no link rot.
 Listed so these are not re-litigated. Each was verified against upstream sources or was more
 accurate than the `cwe-advisor` entry covering the same ground.
 
+- **`mysql_real_escape_string` and the PHP 7.0 removal** - correct, and stated twice: the code
+  comment at `docs/CWE-89/php/index.md:227` reads `// VULNERABLE - Using deprecated mysql_*
+  functions (removed in PHP 7.0)`, and the bullet at :245 reads "These functions were removed in
+  PHP 7.0 - always use MySQLi or PDO with prepared statements". This was raised as a finding in an
+  earlier draft and withdrawn; the `cwe-advisor` copy was the one behind, and has been corrected.
 - **Node.js CVE-2024-27980 versions** (18.20.2, 20.12.2, 21.7.3) - correct.
 - **`jdk.lang.Process.allowAmbiguousCommands`** - correct, including that `=false` is what restores
   strict quoting. `cwe-advisor` had this wrong.
@@ -148,9 +148,10 @@ accurate than the `cwe-advisor` entry covering the same ground.
 
 ## Summary
 
-Five errors. Two are worth fixing promptly: gorilla/csrf, because it recommends software with an
+Four errors. Two are worth fixing promptly: gorilla/csrf, because it recommends software with an
 unpatched bypass, and the PHP `proc_open` versions, because they produce a false pass in a
-dependency check. The remaining three are lower-consequence wording or staleness. The two
+dependency check. The other two are lower-consequence wording or staleness. A fifth was raised and
+withdrawn - see the `mysql_real_escape_string` entry under "Checked and found correct". The two
 previously reported link problems were not `docs/` problems at all.
 
 The broader pattern from checking in both directions: `docs/` was **more** accurate than the
@@ -161,4 +162,5 @@ turned up. Version assertions are the thing worth re-checking on a schedule; the
 
 Note the sample is not random: the claims examined were selected because a review had already
 flagged them or because the knowledge base asserted the same thing. It supports "`docs/` is a
-useful cross-check source", not an error rate for either tree.
+useful cross-check source", not an error rate for either tree - and the withdrawn finding is a
+reminder that the count can move down as well as up.
