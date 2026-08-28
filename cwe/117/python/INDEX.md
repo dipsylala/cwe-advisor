@@ -21,9 +21,9 @@ Log injection occurs when untrusted data is written to logs without proper encod
 
 ## Remediation Steps
 
-- Install structured logging library - `pip install python-json-logger` or `structlog`
-- Configure every handler with `jsonlogger.JsonFormatter()` (python-json-logger) or the structlog JSON renderer
-- Replace string concatenation with structured fields - `logger.info("Login", extra={"user": username})`
-- Use parameterized messages with format strings, not f-strings in log calls
-- For legacy systems without JSON logging, implement comprehensive control character encoding
+- Encode the value at the call site before logging it - `json.dumps()` or `repr()` on the value covers the ASCII control range and keeps the backslash unambiguous. This closes the reported line whatever handlers the application turns out to have configured
+- Fix every sink in that file, not only the reported one - a leftover `print()` or an `except` block still using an f-string keeps the finding live
+- Use parameterized messages (`logger.info("Login for %s", username)`) or structured fields (`extra={"user": username}`), not f-strings. On its own this neutralizes nothing: it separates message from value so an encoding-aware formatter *can* act, which is why it accompanies the encoding rather than replacing it
+- Where the same value is logged from many places, put the encoding in a `logging.Filter` or custom `Formatter` so it applies to every call site rather than the ones that remember
+- As a separate, durable change, move the application to structured logging - `python-json-logger` or `structlog`, configured on every handler. Do not offer this as the fix for one finding: it needs a pinned version and reformats every line the application emits
 - Test by attempting to inject newlines, null bytes, ANSI codes, and Unicode line separators - verify proper encoding

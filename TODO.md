@@ -85,32 +85,46 @@ Open:
 - **Nothing is compiled or executed.** `must_preserve` is checked by reading, so a fix that fails
   to compile would be scored on its intent.
 
-### Fix CWE-117/java, and check the class it belongs to
+### Config-first remediation ordering - swept and fixed
 
-Run 4's one failure was arm B on `LogForgeOnFailure`, and the guidance caused it. All three judges
-scored it `fix_quality` 1, on a criterion with zero disagreement across the whole pool.
-
-`cwe/117/java/INDEX.md` states the trap correctly in its guidance paragraph - *"Parameterized
-logging alone is insufficient without structured output formats"* - but its `Remediation Steps`
-open with adding `logstash-logback-encoder`, configuring a JSON encoder, and replacing
-concatenation with `{}`. Call-site control-character encoding, which is what actually closes the
-finding in the file the scanner named, is fifth and framed as a legacy fallback. The guided arm
-followed the order given: it shipped a code edit that neutralises nothing and deferred closure to
-an assumed Logback binding and an unversioned dependency. The unguided arm encoded at the call site
+Run 4's one failure was arm B on `LogForgeOnFailure`: all three judges scored it `fix_quality` 1,
+on a criterion with zero disagreement across the pool. `cwe/117/java` stated the trap correctly in
+its guidance paragraph and then opened `Remediation Steps` with the dependency and the encoder
+config, so the guided arm shipped a code edit that neutralised nothing and deferred closure to an
+assumed Logback binding and an unversioned dependency. The unguided arm encoded at the call site
 and scored 2.00.
 
-This is the CWE-78 shape a second time - **an entry whose leading remediation is an infrastructure
-or configuration change produces a fix that leaves the reported line open**. Two entries, four
-runs, one root cause.
+That is the CWE-78 shape a second time: **an entry whose leading remediation is an infrastructure
+or configuration change produces a fix that leaves the reported line open.**
 
-Open:
+Swept all 500 entries for a first remediation step that changes build, config or deployment rather
+than the code the finding names. 14 candidates; 6 changed:
 
-- Reorder `cwe/117/java` so the call-site fix leads and the structured-logging change is the
-  durable follow-up, without losing the (correct) point that placeholders alone do not neutralise.
-- Check `cwe/117/INDEX.md` and the other 117 language entries for the same ordering.
-- Sweep for the class: entries whose first remediation step changes build files, config files or
-  deployment rather than the code the finding names. CWE-78 and CWE-117 were both found by
-  accident; nothing has looked for the pattern deliberately.
+- `cwe/117` root, `java`, `csharp`, `javascript`, `python` - call-site encoding now leads, with
+  structured logging as the durable follow-up rather than the fix, and each says why it is not a
+  drop-in for one finding (depends on the binding present, needs a pinned version, reformats every
+  line emitted). `cwe/117/go` already had this order and is the shape the others moved to.
+- `cwe/209/javascript` - the reported route leads, since centralized middleware only runs for
+  errors that reach it.
+- `cwe/209/python` - the exception handler leads; `DEBUG` is the environment, not the handler.
+- `cwe/79/python` - the reported `|safe`/`mark_safe` leads; Django autoescape is on by default, so
+  "enable autoescaping" is usually a no-op while the marker is the live issue.
+- `cwe/201/python` - the serializer/`response_model` leads; `DEBUG = False` covers the debug error
+  page, not the response body.
+
+Checked and deliberately left: the `cwe/352` family (adding the CSRF middleware genuinely is the
+fix), `cwe/611/javascript` (configuring the parser is the sink fix), `cwe/614/csharp` (the step is
+a code change at the sink), `cwe/285/java` (`@PreAuthorize` silently does nothing without
+`@EnableMethodSecurity`, so it is a precondition rather than a substitute, and the code change
+follows immediately), `cwe/1321` and `cwe/943/python` (matched the heuristic on the word "config"
+in a locate step).
+
+Verified: re-running the CWE-117 case against the updated entry produced a call-site `encodeForLog`
+helper covering the control range plus U+2028/U+2029 and the backslash, the `Throwable` kept in
+trailing position, the unreported second sink fixed too, and an explicit statement that closing the
+finding needs no configuration or dependency change. Recorded at `evals/runs-v4/verify/`. One
+unblinded run - it confirms the entry no longer steers toward the config change, not that the
+change helps in general.
 
 ### Coverage gaps surfaced by building the eval corpus
 

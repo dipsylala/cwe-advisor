@@ -18,9 +18,9 @@ Log Injection in JavaScript/Node.js occurs when untrusted user input is written 
 
 ## Remediation Steps
 
-- Identify all locations where user input (params, headers, body) is logged
-- Switch to structured JSON logging (winston with `format: winston.format.json()`, or bunyan/pino) passing user data as separate fields instead of string interpolation
-- For plain text logging, encode control characters as backslash escapes (`\r`, `\n`, `\t`, and `\\` for the backslash itself) with a `\uXXXX` fallback for the rest, so a literal backslash-n and a real newline do not render identically
-- Configure logger settings to auto-sanitize or use libraries like `validator` to clean inputs
+- Encode the value at the call site before logging it: escape the ASCII control range (0x00-0x1F, 0x7F), U+0085, U+2028, U+2029, ANSI escape sequences, and the backslash itself, so a literal backslash-n and a real newline do not render identically. This closes the reported line whatever transport the application is configured with
+- Fix every sink in that file, not only the reported one - a leftover `console.error()` or a `catch` block still interpolating keeps the finding live, and a redacting format only covers the logger instance it is attached to
+- Pass user data as separate fields rather than interpolating it into the message. On its own this neutralizes nothing: it separates message from value so an encoding-aware transport *can* act, which is why it accompanies the encoding rather than replacing it
+- As a separate, durable change, move the application to structured JSON logging - winston with `format: winston.format.json()`, or bunyan/pino. Do not offer this as the fix for one finding: it reformats every line the application emits
 - Add input validation at entry points to reject or sanitize data with control characters
 - Test by attempting to inject newlines, null bytes, ANSI codes, and Unicode line separators - verify proper encoding

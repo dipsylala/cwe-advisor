@@ -20,8 +20,8 @@ XSS occurs when untrusted data is included in web output without proper encoding
 
 ## Remediation Steps
 
-- Enable and verify template auto-escaping is active (Django - `TEMPLATES['OPTIONS']['autoescape'] = True`)
-- Replace `mark_safe()` or `|safe` filters on user-controlled variables with proper escaping
+- Replace the `mark_safe()` or `|safe` on the reported line with proper escaping - that marker is what disables escaping for that value, and it stays disabled however the template engine is configured
+- Confirm template auto-escaping is on (Django - `TEMPLATES['OPTIONS']['autoescape']`, true by default), so the rest of the template is covered
 - Use `html.escape()` when rendering user input in non-template contexts
 - For rich HTML, use `nh3.clean(user_input, tags={'b', 'i', 'u'}, attributes={})` with minimal allowlists - `nh3` takes sets where `bleach` took lists
 - Set `Content-Security-Policy` headers to restrict script execution

@@ -21,8 +21,8 @@ Python web applications commonly expose sensitive data through HTTP responses, e
 
 ## Remediation Steps
 
-- Set `DEBUG = False` in Django/Flask production settings
-- Define explicit serializer fields instead of using `fields = '__all__'`, and declare FastAPI routes with `response_model=` bound to a Pydantic model that lists only the allowed fields
+- Narrow what the reported response actually returns - define explicit serializer fields instead of `fields = '__all__'`, and declare FastAPI routes with `response_model=` bound to a Pydantic model listing only the allowed fields. This is what closes an over-broad response body, which `DEBUG` does not affect
+- Set `DEBUG = False` in Django/Flask production settings, which covers the debug error page rather than the response body
 - Catch exceptions and return generic error messages to clients
 - Configure logging filters to redact sensitive data (passwords, tokens, keys)
 - Use environment variables for secrets, never hardcode in responses

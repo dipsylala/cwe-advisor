@@ -19,8 +19,8 @@ Error Message Information Leak occurs when Python applications expose sensitive 
 
 ## Remediation Steps
 
+- Implement custom exception handlers that return generic HTTP error responses - this is what closes a handler that returns the exception text, and it holds regardless of how the environment is configured
 - Configure production settings to disable debug mode and detailed error pages
-- Implement custom exception handlers that return generic HTTP error responses
 - Add centralized logging for all exceptions with full traceback details, using `logger.error(..., exc_info=True)` so the traceback goes to the log rather than the response
 - Review all try-except blocks to ensure user-facing messages are generic
 - Implement error monitoring with tools that capture exceptions server-side

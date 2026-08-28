@@ -18,9 +18,8 @@ Log Injection occurs when untrusted data is written to log files without encodin
 
 ## Remediation Steps
 
-- Add logstash-logback-encoder or log4j-layout-template-json dependency to your project
-- Configure Logback/Log4j2 to use JSON encoder/layout in logback.xml or log4j2.xml
-- Replace string concatenation in log statements with parameterized logging using `{}`
-- Pass user input as parameters, not concatenated into the message string
-- For legacy systems without JSON support, encode control characters as backslash escapes (`\r`, `\n`, `\t`, and `\\` for the backslash itself) with a `\uXXXX` fallback for the rest, so a literal backslash-n and a real newline do not render identically
+- Encode the value at the call site before logging it: escape the ASCII control range (0x00-0x1F, 0x7F), U+0085, U+2028, U+2029, and the backslash itself as `\uXXXX`-style escapes, so a literal backslash-n and a real newline do not render identically. This closes the reported line in the file the finding names, whatever the application's logging configuration turns out to be
+- Fix every sink in that file, not only the reported one - a `catch` block or a leftover `logger.debug()` still building its message by concatenation keeps the finding live
+- Replace concatenation with SLF4J `{}` placeholders, keeping any `Throwable` as the trailing argument. On its own this neutralizes nothing: it separates template from value so an encoding-aware sink *can* act, which is why it accompanies the encoding rather than replacing it
+- As a separate, durable change, move the application to structured logging - add logstash-logback-encoder or log4j-layout-template-json and configure the JSON encoder/layout in `logback.xml` or `log4j2.xml`. Do not offer this as the fix for one finding: it depends on which binding is actually on the classpath, needs a pinned version rather than a placeholder, and reformats every line the application emits
 - Test by attempting to inject newlines, null bytes, and Unicode line separators into logged fields and verify proper encoding

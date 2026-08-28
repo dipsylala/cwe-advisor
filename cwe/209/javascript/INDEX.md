@@ -22,8 +22,8 @@ Error Message Information Leak occurs when JavaScript applications expose sensit
 
 ## Remediation Steps
 
-- Add environment-based error middleware that checks `NODE_ENV === 'production'`
-- Replace detailed error responses with generic messages like "Internal server error"
+- Fix the reported route first - replace its direct error response with a generic message, or forward to the centralized handler via `next(error)`. Centralized middleware only runs for errors that reach it, so a route answering from its own `catch` bypasses it however well it is configured
+- Add environment-based error middleware that checks `NODE_ENV === 'production'` as the systemic control, then check no other route still responds from its own `catch"
 - Configure logging to capture full errors server-side (Winston, Pino, Bunyan)
 - Remove or disable client-side `console.error()` calls exposing sensitive data
 - Set `NODE_ENV=production` in deployment environments

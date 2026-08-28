@@ -20,9 +20,8 @@ The primary defence is structured logging with JSON formatters (Microsoft.Extens
 
 ## Remediation Steps
 
-- Adopt structured logging with `Microsoft.Extensions.Logging` and JSON formatter or Serilog with JSON sinks
-- Replace string concatenation/interpolation with parameterized logging - `logger.LogInformation("User {Username} logged in", username)`
-- For legacy systems without structured logging, encode control characters as backslash escapes (`\r`, `\n`, `\t`, and `\\` for the backslash itself) with a `\uXXXX` fallback for the rest, so a literal backslash-n and a real newline do not render identically
-- Configure log outputs to use structured formats (JSON, ECS) rather than plain text
-- Review existing logging statements to ensure user input is passed as parameters, not embedded in format strings
+- Encode the value at the call site before logging it: escape the ASCII control range (0x00-0x1F, 0x7F), U+0085, U+2028, U+2029, and the backslash itself, so a literal backslash-n and a real newline do not render identically. This closes the reported line whatever formatter the application turns out to be configured with
+- Fix every sink in that file, not only the reported one - a `catch` block or a leftover `Console.WriteLine`/`Trace.WriteLine` still interpolating keeps the finding live
+- Replace interpolation with a message template - `logger.LogInformation("User {Username} logged in", username)`. On its own this neutralizes nothing: it separates template from value so an encoding-aware sink *can* act, which is why it accompanies the encoding rather than replacing it
+- As a separate, durable change, adopt structured logging with `Microsoft.Extensions.Logging` and a JSON formatter, or Serilog with JSON sinks. Do not offer this as the fix for one finding: it depends on the sinks the application already has, and it reformats every line it emits
 - Test by attempting to inject newlines, null bytes, and Unicode line separators - verify proper encoding
