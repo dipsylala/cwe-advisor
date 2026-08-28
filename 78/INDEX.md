@@ -2,7 +2,9 @@
 
 ## LLM Guidance
 
-OS Command Injection occurs when untrusted data is incorporated into operating system commands without proper validation, allowing attackers to execute arbitrary commands on the host. The primary remediation is to eliminate system command execution entirely by using language-native library alternatives (file I/O APIs, HTTP clients, compression libraries). Only if no library exists should parameterized execution APIs be considered.
+OS Command Injection occurs when untrusted data is incorporated into operating system commands without proper validation, allowing attackers to execute arbitrary commands on the host. The primary remediation, where the command is incidental to what the code needs to do, is to eliminate system command execution entirely by using language-native library alternatives (file I/O APIs, HTTP clients, compression libraries). Only if no library exists should parameterized execution APIs be considered.
+
+Where executing a command is the purpose of the code rather than a means to an end, removing the call is a regression, not a remediation - keep the execution and make it safe. Either way, preserve what the code returned: a replacement that emits output the original discarded trades an injection for an information leak.
 
 ## Key Principles
 

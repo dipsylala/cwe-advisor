@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-`os/exec` does not invoke a shell when given a command and separate arguments, so most Go command injection comes from explicitly invoking `sh -c`, `bash -c`, or `cmd /C` with a concatenated or `fmt.Sprintf`-built string. The primary remediation is eliminating command execution entirely by replacing it with Go standard library equivalents (`os`, `net`, `net/http`, `archive/zip`, `archive/tar`). If a command is truly unavoidable, use `exec.Command`/`exec.CommandContext` with a separate argument list, never a shell, plus allowlist validation.
+`os/exec` does not invoke a shell when given a command and separate arguments, so most Go command injection comes from explicitly invoking `sh -c`, `bash -c`, or `cmd /C` with a concatenated or `fmt.Sprintf`-built string. The primary remediation, where the command is incidental, is replacing it with Go standard library equivalents (`os`, `net`, `net/http`, `archive/zip`, `archive/tar`). If a command is truly unavoidable, use `exec.Command`/`exec.CommandContext` with a separate argument list, never a shell, plus allowlist validation. Decide first which case this is: where the command is incidental - a wrapper around something the language does natively - replacing it removes the sink entirely and is the better fix; where running a command is the feature the endpoint exists for, removing it is not a fix but a regression, and the work is to execute safely. In either case the remediated code must return what the original returned: a replacement that emits data the original discarded introduces an information leak while closing the injection.
 
 ## Key Principles
 

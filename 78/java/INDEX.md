@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-OS Command Injection occurs when untrusted data is incorporated into operating system commands without proper validation, allowing attackers to execute arbitrary commands on the host. In Java, eliminate Runtime.exec() and ProcessBuilder calls entirely by using native Java libraries (java.nio.file.Files, java.net.http.HttpClient, java.util.zip, etc.) for file operations, HTTP requests, and archive handling.
+OS Command Injection occurs when untrusted data is incorporated into operating system commands without proper validation, allowing attackers to execute arbitrary commands on the host. In Java, eliminate Runtime.exec() and ProcessBuilder calls where the command is incidental, by using native Java libraries (java.nio.file.Files, java.net.http.HttpClient, java.util.zip, etc.) for file operations, HTTP requests, and archive handling. Decide first which case this is: where the command is incidental - a wrapper around something the language does natively - replacing it removes the sink entirely and is the better fix; where running a command is the feature the endpoint exists for, removing it is not a fix but a regression, and the work is to execute safely. In either case the remediated code must return what the original returned: a replacement that emits data the original discarded introduces an information leak while closing the injection.
 
 ## Key Principles
 
