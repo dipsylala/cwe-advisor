@@ -12,11 +12,12 @@ so a hand-written quote filter is not a substitute.
 ## Key Principles
 
 - Compile a static expression containing `$username`-style references and install an
-  `XPathVariableResolver` with `setXPathVariableResolver()` before `compile()` or `evaluate()`. The
-  resolver's `resolveVariable(QName)` returns the value as an `Object`, usually a `String`
-- Set the resolver on the `XPath` instance *before* compiling: an expression compiled without one
-  throws `XPathExpressionException` when it reaches an unresolvable variable, which is a failure to
-  fix rather than a fix that fails safe
+  `XPathVariableResolver` on the `XPath` instance with `setXPathVariableResolver()`. The resolver's
+  `resolveVariable(QName)` returns the value as an `Object`, usually a `String`
+- `compile()` uses the resolver *in effect at compile time*, so an `XPathExpression` captures it and a
+  resolver installed afterwards never reaches that expression - only the uncompiled `XPath.evaluate()`
+  form picks up one set later. A compiled expression cached at startup and paired with a per-request
+  resolver therefore throws `XPathExpressionException` on the unresolved variable
 - `XPathFactory` and `XPath` are not thread-safe, and a variable resolver holding per-request state on
   a shared instance leaks values between requests. Create the `XPath` per use, or make the resolver
   stateless and pass values through a fresh instance

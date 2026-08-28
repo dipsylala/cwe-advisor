@@ -11,8 +11,10 @@ an over-long password rather than truncating it, which changes what the fix has 
 ## Key Principles
 
 - `bcrypt.GenerateFromPassword` returns `ErrPasswordTooLong` for input over 72 bytes rather than
-  silently truncating, which is a deliberate divergence from the reference implementation. A fix that
-  adds bcrypt without handling that error turns a long passphrase into a failed registration
+  silently truncating, which is a deliberate divergence from the reference implementation. Check the
+  dependency version before relying on it: the rejection landed in `golang.org/x/crypto` v0.5.0, and
+  v0.4.0 and earlier truncate silently like every other implementation. A fix that adds bcrypt without
+  handling that error turns a long passphrase into a failed registration
 - The asymmetry matters as much as the error: `CompareHashAndPassword` still accepts passwords over 72
   bytes and compares only the first 72, because rejecting them would break already-stored hashes. So
   login keeps working for a legacy long password that registration would now refuse

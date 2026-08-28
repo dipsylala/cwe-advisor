@@ -22,9 +22,13 @@ store to the client.
   and a `$_SESSION` key is readable from anywhere in the request
 - Store a resolved identifier and load the authority on use: a user id in the session, the role from
   the database, rather than a role string an authorization check will believe
-- In Laravel, `SESSION_DRIVER=cookie` serialises the session into the client cookie, encrypted with
-  `APP_KEY`. Encryption means the user cannot read or forge it, not that the value was checked - and
-  it makes `APP_KEY` rotation a session-wide logout. Check the driver before reasoning about exposure
+- In Laravel, `SESSION_DRIVER=cookie` serialises the whole session into the client cookie. Encryption
+  under `APP_KEY` means the user cannot read or forge it, not that the value was checked, so establish
+  the driver before reasoning about exposure. That driver also has its own history: paired with any
+  place the app encrypts user input and returns the result, it reached RCE (GHSA-qm5c-m76r-2hfr, fixed
+  in 6.18.31 and 7.22.4)
+- Rotating `APP_KEY` logs out every session on *any* driver, since Laravel encrypts the session cookie
+  itself - list the outgoing key in `APP_PREVIOUS_KEYS` to rotate without the mass logout
 - Laravel's `session()->regenerate()` is the framework equivalent of the id rotation above, and
   `Auth::login()` performs it; a hand-rolled elevation does not
 - `session.use_only_cookies` is likewise off by default in the raw configuration, which allows a

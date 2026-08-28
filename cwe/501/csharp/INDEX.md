@@ -23,8 +23,10 @@ storing a server-resolved identifier over the submitted value.
 - ASP.NET Core Identity's security stamp is the mechanism for that - `SecurityStampValidationInterval`
   controls how often a principal is revalidated, and lengthening it widens the window in which a
   revoked authority still works
-- `TempData` uses a cookie provider by default in many templates, which puts the value on the client.
-  Anything written there is readable by the user and should be treated as a response, not a store
+- `CookieTempDataProvider` is the framework default rather than a template choice, so `TempData` puts
+  the value on the client unless `AddSessionStateTempDataProvider()` is registered. It is encrypted
+  with `IDataProtector`, so the user cannot read or forge it; the reason to keep a trust decision out
+  of it is that it is chunked under a 4096-byte cookie limit and its lifetime belongs to the client
 - Store the resolved value rather than the submitted one: keep a user or tenant id in the session and
   load the role on use, rather than caching a role string that an authorization check will believe
 - `HttpContext.Items` is per-request and is a reasonable place for a validated value, but a middleware

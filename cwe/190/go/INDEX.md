@@ -16,7 +16,8 @@ type, plus an application limit on the result.
   mixed signs and it does nothing for multiplication - prefer `count > math.MaxInt/size` before a
   multiply
 - Use the `math` constants rather than literals so the check follows the platform: `math.MaxInt`,
-  `math.MinInt`, `math.MaxInt32`, `math.MaxUint` (Go 1.17+). Hard-coding `2147483647` silently
+  `math.MinInt` and `math.MaxUint` (all added in Go 1.17), or `math.MaxInt32` where a fixed width is
+  genuinely what is meant. Hard-coding `2147483647` silently
   becomes the wrong bound on a 64-bit build, and the right one for the wrong reason on 32-bit
 - `int` is not a fixed width. A value that fits `int` on the developer's amd64 machine can overflow
   the same code compiled for a 32-bit target, so size the check to the type the value will actually

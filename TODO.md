@@ -217,22 +217,57 @@ what a developer types?).
 recall in entries whose value proposition is that they are not written from recall. It argues for
 finishing this pass before authoring anything further.
 
-Still to verify, roughly in harm order:
+Second batch - the nine claim groups above, all now checked.
 
-- `cwe/476/c` - the compiler deleting a null check placed after a dereference, and CVE-2009-1897 as
-  its canonical instance; `assert` under `NDEBUG`; `realloc` leaving the original block valid
-- `cwe/476/cpp` - `operator*` on an empty `std::optional` being undefined while `.value()` throws;
-  `dynamic_cast` returning null for pointers and throwing `std::bad_cast` for references;
-  `map::operator[]` inserting rather than reporting absence
-- `cwe/328/php` - `PASSWORD_DEFAULT` being allowed to change between releases; bcrypt's 72-byte
-  truncation
-- `cwe/328/java` - `DelegatingPasswordEncoder`'s `{id}` prefix and `upgradeEncoding()`
-- `cwe/328/go` - `crypto.Hash` values panicking unless the implementing package is linked in
-- `cwe/501/csharp` - the security stamp validation interval; `TempData`'s default cookie provider
-- `cwe/501/php` - Laravel's `cookie` session driver and `APP_KEY` rotation
-- `cwe/190/go` - `math.MaxInt` requiring Go 1.17+
-- `cwe/643/java` - the variable resolver having to be installed before `compile()`
+**Confirmed correct - 8:**
 
+- CVE-2009-1897 is exactly as described: `tun_chr_poll` in `drivers/net/tun.c` assigned `sk = tun->sk`
+  before the null test, gcc deleted the test as provably true, and the kernel's response was to build
+  with `-fno-delete-null-pointer-checks`. Both the citation and the compiler-deletion mechanism hold
+- `std::optional::operator*` is undefined on an empty optional and does not check; `.value()` throws
+  `std::bad_optional_access`
+- `crypto.Hash.New()` - "New panics if the hash function is not linked into the binary", verbatim
+- PHP `crypt()`'s DES form "only uses the first eight characters", verbatim from the manual
+- `PASSWORD_DEFAULT` is documented as designed to change over time, and `PASSWORD_BCRYPT` truncates at
+  72 bytes rather than characters
+- `session.use_strict_mode` is still off by default - the RFC to change it is Inactive and was never
+  implemented, so the claim has not quietly dated
+- `DelegatingPasswordEncoder` prefixes with the encoder id, and `upgradeEncoding()` returns true when
+  the stored id differs from `idForEncode`
+- `bcrypt.DefaultCost` is 10; `hash('xxh3', ...)` arrived in PHP 8.1
+
+**Corrected - 4:**
+
+- `cwe/328/go` **missing version floor on the entry's whole reason for existing.** The Go-specific
+  hook is that bcrypt rejects rather than truncates - but `ErrPasswordTooLong` landed 2022-12-21 and
+  first shipped in `x/crypto` v0.5.0. On v0.4.0 and earlier it truncates silently like everyone else,
+  so a reader on a pinned older version writes handling for an error that never arrives and keeps the
+  truncation they were told they did not have. Floor now stated
+- `cwe/643/java` **wrong mechanism, and the wrong one is load-bearing.** The entry said to install the
+  resolver "before `compile()` or `evaluate()`". The Javadoc: `compile()` uses the resolver *in effect
+  at compile time*. A compiled `XPathExpression` captures it, so the `or evaluate()` reading - compile
+  once at startup, install a per-request resolver before evaluating - never resolves the variable
+- `cwe/501/csharp` **"readable by the user" was false.** `CookieTempDataProvider` encrypts with
+  `IDataProtector`. It is also the framework default outright, not "the default in many templates" as
+  written, so the hedge pointed a reader away from checking. Restated on the real reason to keep trust
+  decisions out of it: a 4096-byte chunked cookie whose lifetime belongs to the client
+- `cwe/501/php` **wrong attribution.** The entry blamed the `APP_KEY` rotation logout on the `cookie`
+  session driver. Laravel encrypts the session cookie on *every* driver, so rotation logs everyone out
+  regardless - and `APP_PREVIOUS_KEYS` avoids it, which the entry presented as unavoidable. Added
+  GHSA-qm5c-m76r-2hfr while there, since it is specifically about the driver the bullet covers
+
+Also tightened `cwe/190/go`, where a trailing "(Go 1.17+)" sat after a list including `math.MaxInt32`,
+which predates it by years.
+
+**Pass totals: 17 claims checked, 8 wrong.** The second batch's errors differ in kind from the first.
+Batch 1 was recall producing false statements. Batch 2 is mostly true statements that fail anyway -
+a correct behaviour with no version floor, a correct instruction with the wrong mechanism behind it,
+a correct concern resting on a false premise. Those survive a reread by their author, because the
+sentence is not wrong; only tracing each claim to the vendor separately surfaces them.
+
+The nine recorded groups are now closed. What this pass did not cover: the ~160 entries below rank 25
+that were never prose-reviewed, and the pre-existing entries this session only modified rather than
+authored.
 
 ### Config-first remediation ordering - swept and fixed
 
