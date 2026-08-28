@@ -160,6 +160,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 628 | Function Call with Incorrectly Specified Arguments | - |
 | 639 | Authorization Bypass Through User-Controlled Key | IDOR, insecure direct object reference |
 | 642 | External Control of Critical State Data | - |
+| 643 | Improper Neutralization of Data within XPath Expressions | XPath injection, XPathi |
 | 656 | Reliance on Security Through Obscurity | security through obscurity |
 | 665 | Improper Initialization | - |
 | 668 | Exposure of Resource to Wrong Sphere | - |

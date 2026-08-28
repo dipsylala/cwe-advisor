@@ -220,9 +220,16 @@ change helps in general.
 Mapping OWASP Benchmark's categories onto the knowledge base exposed three gaps, all outside the
 Top 25 and none previously recorded:
 
-- **CWE-643 (XPath Injection) has no entry at all.** It is a Benchmark category with 15 true
-  positives, so it is a weakness real scanners report.
-- **CWE-327 and CWE-501 have root guidance but no language directories.** CWE-328 likewise.
+- ~~CWE-643 (XPath Injection) has no entry at all.~~ **Done.** Root plus `java`, `csharp` and
+  `python` authored. The organising fact is that XPath 1.0 string literals have no escape sequence,
+  so escaping is not available as a fallback and binding is the only general fix - and the three
+  languages differ sharply on whether they offer it. `lxml` binds natively
+  (`tree.xpath("//user[@name=$name]", name=value)`); Java needs an `XPathVariableResolver` installed
+  before compiling; .NET has **no** built-in binding at all, since `XPathExpression.SetContext`
+  resolves namespaces rather than variables, so the practical fix there is a static node set compared
+  in C#, or LINQ to XML. CWE-91 now routes the query half of its scope to CWE-643.
+- **CWE-327 and CWE-501 have root guidance but no language directories.** CWE-328 likewise. Still
+  open.
 
 None is a defect in existing guidance; they are absences. Recorded here rather than fixed, since
 adding entries is authoring work and a separate decision.

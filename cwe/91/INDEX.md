@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-XML Injection occurs when untrusted user input is incorporated into XML documents without proper validation or escaping, allowing attackers to modify XML structure or content. The core fix is to never construct XML through string concatenation; instead, use XML libraries that automatically escape user input as data. MITRE's name also covers XPath/XQuery injection, where the fix is closer to SQL parameterization - bind the value as an XPath variable rather than concatenating it. This is **not** the CWE for XML External Entity processing: a finding about `DOCTYPE`, external entities, or entity expansion is CWE-611, and hardening a parser does nothing for a document built by concatenation.
+XML Injection occurs when untrusted user input is incorporated into XML documents without proper validation or escaping, allowing attackers to modify XML structure or content. The core fix is to never construct XML through string concatenation; instead, use XML libraries that automatically escape user input as data. MITRE's name also covers XPath/XQuery injection; where the finding is a value concatenated into an XPath *query* rather than into an XML document, read CWE-643, which carries the binding APIs per language and the reason escaping is unavailable. This is **not** the CWE for XML External Entity processing: a finding about `DOCTYPE`, external entities, or entity expansion is CWE-611, and hardening a parser does nothing for a document built by concatenation.
 
 ## Key Principles
 
