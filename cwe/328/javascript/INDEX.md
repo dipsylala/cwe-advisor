@@ -11,7 +11,7 @@ so the naive constant-time comparison fails closed by crashing.
 
 ## Key Principles
 
-- `crypto.timingSafeEqual(a, b)` throws a `RangeError` if the buffers are not the same length. A
+- `crypto.timingSafeEqual(a, b)` throws `ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH` rather than returning false if the buffers are not the same length. A
   comparison against attacker-supplied input must therefore equalise first - hash both sides and
   compare the digests, or check the length separately and accept that the length itself leaks
 - Always pass the digest to `crypto.pbkdf2`/`pbkdf2Sync`. The form that defaulted the digest to SHA-1

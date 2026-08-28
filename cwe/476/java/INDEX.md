@@ -14,9 +14,12 @@ making absence explicit in the producer's type - `Optional`, a documented empty 
 - Unboxing is an invisible dereference: `int total = counts.get(key);` throws when the key is absent,
   and the line contains no `.` to suggest it. Any arithmetic, comparison, or assignment mixing a
   boxed wrapper with a primitive is a dereference of that wrapper
-- The conditional operator unboxes both branches when their types differ, so
-  `flag ? 0 : nullInteger` throws even when the null branch is not taken. Give both branches the same
-  reference type, or test for null before the expression
+- The conditional operator applies binary numeric promotion when one branch is a primitive and the
+  other a boxed wrapper, which makes the *whole expression* primitive-typed. So
+  `Integer result = flag ? 0 : nullInteger;` unboxes the selected branch and throws when `flag` is
+  false - at a line whose declared types are all references. Only the chosen branch is evaluated, so
+  the untaken one is harmless; the surprise is that unboxing happens at all despite the assignment
+  target being `Integer`. Give both branches the same reference type, or test for null first
 - `Map.get` returning null is ambiguous between "absent" and "present and mapped to null" - use
   `containsKey`, `getOrDefault`, or `Optional.ofNullable` so the two are distinguishable rather than
   guessing from the null
@@ -26,13 +29,14 @@ making absence explicit in the producer's type - `Optional`, a documented empty 
 - `Objects.requireNonNull(x, "message")` at the top of a constructor or public method converts a
   distant, confusing NPE into an immediate one that names the argument, and is the right way to
   enforce a contract the type system cannot
-- Since JEP 358 (Java 14) helpful NullPointerException messages name the exact expression that was
-  null; on Java 14 and later that message is the fastest route to the producer, and on earlier
-  versions the stack trace only gives the line
+- Helpful NullPointerException messages (JEP 358) name the exact subexpression that was null, but
+  check the version before relying on one: JDK 14 shipped the feature **off by default**, needing
+  `-XX:+ShowCodeDetailsInExceptionMessages`, and it became the default only in JDK 15. On 14 without
+  the flag, and on anything earlier, the stack trace gives the line and nothing more
 - Autoboxing in collections is a common source: `List<Integer>` and `Map<String, Long>` hold nulls
   that a `List<int>` could not, so a stream or loop summing them fails on the first absent entry
-- `String.valueOf(obj)` yields the text `"null"` rather than throwing, so a null can pass silently
-  through logging and string concatenation and surface much later as bad data instead of an exception
+- `String.valueOf(obj)` yields the text `"null"` rather than throwing, so a null passes silently
+  through logging and concatenation and surfaces later as bad data instead of an exception
 - Fix at the producer where several callers share it: changing a method to return `Optional` or to
   throw surfaces every caller that was ignoring the case, which is the point
 - A `catch (NullPointerException e)` around business logic is not a fix - it hides which value was
@@ -47,8 +51,9 @@ to return `null` on failure
 
 ## Remediation Steps
 
-- Locate - identify the expression that threw, using the Java 14+ helpful NPE message where available
-  to name the exact subexpression rather than only the line
+- Locate - identify the expression that threw; on JDK 15 or later (or 14 with
+  `-XX:+ShowCodeDetailsInExceptionMessages`) the helpful NPE message names the exact subexpression
+  rather than only the line
 - Trace data flow - follow the value back to where it can become null: a map miss, a repository
   finder, an unset optional request field, a deserialized JSON property, or an uninitialised field
 - Identify the unsafe pattern - a missing check, an unboxing conversion with no visible dereference, a

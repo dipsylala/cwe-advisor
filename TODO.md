@@ -174,6 +174,66 @@ primary defence:
 
 **TODO section 1 is complete.** All eleven of MITRE Top 25 ranks 15-25 are now reviewed or authored.
 
+### Verification pass over this session's authored entries - started
+
+The entries written this session are sold on being traced to a vendor rather than recalled, but the
+tracing stopped where the authoring began: the `docs/` pitfalls behind them went through actor/critic
+across two model families, and the transcriptions and surrounding claims did not. Since the product
+is a *nudge*, a wrong entry costs more than a missing one - the eval runs measured a guided arm
+scoring below the unguided control on `no_harm` twice - so verifying what is written beats writing
+more.
+
+First batch: eight claims checked against vendor sources, chosen by harm potential (would this change
+what a developer types?).
+
+**Confirmed correct - 4:**
+
+- XPath 1.0 literals have no escape sequence. The W3C grammar is `'"' [^"]* '"' | "'" [^']* "'"`, so
+  the delimiter is excluded with no escape defined. The whole CWE-643 family rests on this.
+- Node's `crypto.pbkdf2` default digest was SHA-1, runtime-deprecated in v6 and end-of-life in v8
+  (`undefined`) and v14 (`null`) as DEP0009.
+- `gorilla/securecookie` with a nil `blockKey` authenticates but does not encrypt, so the value is
+  readable by the client.
+- Spring MVC `@SessionAttributes` does promote a data-bound `@ModelAttribute` into the session, so
+  request data reaches the trusted store with no `setAttribute` in the source.
+
+**Corrected - 4:**
+
+- `cwe/476/java` ternary unboxing: **the mechanism was wrong.** The entry said the conditional
+  operator unboxes both branches so `flag ? 0 : nullInteger` throws even when the null branch is not
+  taken. The unchosen operand is not evaluated. The real trap is that binary numeric promotion makes
+  the whole expression primitive-typed, so the *selected* branch is unboxed even when the assignment
+  target is `Integer`.
+- `cwe/476/java` JEP 358: claimed helpful NPE messages from Java 14. JDK 14 shipped the feature **off
+  by default** behind `-XX:+ShowCodeDetailsInExceptionMessages`; it became the default in JDK 15.
+- `cwe/328/java` `MessageDigest`: asserted "instances are not thread-safe" as documented fact. The
+  Javadoc states no thread-safety guarantee either way. Restated on the documented basis - mutable
+  state between `update()` and `digest()`, no guarantee given, so concurrent use is undefined.
+- `cwe/328/javascript` `timingSafeEqual`: asserted it throws a `RangeError`. That it throws rather
+  than returning false is confirmed; the error class is not documented in what could be retrieved, so
+  it now names `ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH` instead.
+
+**Four wrong out of eight.** That rate is the finding, not the individual fixes: claims written from
+recall in entries whose value proposition is that they are not written from recall. It argues for
+finishing this pass before authoring anything further.
+
+Still to verify, roughly in harm order:
+
+- `cwe/476/c` - the compiler deleting a null check placed after a dereference, and CVE-2009-1897 as
+  its canonical instance; `assert` under `NDEBUG`; `realloc` leaving the original block valid
+- `cwe/476/cpp` - `operator*` on an empty `std::optional` being undefined while `.value()` throws;
+  `dynamic_cast` returning null for pointers and throwing `std::bad_cast` for references;
+  `map::operator[]` inserting rather than reporting absence
+- `cwe/328/php` - `PASSWORD_DEFAULT` being allowed to change between releases; bcrypt's 72-byte
+  truncation
+- `cwe/328/java` - `DelegatingPasswordEncoder`'s `{id}` prefix and `upgradeEncoding()`
+- `cwe/328/go` - `crypto.Hash` values panicking unless the implementing package is linked in
+- `cwe/501/csharp` - the security stamp validation interval; `TempData`'s default cookie provider
+- `cwe/501/php` - Laravel's `cookie` session driver and `APP_KEY` rotation
+- `cwe/190/go` - `math.MaxInt` requiring Go 1.17+
+- `cwe/643/java` - the variable resolver having to be installed before `compile()`
+
+
 ### Config-first remediation ordering - swept and fixed
 
 Run 4's one failure was arm B on `LogForgeOnFailure`: all three judges scored it `fix_quality` 1,

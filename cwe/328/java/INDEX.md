@@ -14,9 +14,10 @@ the string you pass rather than by a default.
 - `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")` is a weak choice hiding in an algorithm name -
   request `PBKDF2WithHmacSHA256` explicitly. There is no separate parameter to get wrong, which also
   means a copied-in string is the whole configuration
-- `MessageDigest` instances are not thread-safe. A `static final MessageDigest` shared across request
-  threads interleaves `update()` calls and produces wrong digests non-deterministically - a
-  correctness bug that presents as intermittent verification failures rather than as a security one
+- Do not share a `MessageDigest` instance across threads. It carries mutable state between `update()`
+  and `digest()`, and the class documents no thread-safety guarantee, so concurrent use has no defined
+  behaviour - in practice interleaved `update()` calls yield wrong digests intermittently, which
+  presents as flaky verification rather than as a security failure. Obtain one per use
 - For passwords prefer Spring Security's `DelegatingPasswordEncoder`, which prefixes the stored value
   with the encoder id such as `{bcrypt}`. That prefix is what lets the application verify old formats
   and write new ones without a migration flag, and `upgradeEncoding()` tells you when to rehash
