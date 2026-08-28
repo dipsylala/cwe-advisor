@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 # docs/ is a separate, gitignored human-facing tree - not part of the knowledge base spec.
-SKIP_DIRS = {".git", "docs"}
+SKIP_DIRS = {".git", "docs", "evals"}
 
 ROOT_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles"]
 LANG_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles", "## Taint Sinks"]
