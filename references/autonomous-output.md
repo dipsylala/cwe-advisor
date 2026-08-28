@@ -10,6 +10,7 @@ Structured output for SKILL.md Step 5 (Offer a Fix) in autonomous mode, in place
 - **library_recommendation** - name and, where the loaded guidance supplies one, minimum safe version; omit the version rather than supplying it from recall, and where the guidance records no fixed release, give the replacement instead of a version
 - **proposed_fix** - the vulnerable code and the fixed code, in the same before/after form as the interactive Step 5 output; omit when `verdict` is not `exploitable`
 - **explanation** - one paragraph on what changed and why it eliminates the weakness
+- **behaviour_changes** - every difference between the original and fixed code beyond closing the weakness, each with its reason: arguments supplied where the original left a default, altered return values, output the original discarded. State `none` where the fix leaves the Step 4 sink contract intact. This is the field a reviewer reads to decide whether the fix is safe to apply unattended
 - **assumptions** - any ambiguity resolved without asking (per Operating Mode) and what was assumed; omit if none
 
 Do not modify the developer's code in this mode. The record above is a proposal for the calling process to apply, queue for review, or reject.

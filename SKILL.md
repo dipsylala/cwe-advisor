@@ -81,6 +81,17 @@ The trace may show the finding is not exploitable as reported: the value is cons
 
 Hold this to the same standard as a fix. "I could not follow the path" is not the same finding as "there is no path" - say which one it is, and never report the first as the second.
 
+**Establish what the sink currently does (either option)**
+
+Once the path is confirmed, describe the sink's existing contract before writing any fix - the fix has to satisfy it as well as close the weakness. Record four things:
+
+- **Returns** - what the call produces, and what the caller does with it.
+- **Discards** - what it produces that the current code deliberately ignores. A replacement that surfaces discarded output trades an injection for an information leak.
+- **Arguments left implicit** - every parameter the call omits, passes `null`, or leaves at its default. Establish what that default actually means before substituting anything for it. Supplying a safer-looking value in place of an omitted one is a silent behaviour change, and where the default is security-relevant - a search scope, a redirect policy, a verification mode - the fix widens exposure while appearing to succeed.
+- **Failure behaviour** - what it throws or returns on error, and what depends on that.
+
+Where the fix cannot preserve one of these, say so and explain the trade-off rather than making the change silently.
+
 **Allowlist fix points (either option)**
 
 When a fix validates untrusted input against an allowlist, treat the validation as a transformation, not only a gate. Do not keep passing the original tainted value downstream after a successful check; select the matching canonical value from the allowlist or a server-controlled map, assign it to a fresh variable, and use that trusted value for later sinks.
@@ -108,6 +119,12 @@ Present the fix (interactive mode) or populate the proposal's fix fields (autono
 If the fix uses an allowlist, apply the canonical-value substitution described in Step 4 - the fixed code must use the value selected from the allowlist, not the original tainted input, downstream.
 
 Always prefer the language-specific safe pattern over the general one when both are available.
+
+#### Check the fix changed only what it had to
+
+Before presenting the fix (interactive) or emitting the record (autonomous), compare the fixed code against the original and account for every difference that is not the sink itself: changed or added arguments, dropped parameters, altered return values, reordered calls, output the original did not produce. Each difference needs a reason that ties back to the weakness. Anything that cannot be justified that way is scope creep at best and a regression at worst - revert it.
+
+Then check the result against the sink contract from Step 4. Either the fix closes the weakness and leaves the rest of that contract intact, or it names what it could not preserve and why.
 
 #### After the Fix (interactive mode only)
 
