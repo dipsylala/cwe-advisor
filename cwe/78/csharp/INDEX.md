@@ -12,7 +12,15 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Use System.Net.NetworkInformation.Ping for network checks instead of ping command
 - Use System.IO.Compression for archive operations instead of zip commands
 - Never concatenate user input into command strings
-- Only use ProcessStartInfo as a last resort with ArgumentList and UseShellExecute = false
+- Only use `ProcessStartInfo` as a last resort, with `ArgumentList` and `UseShellExecute = false`. Two
+  things about that pair are commonly misread. `ArgumentList` exists only on .NET Core 2.1, .NET
+  Standard 2.1 and later and is absent from every .NET Framework version, so on Framework the escaping
+  falls back to hand-quoting `Arguments`. And `UseShellExecute` defaults to `false` on .NET Core and
+  .NET 5+ but `true` on .NET Framework, so setting it explicitly is load-bearing only there
+- `UseShellExecute = false` is not what keeps a command shell out of the picture: Microsoft documents
+  the "shell" in that property as the *graphical* shell, not `cmd.exe` or `sh`. What avoids a command
+  shell is not naming one as the executable - so a fix that flips this flag while still launching
+  `cmd.exe /c` has changed nothing
 - `ArgumentList` does not protect a `.bat`/`.cmd` target: Windows has no argv array at the system-call level, so `cmd.exe` re-parses the command line for a batch file and .NET leaves that to the caller. Launch the executable the batch file wraps instead. The same applies to `powershell.exe -Command`, which re-parses its argument as script - use `-File` with a fixed script path and `-NoProfile` where PowerShell is genuinely required, passing user data as declared script parameters - `-File` is what stops the value being re-parsed as script; signing governs which scripts may run at all, not how their arguments are parsed
 - ArgumentList prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 

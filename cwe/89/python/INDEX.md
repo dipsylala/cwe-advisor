@@ -21,7 +21,7 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 ## Remediation Steps
 
 - Replace all string concatenation and f-strings in SQL queries with parameterized placeholders
-- Use the driver's placeholder syntax (`?` for `sqlite3`, `%s` for `psycopg2`/`mysql-connector`, `:name` or `%(name)s` for named binding). `%s` here is the driver's placeholder, not Python string formatting - the values go to `cursor.execute(sql, params)` as a second argument. `cursor.execute(sql % params)` looks almost identical, interpolates the value into the SQL, and is the most common form of SQL injection in Python
+- Use the driver's placeholder syntax, and note the two named forms are not interchangeable: `sqlite3` accepts `?` and `:name`, while `psycopg2`/`psycopg3` and `mysql-connector` accept `%s` and `%(name)s` and reject `:name`. Getting this wrong raises at execution rather than falling back, so it surfaces as a broken fix rather than a silent one. `%s` here is the driver's placeholder, not Python string formatting - the values go to `cursor.execute(sql, params)` as a second argument. `cursor.execute(sql % params)` looks almost identical, interpolates the value into the SQL, and is the most common form of SQL injection in Python
 - Pass user input as separate arguments to execute() methods, never embedded in query strings
 - For dynamic table/column names, validate against a predefined allowlist of safe values
 - Review all database interaction code for direct string manipulation

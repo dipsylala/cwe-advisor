@@ -7,7 +7,12 @@ Go's `database/sql` supports safe parameterization through placeholders (`?` for
 ## Key Principles
 
 - Use `database/sql` placeholders for all data values: `db.Query(query, arg1, arg2)`, never `fmt.Sprintf` or `+` into the SQL string
-- With ORMs (GORM, sqlx), use their parameterized query builders (`Where("x = ?", v)`, `NamedQuery`) - never `db.Raw`/string-built queries with concatenated values
+- With ORMs (GORM, sqlx), use their parameterized query builders (`Where("x = ?", v)`, `NamedQuery`).
+  `db.Raw` is not the only sink to check: GORM's own security documentation lists `Select`,
+  `Distinct`, `Pluck`, `Group`, `Order`, `Table`, `Joins` and `Exec` as methods that do not escape
+  their input. `Order` matters most here, since it is exactly where a user-chosen sort column lands
+  after the value parameters have been dealt with. `Raw` and `Exec` given `?` arguments are safe -
+  what makes them a finding is a concatenated string, not the call itself
 - SQL identifiers (table/column names, `ORDER BY` direction) cannot be bound as parameters; validate them against a Go map or allowlist before use
 - Keep placeholder-numbering helpers (`fmt.Sprintf("$%d", n)`) restricted to generating placeholder syntax only, never to inserting the value itself
 - Scan results with typed `Scan()`/`StructScan()` destinations rather than feeding returned data into further queries without revalidation

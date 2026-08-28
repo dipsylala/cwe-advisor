@@ -13,7 +13,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Never concatenate user input into command strings
 - Never use shell: true - it enables shell injection
 - Only use child_process as a last resort with argument arrays and shell: false
-- A `.bat`/`.cmd` target re-enters `cmd.exe` on Windows even without `shell: true`. Node closed this in 18.20.2, 20.12.2 and 21.7.3 (CVE-2024-27980) by *refusing* to spawn a batch file directly - `spawn`/`spawnSync` now fail with `EINVAL`. Read that error as the fix working: adding `shell: true` to make the call succeed again re-opens the exact surface the patch closed. Invoke the executable the batch file wraps instead
+- A `.bat`/`.cmd` target re-enters `cmd.exe` on Windows even without `shell: true`. Node's first attempt at this (CVE-2024-27980, in 18.20.2, 20.12.2 and 21.7.3) was later identified as an incomplete fix, bypassed by batch files with other extensions; the operative floor is the second round - **18.20.4, 20.15.1 and 22.4.1** (CVE-2024-36138). The 21.x line reached end of life without ever receiving the complete fix. Both rounds work by *refusing* to spawn a batch file directly, so `spawn`/`spawnSync` fail with `EINVAL`. Read that error as the fix working: adding `shell: true` to make the call succeed again re-opens the exact surface the patch closed. Invoke the executable the batch file wraps instead
 - An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Taint Sinks

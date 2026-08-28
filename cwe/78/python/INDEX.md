@@ -11,10 +11,17 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Use requests or urllib for HTTP requests instead of curl/wget
 - Use socket for network checks instead of ping commands
 - Never concatenate user input into command strings
-- Never use shell=True - it enables shell injection
+- Default to `shell=False` with an argument list; where a shell is used it becomes the caller's job to
+  quote every metacharacter, which is the actual source of the injection. Treat this as a strong
+  default rather than an absolute, because CPython's own security-considerations section recommends
+  the opposite in one case: for a Windows batch file with untrusted arguments it advises passing
+  `shell=True` so Python can escape the special characters
 - Only use subprocess as a last resort with argument lists and shell=False
 - On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself; Python leaves that to the caller, so `shell=False` plus an argument list gives no protection there. Invoke the executable the batch file wraps instead
-- `shlex.quote()` is a shell-quoting helper, not a substitute for `shell=False`; reach for it only when a shell is genuinely unavoidable
+- `shlex.quote()` is a shell-quoting helper, not a substitute for `shell=False`; reach for it only when
+  a shell is genuinely unavoidable, and only on POSIX. The `shlex` documentation states the module is
+  designed only for Unix shells and that `quote()` is not guaranteed correct elsewhere, so on Windows
+  it is not a mitigation at all
 - An argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Taint Sinks
