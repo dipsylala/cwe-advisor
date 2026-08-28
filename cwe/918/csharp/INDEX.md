@@ -10,14 +10,20 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 
 - Validate all URLs against an allowlist of permitted domains before making requests
 - Block private, loopback, link-local, multicast, any-local, IPv4-mapped IPv6, and cloud metadata address ranges, unmapping with `MapToIPv4()` when `IsIPv4MappedToIPv6` is set so the range test sees the v4 address
-- Disable automatic redirects with `AllowAutoRedirect = false` to prevent redirect-based SSRF bypasses
+- Disable automatic redirects with `AllowAutoRedirect = false`. State the reason plainly when fixing:
+  the property defaults to `true`, so a validated host redirecting to an internal one is followed
+  unless this is set. `MaxAutomaticRedirections` only caps how many hops are taken, not where they go
 - Resolve DNS and validate resulting IP addresses to prevent DNS rebinding attacks
 - Enforce HTTPS-only and implement request timeouts to prevent DoS
 - Use `IsIPv6UniqueLocal` (.NET 6+) for `fc00::/7` - `IsIPv6SiteLocal` sounds like private IPv6 and matches only the deprecated `fec0::/10` - and write byte tests for `0.0.0.0/8`, `100.64.0.0/10` and `192.0.0.0/24`, which have no property at all
 - Block the whole `169.254.0.0/16` range rather than the single AWS metadata address, which covers the Azure and Alibaba endpoints too
 - Check every answer `Dns.GetHostAddresses()` returns, not the first
 - Set `UseProxy = false`: validation established what the host resolves to from *this* process, and .NET opts into a proxy from the environment without being asked, which forwards the hostname to be resolved at the other end
-- Close the rebinding race with `SocketsHttpHandler.ConnectCallback` (.NET 6+), which owns the socket and so validates the address actually connected to rather than one from an earlier lookup
+- Close the rebinding race with `SocketsHttpHandler.ConnectCallback`, available from .NET 5 (and
+  `SocketsHttpHandler` itself from .NET Core 2.1, with no .NET Framework equivalent). The callback
+  hands you the connection to open rather than the address chosen, so resolve and check the addresses
+  inside it and connect to the one you validated - it is the place to do this, not a check that
+  happens on its own
 
 ## Taint Sinks
 

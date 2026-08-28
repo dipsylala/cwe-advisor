@@ -8,9 +8,22 @@ SSRF in Go applications happens when a user-supplied URL flows into `http.Get()`
 
 - Validate the full URL (scheme, host) against an explicit allowlist of permitted domains before any request - reject anything not on the list
 - Restrict scheme to `https://` only unless there is a specific need for `http://`
-- Resolve the hostname and reject private/loopback/link-local/multicast IP ranges (`net.IP.IsPrivate()`, `IsLoopback()`, `IsLinkLocalUnicast()`, `IsLinkLocalMulticast()`), including IPv4-mapped IPv6 forms and metadata ranges (`169.254.0.0/16`)
+- Resolve the hostname and reject private, loopback, link-local and multicast addresses, but do not
+  build the check on `IsPrivate` alone. Go documents it as covering only `10.0.0.0/8`,
+  `172.16.0.0/12`, `192.168.0.0/16` and `fc00::/7`, and states outright that it "does not describe a
+  security property of addresses, and should not be used for access control". It returns false for
+  `169.254.169.254`, which is the address this finding usually exists to protect - that one is caught
+  by `IsLoopback()`, `IsLinkLocalUnicast()` and `IsLinkLocalMulticast()` alongside it, plus an explicit
+  CIDR test for the ranges no standard-library predicate covers (`100.64.0.0/10`, `192.0.0.0/24`,
+  `0.0.0.0/8`, and NAT64 `64:ff9b::/96`)
+- `net.IP.IsPrivate` arrived in Go 1.17 and the `net/netip` package in Go 1.18, so on an older
+  toolchain these predicates have to be written by hand
 - Revalidate the resolved IP inside a custom `http.Transport.DialContext`, not just before the request - the default dialer performs its own DNS lookup that can return a different address (DNS rebinding); split the `addr` argument with `net.SplitHostPort()` and dial `net.JoinHostPort(validatedIP, port)` rather than the hostname, so no second resolution happens
-- Set `http.Client.CheckRedirect` to reject or revalidate each redirect target against the same allowlist/IP checks - the default client follows up to 10 redirects automatically
+- Set `http.Client.CheckRedirect` to reject or revalidate each redirect target against the same
+  allowlist and IP checks - with `CheckRedirect` nil the client stops after 10 consecutive *requests*,
+  which is a loop guard rather than a limit on where it will go. Note the callback receives the
+  upcoming `*Request` and the ones already made, so it sees URLs and not resolved addresses; the IP
+  check still has to happen at dial time
 - Never pass unvalidated user input directly to `http.Get()`, `http.Client.Do()`, or `http.Client.Post()`
 
 ## Taint Sinks

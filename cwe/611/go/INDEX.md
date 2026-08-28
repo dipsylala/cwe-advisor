@@ -11,7 +11,12 @@ Go's standard `encoding/xml` package does not resolve external SYSTEM/PUBLIC ent
 - Avoid third-party or CGo-based XML libraries (`libxml2` bindings, `expat` wrappers) for untrusted input unless they can be explicitly configured to disable DTD loading and external entity resolution
 - Never populate `xml.Decoder.Entity` from untrusted document content; keep it a small, fixed, application-defined substitution map or omit it entirely
 - Never reimplement `SYSTEM`/`PUBLIC` entity expansion in application code (e.g. regex-based substitution that reads local files); this recreates the vulnerability `encoding/xml` avoids
-- Apply `http.MaxBytesReader` or `io.LimitReader` consistently on every XML input path, including streaming `Decoder.Token()` loops, not only the `Unmarshal` path, to prevent resource-exhaustion regardless of which parser is in use
+- Apply `http.MaxBytesReader` or `io.LimitReader` consistently on every XML input path, including
+  streaming `Decoder.Token()` loops and not only the `Unmarshal` path. Be clear about what that buys:
+  a byte cap bounds input size, not recursion depth, and Go's XML denial-of-service issues have been
+  depth ones - a small, deeply nested document still exhausts the stack. Those are fixed by keeping
+  the toolchain current (CVE-2022-28131 and CVE-2022-30633, then a `DecodeElement` regression that
+  reset the depth counter, fixed August 2026), so treat patching Go as part of this remediation
 
 ## Taint Sinks
 

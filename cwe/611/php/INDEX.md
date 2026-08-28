@@ -12,7 +12,7 @@ PHP's XML parsers can process external entities by default, leading to file disc
 - Omit parser flags that expand entities or load DTDs
 - Validate and sanitize XML input to reject documents containing entity declarations
 - Prefer JSON over XML when possible to eliminate XXE risk entirely
-- Keep PHP updated (8.0+ has safer defaults with entity loader disabled by default)
+- Attribute the safe default correctly: it comes from libxml 2.9.0 (2012), which disabled entity substitution, not from any PHP release - php.net's only PHP 8.0.0 note on `libxml_disable_entity_loader()` is its deprecation. The default also holds only while none of `LIBXML_NOENT`, `LIBXML_DTDVALID` or `LIBXML_DTDLOAD` is passed
 - On PHP 8.4+ with libxml 2.13+, pass `LIBXML_NO_XXE` to the loader: it blocks external entity loading even where `LIBXML_NOENT` has turned entity substitution on, which is the combination that otherwise reopens XXE
 - `libxml_disable_entity_loader()` was deprecated in 8.0 and still exists - it was not removed - but on 8.0+ it has nothing left to do, because libxml 2.9+ already disables external entity loading by default. Treat a version-guarded call under `PHP_VERSION_ID < 80000` as correct legacy support rather than a finding, and an unguarded call as a deprecation notice to clean up, not a missing protection
 - Never pass `LIBXML_NOENT` - the name reads like "no entities" and it does the opposite, enabling entity substitution
