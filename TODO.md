@@ -32,8 +32,8 @@ Remaining, in rank order:
 | 15 | CWE-269 Improper Privilege Management | yes | 0 | **Reviewed.** Router; all four children it names (250, 272, 273, 274) exist. No changes |
 | 16 | CWE-502 Deserialization | yes | 6 | **Reviewed.** Four corrections - see below |
 | 17 | CWE-200 Information Exposure | yes | 0 | **Reviewed.** Routes correctly; all seven children exist. Added to SKILL.md's router list |
-| 18 | CWE-863 Incorrect Authorization | yes | 6 | Pairs with CWE-862, already reviewed - check they agree |
-| 19 | CWE-918 SSRF | yes | 6 | Only the sweep-audit fix so far; needs a graded pass |
+| 18 | CWE-863 Incorrect Authorization | yes | 6 | **Reviewed.** Agrees with CWE-862; boundary stated consistently in both. All six language entries carry framework traps. No changes |
+| 19 | CWE-918 SSRF | yes | 6 | **Reviewed.** Stronger than the note implied. One gap: `python` - see below |
 | 20 | CWE-119 Buffer bounds | yes | 0 | **Reviewed.** Read/write split to 125/787 is complete; now also names 121 for a stack buffer |
 | 21 | CWE-476 NULL Pointer Dereference | yes | 0 | Warrants `c`/`cpp`/`java` entries |
 | 22 | CWE-798 Hard-coded Credentials | yes | 6 | Full graded review |
@@ -107,6 +107,20 @@ Four corrections, each traced to a vendor source rather than recall:
 
 The `go` and `php` entries needed no changes; both already carried the version-sensitive detail
 (`gopkg.in/yaml.v3` constructing no arbitrary types, and phar deserialization narrowing at PHP 8.0).
+
+
+### CWE-918 review finding
+
+`cwe/918/python` was thinner than its siblings and recommended a check with a correctness history
+the entry did not carry. `ipaddress`'s `is_private`/`is_global` disagreed with the IANA
+special-purpose registries on several IPv4 and IPv6 ranges until CPython 3.12.4 (CVE-2024-4032,
+backported to the 3.8-3.11 branches), so the recommended classification silently misclassifies
+ranges on an unpatched interpreter. Also added the IPv6-spelling-of-IPv4 case the `java` and
+`javascript` entries already carried - `ipaddress` normalizes the mapped form via `ipv4_mapped`,
+but the compatible form `::7f00:1` is a separate case a mapped-only check misses.
+
+Checked and correct: `918/csharp`'s `IsIPv6UniqueLocal` (.NET 6+) claim, verified against the API
+reference, which lists net-6.0 through net-11.0.
 
 
 ### Config-first remediation ordering - swept and fixed

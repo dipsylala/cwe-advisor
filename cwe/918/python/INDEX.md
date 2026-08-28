@@ -12,6 +12,8 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Use DNS resolution checks to prevent DNS rebinding attacks
 - Disable HTTP redirects or validate redirect destinations
 - Include the IPv6 ranges alongside the IPv4 ones - `::1`, `fc00::/7`, `fe80::/10` and the NAT64 prefix `64:ff9b::/96` - and use `ipaddress.ip_address()` classification rather than string prefixes
+- `ipaddress`'s own classification was wrong before CPython 3.12.4 (CVE-2024-4032): `is_private` and `is_global` disagreed with the IANA special-purpose registries on several IPv4 and IPv6 ranges, so the check below silently misclassifies them on an unpatched interpreter. The fix was backported to the 3.8-3.11 branches; take the exact patch level from the advisory and confirm the runtime carries it, or test the ranges explicitly rather than relying on the property
+- Handle the IPv6 spellings of an IPv4 address as the Java and JavaScript guidance does: `ipaddress` normalizes the mapped form `::ffff:127.0.0.1` via `ipv4_mapped`, but the compatible form `::7f00:1` and the NAT64 prefix are separate cases that a mapped-only check misses
 - `requests.get(url)` re-resolves the hostname when it connects, so validation of an earlier lookup does not bind the connection; pin the checked address (a custom adapter or `CURLOPT_RESOLVE`-equivalent) or accept the residual rebinding risk explicitly
 
 ## Taint Sinks
