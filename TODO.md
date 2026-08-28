@@ -36,6 +36,13 @@ Nothing outstanding.
   `proc_open` fix versions are 8.1.28/8.2.18/8.3.5 with a further bypass fixed in 8.1.29/8.2.20/8.3.8
   (CVE-2024-5585), `gorilla/csrf` has no fixed release for CVE-2025-47909, and ASP.NET Core does not
   execute uploaded `.aspx`/`.cshtml` at all - unknown content types 404.
+- `SKILL.md` hardened on two evidenced defects: Step 5 no longer licenses supplying a library
+  version from model recall (the failure mode behind three wrong version claims found this
+  session), and Step 4 now treats a non-exploitable trace as a valid outcome in *both* modes -
+  previously that path existed only in `references/tone.md`, which autonomous mode never reads,
+  so CI runs had no way to conclude a finding was a false positive. `autonomous-output.md` gained
+  a `verdict` field separating `not_exploitable` from `undetermined`. Go added to the Step 3
+  language table (29 entries, more than C or C++, both already listed).
 - `306/` given the same six language entries its siblings `287/` and `862/` carry (csharp, go, java,
   javascript, php, python), each covering where routes escape the framework's auth wiring.
 - Two corrections from reading `docs/`: the CVE-2024-1874 fix version for the PHP 8.3 branch is

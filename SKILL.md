@@ -49,6 +49,7 @@ If code or a platform configuration/manifest file (e.g., `AndroidManifest.xml`) 
 | PHP             | `php`        |
 | C               | `c`          |
 | C++             | `cpp`        |
+| Go              | `go`         |
 | Ruby            | `ruby`       |
 | Perl            | `perl`       |
 
@@ -74,6 +75,12 @@ If a SAST/DAST report includes a call path or taint trace for the finding, or th
 
 If no SAST/DAST-provided path is available, trace the flow yourself. Follow the steps in [references/data-flow-trace.md](references/data-flow-trace.md), using code navigation tooling (e.g. `find_all_references`, `go_to_definition`, symbol search) to speed things up where available, or reading the code directly otherwise.
 
+**When the trace shows no exploitable path (either option)**
+
+The trace may show the finding is not exploitable as reported: the value is constrained or validated before it reaches the sink, the sink is unreachable, or the source is not attacker-controlled. That is a legitimate result in both modes. Report it instead of fixing, name the specific link in the chain that breaks, and do not modify code. In interactive mode, suggest the developer suppress the finding with a documented justification; in autonomous mode, emit the record in [references/autonomous-output.md](references/autonomous-output.md) with no proposed fix.
+
+Hold this to the same standard as a fix. "I could not follow the path" is not the same finding as "there is no path" - say which one it is, and never report the first as the second.
+
 **Allowlist fix points (either option)**
 
 When a fix validates untrusted input against an allowlist, treat the validation as a transformation, not only a gate. Do not keep passing the original tainted value downstream after a successful check; select the matching canonical value from the allowlist or a server-controlled map, assign it to a fresh variable, and use that trusted value for later sinks.
@@ -88,8 +95,10 @@ Summarise the vulnerability and the data flow findings.
 Present the fix (interactive mode) or populate the proposal's fix fields (autonomous mode) in this order:
 
 1. **Library recommendation** (if the guidance names a specific library for the fix):
-   - Name the minimum version known to carry the fix (from the guidance or your general knowledge), not just the library itself. Never recommend a library or version you have reason to believe is vulnerable.
-   - Show the exact change needed in the manifest file (e.g. updated version string in `pom.xml` or `package.json`).
+   - Give a minimum safe version only when the loaded guidance carries one. Do not supply a version number from your own recall - version and CVE metadata is what models get confidently wrong, and it is the part a developer pastes into a manifest without re-checking. Where the guidance names no version, name the library and say the version has to come from advisory or SCA data.
+   - Where the guidance records that a library has no fixed release, say so and name the replacement it points to. An upgrade instruction is wrong in that case, and "use the latest version" is not a fix.
+   - Never recommend a library or version you have reason to believe is vulnerable.
+   - Show the exact change needed in the manifest file (e.g. updated version string in `pom.xml` or `package.json`) where the fix is a version bump, or the dependency swap where it is a replacement.
    - This is guidance, not a live vulnerability scan - tell the developer to confirm the resolved version against SCA/dependency-check tooling before merging.
 2. **Vulnerable code** - show the code with a comment marking the problem.
 3. **Fixed code** - show the code using the safe pattern from the guidance, applied at the point identified in Step 4.
