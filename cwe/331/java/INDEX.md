@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptographic generator (that is CWE-338) - it is about whether `SecureRandom` draws from a properly seeded entropy source. The default `new SecureRandom()` typically resolves to a non-blocking algorithm (e.g. `NativePRNGNonBlocking`, backed by `/dev/urandom` on Linux) that can return output before the OS pool is fully seeded. `SecureRandom.getInstanceStrong()` instead selects from `securerandom.strongAlgorithms` in `java.security`, which on typical Linux JVM configurations resolves to `NativePRNGBlocking` (backed by `/dev/random`) - deliberately blocking until sufficient entropy is available. This matters most for values generated early in a process's or VM's lifecycle, or in cloned VM/container images.
+Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptographic generator (that is CWE-338) - it is about whether `SecureRandom` draws from a properly seeded entropy source. The default `new SecureRandom()` resolves through the provider preference order, which on Linux puts `NativePRNG` first - its `nextBytes()` draws from `/dev/urandom`, so output can be produced before the OS pool is fully seeded. `SecureRandom.getInstanceStrong()` instead selects from the `securerandom.strongAlgorithms` property in `java.security`; what that resolves to is configuration rather than a language guarantee, and is worth reading off the deployed `java.security` rather than assumed. This matters most for values generated early in a process's or VM's lifecycle, or in cloned VM/container images.
 
 ## Key Principles
 
@@ -11,8 +11,8 @@ Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptograp
 - Generate sufficient entropy regardless of correct algorithm: 16+ bytes (128+ bits) for tokens/IVs, 32+ bytes (256+ bits) for keys
 - Be cautious of VM/container images built via templating or snapshotting; JVM/OS entropy or seed state captured at image-build time can be duplicated across clones unless reseeded
 - On embedded or virtualized hosts, verify the underlying OS entropy source is healthy - Java delegates entirely to the platform and does not generate its own entropy
-- Do not reach for `SecureRandom.getInstance("SHA1PRNG")` to get a "strong" instance - that names a specific legacy algorithm rather than the platform's choice; `new SecureRandom()` or `getInstanceStrong()` (or `"DRBG"` where a NIST DRBG is required) is what to ask for
-- `setSeed()` is not a way to improve output: in the SUN provider it supplements the existing seed, in others it replaces it, so a caller-supplied seed can only reduce entropy
+- Do not reach for `SecureRandom.getInstance("SHA1PRNG")` to get a "strong" instance - that names a specific legacy algorithm rather than the platform's choice; `new SecureRandom()` or `getInstanceStrong()` (or `"DRBG"`, added in JDK 9 by JEP 273, where a NIST DRBG is required - it throws `NoSuchAlgorithmException` on JDK 8) is what to ask for
+- `setSeed()` supplements rather than replaces the existing seed, and the Javadoc guarantees repeated calls never reduce randomness - so a caller-supplied seed is not by itself the defect. The documented trap is narrower and easier to miss: a PRNG `SecureRandom` will not seed itself automatically if `setSeed` is called before any `nextBytes` or `reseed` call, so seeding first with a predictable value leaves the instance relying on exactly what the caller supplied
 - `UUID.randomUUID()` draws from `SecureRandom` and carries 122 random bits - fine as an identifier, short of the usual bar for key material
 - `Math.random()`, `java.util.Random` and `ThreadLocalRandom.current()` are not CSPRNGs at all; using one for a secret is CWE-338 rather than this weakness
 

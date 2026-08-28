@@ -269,6 +269,58 @@ The nine recorded groups are now closed. What this pass did not cover: the ~160 
 that were never prose-reviewed, and the pre-existing entries this session only modified rather than
 authored.
 
+### Sampling the entries nobody reviewed - the error rate is repo-wide
+
+The verification pass only ever looked at entries this session authored, which is the worst-case
+population: written fast, under a push to cover the Top 25. So the 47% figure could plausibly have
+been an artefact of that. It is not.
+
+Method: 475 entries have neither been authored nor modified this session. Drew a seeded random 12
+(`random.seed(20260829)`), took the 8 with language-specific content, and gave each to a subagent
+briefed to return **evidence only** - the claim quoted verbatim, the vendor sentence quoted verbatim
+with URL, when the behaviour was introduced, and explicitly what the vendor does *not* say. No
+verdicts: the batch-2 lesson is that "is this true?" returns "yes" for a claim that is true and still
+broken, so the judging stayed here. The highest-harm findings were then re-verified directly before
+any edit.
+
+**Seven of the eight entries carried at least one real defect.** The defects, by entry:
+
+- `cwe/114/csharp` - "Sign assemblies and enable strong name verification" is inert. Microsoft's own
+  page carries a Warning, "Do not rely on strong names for security. They provide a unique identity
+  only", and states that on .NET Core and .NET 5+ "The runtime never validates the strong-name
+  signature". A remediation step whose control does not run. Also: `ArgumentList` has no version floor
+  stated and does not exist on any .NET Framework; `AppDomain.CreateDomain` was called non-existent on
+  Core when it compiles and throws `PlatformNotSupportedException`
+- `cwe/331/java` - `setSeed()` described as reducing entropy. The Javadoc says the opposite: "The seed
+  supplements, rather than replaces, the existing seed. Thus, repeated calls are guaranteed never to
+  reduce randomness." The real documented trap, which the entry missed, is that a PRNG `SecureRandom`
+  will not self-seed if `setSeed` is called before any `nextBytes`. Also named the wrong default
+  algorithm and gave `"DRBG"` with no JDK 9 floor
+- `cwe/125/cpp` - `.subspan()` offered as the bounds-checked alternative to `span[i]`. The standard
+  states its offset and count as *preconditions* with no throws clause, so it is exactly as unchecked.
+  Also `_LIBCPP_HARDENING_MODE` with no libc++ 18 floor, where the older spelling is silently inert
+- `cwe/601/go` - the entry says to reject a target containing a backslash and to verify via `url.Parse`
+  that `Scheme` and `Host` are empty. Go does not treat `\` as a separator, so `/\evil.com` passes
+  the entry's own check. The recommended test does not catch the case the same bullet says to reject
+- `cwe/863/python` - object-level permissions are not applied on create, because `get_object()` is
+  never called. An authorization entry whose remediation leaves POST unguarded
+- `cwe/79/php` - no version floor on `htmlspecialchars` flags. Before PHP 8.1 the default was
+  `ENT_COMPAT`, which leaves the single quote unescaped
+- `cwe/134/php` - `%2000000000s` used as the example of the width that throws. It is below `INT_MAX`,
+  so it does not; the `ValueError` boundary is above it
+
+The eighth, `cwe/676`, is a root file: no APIs, no versions, nothing falsifiable. That is the one
+structural comfort here - root files are low-risk by construction, and the exposure is concentrated in
+language files, which is also where the value is.
+
+**Conclusion: the rate is not an artefact of fast authoring.** Entries written slowly, months ago, by
+the same process fail at about the same rate. The common thread across both populations is that the
+knowledge base was written from model recall about APIs, and recall about API defaults, version floors
+and "X does not do Y" is unreliable in a way that is invisible to rereading.
+
+Not yet done: ~467 unreviewed entries remain. At this hit rate a full sweep is the only way to trust
+the corpus, and it is a large job - roughly 60 batches of the shape run here.
+
 ### Config-first remediation ordering - swept and fixed
 
 Run 4's one failure was arm B on `LogForgeOnFailure`: all three judges scored it `fix_quality` 1,

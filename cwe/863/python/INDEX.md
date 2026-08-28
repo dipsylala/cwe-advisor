@@ -8,6 +8,8 @@ In Django REST Framework, Incorrect Authorization commonly appears as a `permiss
 
 - Implement both `has_permission` (coarse, role-level) and `has_object_permission` (per-instance, ownership) on `BasePermission` subclasses - DRF only calls `has_object_permission` for views that call `self.check_object_permissions(request, obj)` or use generic views' `get_object()`, so confirm the view path actually reaches it
 - Use an explicit allowlist for role checks (`request.user.role in {'admin', 'editor'}`) instead of `!=` denylist comparisons
+- `has_object_permission` does not run on create. DRF's documentation is explicit that because `get_object()` is not called, object-level permissions are not applied when creating objects - so a permission class that is correct for the detail routes still leaves POST unguarded. Enforce the ownership or tenancy constraint in the serializer's `validate()` or in `perform_create()` as well
+- `has_object_permission` is only reached if `has_permission` already returned true, so the two layer in one direction only: a coarse check that passes everyone through is what exposes the per-object gap
 - Compare the object's owning user field to `request.user` inside `has_object_permission`, not just the object's type or existence
 - Never resolve role or ownership from request data (`request.data.get('role')`); always read from `request.user`, populated by DRF's authentication classes from the verified session or token
 - Apply the permission class via the view's `permission_classes` attribute so it runs for every method (GET/PUT/PATCH/DELETE) on that view, rather than adding inline checks per view function

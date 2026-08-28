@@ -2,15 +2,15 @@
 
 ## LLM Guidance
 
-Open redirects in Go occur when a value from `r.URL.Query().Get("next")`, `r.FormValue("redirect")`, or the `Referer` header is passed directly into `http.Redirect(w, r, target, status)` without validation. `http.Redirect` performs no safety checks on its target, so the caller is fully responsible. The primary fix is to validate the target against an allowlist-either a strict same-site path check (must start with `/`, not `//`, no backslashes, no scheme/host after `url.Parse`) or an explicit allowlist of external hostnames-and to use the allowlist-selected value, not the raw parameter, at the `http.Redirect` call.
+Open redirects in Go occur when a value from `r.URL.Query().Get("next")`, `r.FormValue("redirect")`, or the `Referer` header is passed directly into `http.Redirect(w, r, target, status)` without validation. `http.Redirect` applies only minimal sanitization - it percent-encodes non-ASCII characters and resolves a relative path against the request path - and performs no validation of scheme or host, so that is the caller's responsibility. The primary fix is to validate the target against an allowlist-either a strict same-site path check (must start with `/`, not `//`, no backslashes, no scheme/host after `url.Parse`) or an explicit allowlist of external hostnames-and to use the allowlist-selected value, not the raw parameter, at the `http.Redirect` call.
 
 ## Key Principles
 
 - Never pass a raw query parameter, form value, or `Referer`/`Origin` header directly into `http.Redirect`
-- For same-site redirects, require the target to start with `/`, reject a target starting with `//` or containing `\`, and confirm via `url.Parse` that `Scheme` and `Host` are both empty
+- For same-site redirects, require the target to start with `/`, reject one starting with `//`, and confirm via `url.Parse` that `Scheme` and `Host` are both empty. Test for `\` as a separate string check rather than through the parse: Go does not treat a backslash as a path separator, so `/\evil.com` parses with an empty `Scheme` and `Host` and passes the check above, while a browser may still read it as protocol-relative
 - For external redirects, maintain an explicit map or slice of allowed hostnames and compare `url.Parse(target).Hostname()` for an exact match, never `strings.Contains` or `strings.HasPrefix` on the raw URL string
 - Checking `url.Parse(target).Host != ""` alone is insufficient-also check `Scheme != ""`, since an opaque URI like `javascript:alert(1)` parses with an empty `Host` but a non-empty `Scheme`
-- For OAuth/SAML `redirect_uri` parameters, require an exact match (`subtle.ConstantTimeCompare` or simple `==`) against a per-client registered URI list, never partial or substring matching
+- For OAuth/SAML `redirect_uri` parameters, require an exact `==` match against a per-client registered URI list, never partial or substring matching. A registered URI is not a secret, so a constant-time comparison adds nothing here - reserve `subtle.ConstantTimeCompare` for values where a timing leak actually matters
 - Apply the same validator function at every redirect entry point (login, logout, OAuth callback, any secondary API/mobile handler), not just the primary login flow
 
 ## Taint Sinks

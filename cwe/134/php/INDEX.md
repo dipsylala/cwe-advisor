@@ -7,7 +7,7 @@
 ## Key Principles
 
 - `printf("%s", $user_input)` rather than `printf($user_input)` - the format position is never user-controlled
-- The width specifier is the harder-hitting route: `%2000000000s` is a fatal memory-limit error rather than a catchable exception, so it takes the worker down regardless of exception handling
+- The width specifier is the harder-hitting route, and the boundary decides which failure you get: a width up to `INT_MAX` is accepted and the pad allocated, so `%2000000000s` exhausts `memory_limit` as a fatal error rather than a catchable exception and takes the worker down regardless of exception handling. Since PHP 8.0 a width *above* `INT_MAX` throws a catchable `ValueError` instead, so the damaging inputs are the large widths that remain legal
 - Since PHP 8.0 a mismatched argument count throws `ArgumentCountError` and an unknown specifier throws `ValueError`; unhandled, those become a 500 and, depending on `display_errors`, a stack trace disclosing file paths
 - Ensure `display_errors` is off in production so an uncaught formatting error does not render internal detail to the client
 - Where a format must genuinely vary, index a fixed application-defined array of literals by key and reject an unknown key - never accept the format itself
