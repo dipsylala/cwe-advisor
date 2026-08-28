@@ -368,6 +368,67 @@ unreviewed language entry as suspect rather than sampling further to confirm it.
   prescribed a dependency last released in 2021 - a false-positive generator.
 - *The case the fix does not cover.* Identifiers in every CWE-89 entry; create in CWE-863/python.
 
+### The docs/ reconciliation step - now mandatory per batch
+
+After batch 4 the swept CWEs were compared against `docs/`, the human-readable parent corpus this
+skill was derived from. That comparison found things four batches of vendor fact-checking had not,
+including two corrections that were themselves wrong. It is not optional; run it as step 5 of every
+batch.
+
+`docs/` mirrors the tree as `docs/CWE-{ID}/{language}/index.md`, is gitignored (so it is not versioned
+here and can change underneath us), and is maintained elsewhere by actor/critic review across two model
+families. Language coverage is 1:1 with `cwe/`. Two exceptions: `cwe/400` and `cwe/643` have no `docs/`
+parent at all, because they were authored fresh in this session - they have vendor tracing but never
+went through the two-model review.
+
+**How to read a disagreement.** Neither corpus wins automatically:
+
+- On a *vendor fact* - a version floor, a default, a CVE, an API's documented behaviour - the skill is
+  usually ahead, because the sweep traced these to primary sources and `docs/` largely does not carry
+  them. `docs/` is sometimes wrong in the false-finding direction (it says .NET Framework processes
+  DTDs by default, true only below 4.5.2; its CWE-943 root says "never enable" server-side JavaScript,
+  which MongoDB ships enabled).
+- On *operational detail* - what a fix fails to cover, what a test actually proves, which precondition
+  a defence needs - `docs/` is usually ahead, because compression dropped it. This is where the
+  restoration pass in commit d97d283 came from.
+
+**What the reconciliation caught that the vendor pass missed** (all fixed, commit fc9bce0):
+
+- `cwe/22/php` - a *fail-open* claim I introduced was wrong. `str_starts_with` takes the haystack
+  first, so a `realpath()` false coerces to `''` as the candidate and the check rejects; under
+  `strict_types` it raises. Both fail closed. I had reversed the arguments.
+- `cwe/79/java` - `c:out` narrowed to "an HTML-body control"; it escapes both quote characters and so
+  covers a quoted attribute too.
+- Every CWE-90 file told the model to escape `/` as `\2f` "per RFC 4515". RFC 4515 gives `/` no
+  meaning; escaping it corrupts values.
+- Every CWE-90 file prescribed `*)(objectClass=*)` as the test payload. Client parsers in JNDI, ldapts,
+  ldap3 and .NET reject it before contacting the server, so it raises whether or not the fix works. The
+  discriminating payload is a bare `*`.
+- Five entries were left arguing with themselves because Key Principles were patched without re-reading
+  Remediation Steps in the same file.
+
+**Process rule that follows: after editing a Key Principle, read the whole file before committing.**
+A per-bullet patch is how a corpus starts contradicting itself, and lint cannot see it.
+
+### Where to pick up
+
+Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then reconciliation
+(fc9bce0) and restoration (d97d283). 51 of 287 language files reviewed; every one carried a defect.
+
+The per-batch loop, in full:
+
+1. Pick the next CWE family from the order below; one subagent per language entry.
+2. Brief each agent for EVIDENCE ONLY - claim quoted verbatim, vendor sentence quoted verbatim with
+   URL, when the behaviour was introduced and in which release, what the vendor does *not* say, and
+   whether a stated mechanism is vendor-supported or only its outcome. No verdicts: "is this true?"
+   answers yes for a claim that is true and still broken, which is the dominant failure mode.
+   Give each brief the language's own vendor sources and, where known, the specific trap to check -
+   that targeting is what surfaced the `IsPrivate` and `mysql2` defects.
+3. Re-verify directly any finding that will reverse a claim or delete a recommendation.
+4. Patch, then re-read each patched file end to end.
+5. Run the `docs/` reconciliation for that CWE family (see above) and fix both directions.
+6. `python scripts/lint.py`, check no language file has grown past ~950 words, commit.
+
 **Remaining, in the intended order:** the rest of the injection family (22, 94, 90, 943, 77, 91, 79,
 502, 41, 88, 93, 95, 113, 80), then authn/authz (862, 863, 287, 306, 285, 522, 566, personal 798),
 crypto and randomness (326, 330, 331, 338, 347, 295, 780, 316), web hygiene (352, 601, 614, 434, 942,
