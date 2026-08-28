@@ -17,7 +17,7 @@ This is **not** a full audit of all 492 files. It covers three things:
 4. A later sweep of every version assertion in the `cwe-advisor` knowledge base, with each claim
    `docs/` also makes checked against the same source.
 
-Prose accuracy across the roughly 480 files not touched by those three passes was not reviewed.
+Prose accuracy across the roughly 480 files not touched by those passes was not reviewed.
 
 ## Confirmed errors
 
