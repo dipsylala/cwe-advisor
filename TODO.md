@@ -345,8 +345,13 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 
 - Batch 1 - CWE-89 and CWE-78, six languages each (12 entries). All 12 defective.
 - Batch 2 - CWE-611 and CWE-918 (11 entries). All 11 defective.
+- Batch 3 - CWE-22 and CWE-94 (10 entries). All 10 defective.
+- Batch 4 - CWE-79, CWE-943, CWE-502, CWE-90 (10 entries). All 10 defective.
 
-**Running count: 31 of 287 language files reviewed, 31 carried at least one defect.**
+**Running count: 51 of 287 language files reviewed, 51 carried at least one defect.**
+
+The rate has not moved across four batches and 79 CWEs' worth of subject matter. Treat every
+unreviewed language entry as suspect rather than sampling further to confirm it.
 
 **Recurring defect shapes**, worth briefing future batches on explicitly:
 
