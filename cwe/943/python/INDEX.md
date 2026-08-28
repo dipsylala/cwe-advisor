@@ -12,7 +12,11 @@ NoSQL injection in Python happens when a decoded request body is handed to a que
 - `mongoengine`'s keyword-argument queries are the ODM equivalent of building the filter in code; `__raw__` opts back out of it
 - Keep the password out of the filter: look the user up by name and compare the hash with `bcrypt.checkpw` in application code, so no operator can match a document without knowing the secret
 - Compare against a fixed dummy hash when no user is found, so an unknown username is not measurably faster than a wrong password
-- Never enable `$where`, `mapReduce`, or `$function`, which execute server-side JavaScript, and never build an aggregation pipeline stage from request data
+- Disable server-side JavaScript rather than declining to enable it: `$where`, `$function`,
+  `$accumulator` and `mapReduce` all execute it and are on by default, so the action is
+  `security.javascriptEnabled: false` (or `--noscripting`). MongoDB deprecated map-reduce in 5.0 and
+  the JavaScript operators in 8.0, and names `$expr` as the non-JavaScript replacement. Never build an
+  aggregation pipeline stage from request data
 - Redis: build key names from validated components, and pass request data to `eval` as `KEYS`/`ARGV` arguments rather than as script text
 - Run the application's database account with least privilege, so a reshaped query reaches only what the credential permits
 
@@ -28,4 +32,4 @@ NoSQL injection in Python happens when a decoded request body is handed to a que
 - Replace with the safe pattern - validate each value's type with `isinstance` (or a constructor that raises), then build the filter dict in code with literal keys
 - Break taint after allowlist validation - use the allowlist's own field-name constant as the query key, not the request's string
 - Harden configuration - disable server-side JavaScript on the database, and scope the application's database user
-- Test - submit `{"$ne": null}`, `{"$gt": ""}`, `{"$regex": ".*"}` and a `$where` payload in every string field and confirm each is rejected with a 400 rather than matching a document
+- Test - submit `{"$ne": null}`, `{"$gt": ""}`, `{"$regex": ".*"}` in every string field and confirm each is rejected with a 400 rather than matching a document. A `$where` payload does not belong in this list: it is a top-level query operator and does not execute inside a nested document, so submitting one as a field *value* proves nothing either way - test that one only where the code splices a value into a `$where` expression

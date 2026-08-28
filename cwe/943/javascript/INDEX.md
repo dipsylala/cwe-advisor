@@ -6,13 +6,25 @@ NoSQL injection in Node.js happens when a decoded request body reaches a query f
 
 ## Key Principles
 
-- A Mongoose schema does not protect a query: schema types cast and validate *documents*, not filters, so `Model.findOne({ username: { $ne: 'admin' } })` reaches MongoDB intact on a `strict: true` schema. The control that applies to filters is `mongoose.set('sanitizeFilter', true)`, which is off by default
+- A Mongoose schema is not a filter-injection defence, though not for the reason usually given:
+  Mongoose does cast the filter to the schema, and a value it cannot cast raises `CastError`. What it
+  does not do is reject a *castable operator object*, so `{ username: { $ne: 'admin' } }` still
+  reaches MongoDB. By default it also leaves filter properties that are not in the schema alone -
+  `strictQuery: true` strips them and `'throw'` rejects them
+- The control aimed at this is `mongoose.set('sanitizeFilter', true)` (Mongoose 6.0 and later), off by
+  default, which wraps any nested object with a `$`-prefixed property in `$eq`. It does not address
+  attacker-controlled *keys*, `$where` strings, or aggregation pipelines - Mongoose does not cast
+  pipelines at all. `mongoose.trusted()` is the documented way to let a genuine operator through
 - Validate with `typeof` and reject, rather than coercing with `String(value)` - coercion turns an injection attempt into a wrong-but-quiet lookup instead of an error
 - Keep secrets out of the filter entirely: look the user up by name, then compare the password hash with `bcrypt.compare` in application code, so no operator can match a document without knowing the password
 - Compare against a fixed dummy hash when the user is not found, so an unknown username does not return measurably faster than a wrong password
 - Allowlist field names, sort targets and projections against a fixed `Set`; never spread request data into a filter, an `$or` array, or an aggregation pipeline
 - Reject keys beginning with `$` and containing `.` anywhere a request-supplied object is unavoidable (`express-mongo-sanitize` does this globally, as a backstop rather than the fix)
-- Never enable `$where`, `mapReduce`, or `$function`, whose expressions execute server-side JavaScript
+- Disable server-side JavaScript rather than declining to enable it: `$where`, `$function`,
+  `$accumulator` and `mapReduce` all execute it and are available by default, so the action is
+  `security.javascriptEnabled: false` (or `--noscripting`) on the server. MongoDB deprecated
+  map-reduce in 5.0 and the JavaScript operators in 8.0; `$expr` is its named non-JavaScript
+  replacement for most `$where` uses
 - Redis: build key names from validated components, and never pass request data into `EVAL` as script text - pass it as a `KEYS`/`ARGV` argument
 - Run the application's database account with least privilege, so a reshaped query reaches only what the credential permits
 

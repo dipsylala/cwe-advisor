@@ -6,12 +6,16 @@ XSS in Go usually stems from using `text/template` for HTML output, building HTM
 
 ## Key Principles
 
-- Always render HTML with `html/template`, never `text/template`, for any output served to a browser
+- Always render HTML with `html/template`, never `text/template`, for any output served to a browser -
+  and keep the toolchain patched, because the escaper itself has had escaping bugs: CVE-2023-29400
+  (actions in unquoted attributes, fixed in Go 1.19.9 and 1.20.4) and CVE-2026-56858, where a
+  pathological input could close an unescaped `/` early and inject content, fixed in Go 1.25.13,
+  1.26.6 and 1.27.0-rc.3. `govulncheck` reports both against a module
 - Never wrap untrusted input in `template.HTML`, `template.JS`, `template.URL`, `template.CSS`, or `template.HTMLAttr` - these disable escaping for that value
 - Keep an entire response inside one parsed template so context-aware escaping applies consistently; do not mix `fmt.Fprintf` writes with `template.Execute` for the same output
 - For JSON APIs, set `Content-Type: application/json` via `json.NewEncoder`/`w.Header`, never `text/html`, so responses cannot be interpreted as HTML
-- If HTML fragments must be built outside a parsed template, note that `html/template` exports only `HTMLEscapeString`, `JSEscapeString` and `URLQueryEscaper` - there is no attribute or CSS escaper, so a value landing in an unquoted attribute or a `style` context cannot be escaped correctly by hand. Move those cases back inside a parsed template rather than approximating one
-- Where user-supplied rich HTML must render, sanitize with `github.com/microcosm-cc/bluemonday` (`UGCPolicy()`) and wrap only its output in `template.HTML`; that wrapper is otherwise the sink, not the fix
+- If HTML fragments must be built outside a parsed template, note that `html/template`'s exported escapers cover HTML, JS and URL-query contexts only - there is no attribute or CSS escaper among them, so a value landing in an unquoted attribute or a `style` context cannot be escaped correctly by hand. Move those cases back inside a parsed template rather than approximating one
+- Where user-supplied rich HTML must render, sanitize with `github.com/microcosm-cc/bluemonday` (`UGCPolicy()`) and wrap only its output in `template.HTML`, running the sanitizer last - after any Markdown rendering or other transformation, since anything applied afterwards can reintroduce what it removed; that wrapper is otherwise the sink, not the fix
 - If input selects a link, resource, or class via an allowlist, resolve it through a Go map lookup and pass only the resolved value into the template
 
 ## Taint Sinks

@@ -13,7 +13,17 @@ NoSQL injection in Java needs a hole to come through: a parameter typed `Object`
 - Compare against a fixed dummy hash when no user is found, so an unknown username is not measurably faster than a wrong password
 - Validate free-form identifiers with an anchored pattern (`Pattern.compile("[a-zA-Z0-9_]{3,50}")` plus `matches()`, which is whole-string in Java) before they reach a query
 - Allowlist sort fields, projections and collection names against a fixed `Set`; those cannot be bound as values
-- Never enable `$where`, `$function` or `mapReduce`, and never build an aggregation pipeline stage from request data
+- Disable server-side JavaScript rather than declining to enable it: `$where`, `$function`,
+  `$accumulator` and `mapReduce` all execute it and are available by default, so the action is
+  `security.javascriptEnabled: false` or `--noscripting`. Map-reduce was deprecated in MongoDB 5.0 and
+  the JavaScript operators in 8.0. Never build an aggregation pipeline stage from request data
+- In Spring Data MongoDB the distinctively Java sinks are the annotation ones, which a typed DTO does
+  not close. `@Query` binds a `String` parameter with escaping so operators cannot be introduced
+  through it, but that has failed twice: CVE-2022-22980 (SpEL injection through a query-parameter
+  placeholder in `@Query`/`@Aggregation`, fixed in 3.3.5 and 3.4.1) and CVE-2026-41717 (binding a
+  capture-all placeholder, fixed in 5.0.6 and 4.5.12). A placeholder inside a quoted string literal is
+  also mis-escaped. Prefer `?#{[0]}`-style parameter references over `?0` inside a SpEL expression,
+  and keep Spring Data patched
 - Run the application's database account with least privilege so a reshaped query reaches only what the credential permits
 
 ## Taint Sinks
