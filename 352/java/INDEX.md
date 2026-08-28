@@ -16,12 +16,12 @@ CSRF vulnerabilities in Java web applications occur when state-changing endpoint
 
 ## Taint Sinks
 
-`@PostMapping`/`@PutMapping`/`@DeleteMapping` with `http.csrf().disable()` or missing `_csrf` token
+`@PostMapping`/`@PutMapping`/`@DeleteMapping` with `http.csrf().disable()`, an over-broad `ignoringRequestMatchers(...)` exclusion, or a missing `_csrf` token
 
 ## Remediation Steps
 
 - Add Spring Security dependency and enable CSRF protection in configuration
-- Include a hidden field named `${_csrf.parameterName}` with value `${_csrf.token}` in all HTML forms, or add the CSRF header to AJAX requests
+- Include a hidden field named `${_csrf.parameterName}` with value `${_csrf.token}` in all HTML forms; for AJAX send the token in the `X-CSRF-TOKEN` header, or in `X-XSRF-TOKEN` when the app uses `CookieCsrfTokenRepository.withHttpOnlyFalse()`, the repository that lets JavaScript read the cookie in the first place
 - Configure SameSite=Strict or Lax on session cookies
 - Use POST/PUT/DELETE for state-changing operations (never GET)
 - Ensure Spring Security's CSRF filter is active in the filter chain

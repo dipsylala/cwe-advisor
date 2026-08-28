@@ -14,6 +14,7 @@ CSRF attacks force authenticated users to perform unwanted actions by exploiting
 - Set `SameSite` on the session cookie as defence-in-depth alongside the token, not instead of it: it is a browser-enforced control that non-browser clients ignore, and `Strict` also withholds the cookie from inbound links, SSO redirects and OAuth callbacks
 - Generate the token from a CSPRNG at 128 bits or more, bind it to the session, and compare it in constant time
 - Protect every state-changing route, including ones that accept JSON or a custom content type - a preflight is not an authorization check, and an endpoint reachable with a simple request has none
+- CSRF middleware validates only the non-safe methods, so a state change reachable by `GET` is unprotected even where protection is correctly enabled - `GET /account/delete?confirm=true` passes straight through the filter. The fix is to move the action to POST/DELETE, not to add a token to a GET route
 - Re-issue the token when the session is regenerated at login, so the pre-authentication token cannot be replayed
 
 ## Remediation Steps
@@ -21,6 +22,6 @@ CSRF attacks force authenticated users to perform unwanted actions by exploiting
 - Identify all state-changing endpoints (POST, PUT, DELETE) in security findings by file and line number
 - Locate forms and AJAX requests that lack CSRF token inclusion
 - Review framework configuration to ensure CSRF protection is enabled globally
-- Implement Synchronizer Token Pattern with cryptographically random tokens (minimum 32 bytes)
+- Implement Synchronizer Token Pattern with cryptographically random tokens of at least 128 bits
 - Include CSRF tokens in all forms and AJAX requests that modify data
 - Validate tokens server-side before processing any state-changing request

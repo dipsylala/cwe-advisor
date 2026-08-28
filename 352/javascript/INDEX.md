@@ -21,8 +21,8 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 ## Remediation Steps
 
 - Install CSRF middleware - `npm install csrf-csrf cookie-parser`
-- Obtain `doubleCsrfProtection` from `doubleCsrf({ getSecret, cookieName, cookieOptions })` and apply it globally or to protected routes, mounted after `cookieParser()`
-- Generate a token per request with `generateToken(req, res)` and inject it into forms or expose via a GET endpoint for SPA clients
+- Obtain the utilities from `doubleCsrf({ getSecret, getSessionIdentifier, cookieName, cookieOptions })` and apply `doubleCsrfProtection` globally or to protected routes, mounted after `cookieParser()`. `getSessionIdentifier` is required as of v4 and is the mechanism that binds a token to one session - without it a token minted for one user would validate for another
+- Generate a token per request with `generateCsrfToken(req, res)` - named `generateToken` before v4 - and inject it into forms or expose it via a GET endpoint for SPA clients
 - Configure client to send token in `x-csrf-token` header (AJAX/fetch) or `_csrf` body field (forms)
 - Set cookie SameSite attribute to `Strict` or `Lax` and verify implementation with security tests
 - Handle CSRF errors gracefully - catch `invalidCsrfTokenError` and return 403

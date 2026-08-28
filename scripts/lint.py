@@ -94,6 +94,7 @@ def check_links(path):
         target = match.group(1)
         if target.startswith(("http://", "https://", "#", "mailto:")):
             continue
+        target = target.split("#", 1)[0]
         target_path = (path.parent / target).resolve()
         if not target_path.exists():
             errors.append(f"{rel(path)}: broken link -> {target}")

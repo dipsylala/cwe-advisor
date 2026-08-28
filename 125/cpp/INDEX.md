@@ -10,6 +10,7 @@ C++ inherits C's raw arrays and pointer arithmetic, and `operator[]` on `std::ve
 - Use `.at()` wherever the index is not already validated or structurally guaranteed; keep `operator[]` for a loop bounded by `.size()`
 - Apply the fix at every access point: switching the accessor the finding named while a nearby helper or an internal loop still uses `operator[]` on the same container leaves the read open
 - Take a `std::span<const T>` rather than a `(pointer, length)` pair, and validate the requested length against `buffer.size()` - the span's size is the size of the data actually passed, unlike a second parameter that can disagree with it
+- `std::span` gained `.at()` only in C++26, so on C++20/23 `span[i]` is an unchecked read like any raw index: compare against `.size()` explicitly, or use `.subspan()`, whose arguments are checked against the extent
 - Validate against the container's current `.size()`, not a separately tracked size variable, which can be stale after a resize, move, or reallocation
 - Prefer a range-based `for` where the loop body does not need the index: there is no boundary calculation left to get wrong
 - `.at()` throwing is only useful if the caller learns about it - return a status or let the exception propagate rather than logging and continuing with a placeholder

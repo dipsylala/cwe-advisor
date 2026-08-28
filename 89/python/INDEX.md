@@ -12,7 +12,7 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 - Employ ORM frameworks - Use SQLAlchemy, Django ORM, or similar frameworks that handle parameterization
 - Apply input validation - Validate data types, formats, and ranges as a secondary defence layer
 - Use least privilege - Database accounts should have minimal necessary permissions
-- Escape dynamic identifiers - When table/column names must be dynamic, use allowlisting
+- Dynamic identifiers are allowlisted, not escaped - a table, column, or `ORDER BY` direction cannot be bound as a parameter, so validate it against a fixed set of permitted names. With psycopg2/psycopg3, build the statement from `sql.SQL()` and `sql.Identifier()`, which quotes the identifier correctly once the allowlist has chosen it
 
 ## Taint Sinks
 
@@ -21,7 +21,7 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
 ## Remediation Steps
 
 - Replace all string concatenation and f-strings in SQL queries with parameterized placeholders
-- Use library-specific parameter syntax (`?`, `%s`, `:name`, or `%(name)s` depending on the database driver)
+- Use the driver's placeholder syntax (`?` for `sqlite3`, `%s` for `psycopg2`/`mysql-connector`, `:name` or `%(name)s` for named binding). `%s` here is the driver's placeholder, not Python string formatting - the values go to `cursor.execute(sql, params)` as a second argument. `cursor.execute(sql % params)` looks almost identical, interpolates the value into the SQL, and is the most common form of SQL injection in Python
 - Pass user input as separate arguments to execute() methods, never embedded in query strings
 - For dynamic table/column names, validate against a predefined allowlist of safe values
 - Review all database interaction code for direct string manipulation

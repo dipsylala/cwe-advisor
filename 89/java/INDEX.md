@@ -9,13 +9,14 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Always use parameterized queries or prepared statements - never concatenate user input into SQL strings
 - Prefer ORM frameworks (JPA/Hibernate) with bound parameters over raw JDBC
 - In MyBatis, use `#{}` for bound parameters - `${}` performs raw text substitution and is as unsafe as string concatenation
+- `PreparedStatement` is not safe by virtue of its type: `prepareStatement("... WHERE name='" + name + "'")` is already injected before the statement is prepared. The protection comes from `?` placeholders plus `setString()`/`setInt()`, so judge the fix by what the SQL string was built from, not by which class executes it
 - Validate and sanitize input as a secondary defence layer
 - Apply least privilege principles to database accounts
 - Use stored procedures with parameterized inputs where appropriate
 
 ## Taint Sinks
 
-`Statement.executeQuery()`, `Statement.executeUpdate()`, `createNativeQuery()`, MyBatis `${}` substitution
+`Statement.executeQuery()`, `Statement.executeUpdate()`, `createNativeQuery()`, `EntityManager.createQuery()` (JPQL injects the same way), Spring `JdbcTemplate.query()`/`queryForObject()` given a built string, MyBatis `${}` substitution
 
 ## Remediation Steps
 

@@ -12,8 +12,8 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Use java.util.zip for archive operations instead of tar/zip commands
 - Never concatenate user input into command strings
 - Only use ProcessBuilder as a last resort with validated argument lists (no shell invocation)
-- `Runtime.exec(String)` tokenizes its argument with `StringTokenizer`, so one concatenated string becomes several arguments; use `Runtime.exec(String[])` or `ProcessBuilder` with a list
-- On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself, so an argument list is not sufficient - launch the executable the batch file wraps. Keep `jdk.lang.Process.allowAmbiguousCommands` at `false` so the JVM does not fall back to the legacy, less-quoted Windows command-line handling
+- `Runtime.exec(String)` tokenizes its argument with `StringTokenizer`, so one concatenated string becomes several arguments; use `Runtime.exec(String[])` or `ProcessBuilder` with a list - the single-string overloads are deprecated as of Java 18
+- On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself, so an argument list is not sufficient - launch the executable the batch file wraps. Set `jdk.lang.Process.allowAmbiguousCommands=false` explicitly: leaving it unset behaves the same as `true` and selects the lenient legacy encoding, so this is an opt-in to harden, not a default to preserve
 - A separate argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Taint Sinks

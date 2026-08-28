@@ -11,7 +11,7 @@ Node.js applications typically handle uploads with `multer`. The common mistake 
 - Set `limits: { fileSize }` in the multer configuration to reject oversized uploads before they consume memory or disk
 - Prefer `multer.diskStorage` with a generated filename over the default memory storage for anything beyond small files, since memory storage buffers the whole file in RAM
 - Store uploads outside any path passed to `express.static()`; serve files back through a route that streams from the private storage location
-- Generate the stored filename (e.g., with `crypto.randomUUID()`); never write using `file.originalname`
+- Generate the stored filename with `crypto.randomUUID()` and take the extension from the detection result - `fileTypeFromBuffer` returns both `mime` and `ext`, so use `detected.ext` - never from `file.originalname`. The extension is what decides how the file is served back, so it must come from the detected type rather than the client
 
 ## Taint Sinks
 

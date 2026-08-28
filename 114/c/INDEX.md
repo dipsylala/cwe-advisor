@@ -13,7 +13,7 @@ In C, CWE-114 occurs when loading shared libraries (`dlopen()`, `LoadLibrary()`)
 - Disable current directory library search on Windows (`SetDllDirectory("")`)
 - Set restrictive file permissions (755 for executables, owned by trusted user)
 - Verify library signatures and integrity before loading
-- Resolve the library or executable to an absolute path under a directory the process cannot write to, and check it with `realpath()` before use - a relative name is resolved through a search path the environment controls
+- Resolve the library or executable to an absolute path under a directory the process cannot write to, and check it with `realpath()` before use - a relative name is resolved through a search path the environment controls. Call `realpath(path, NULL)` so the function allocates a correctly sized result; passing your own buffer requires it to be at least `PATH_MAX` bytes, because that is how much `realpath()` may write
 - Set `DT_RUNPATH` (rather than the deprecated `DT_RPATH`) at link time so the loader's search order is fixed by the binary, and note `LD_LIBRARY_PATH` still precedes `DT_RUNPATH`, so a set-user-ID binary is what actually ignores it
 - Use `execve()` with an explicit environment rather than inheriting one, and check for `ENOENT` rather than assuming the target was found
 

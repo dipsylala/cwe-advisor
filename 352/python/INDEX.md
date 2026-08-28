@@ -11,7 +11,8 @@ CSRF occurs when state-changing endpoints don't validate that requests originate
 - Use SameSite=Strict cookies to prevent cross-site cookie transmission
 - Include tokens in forms via template tags and AJAX via custom headers
 - Never disable CSRF protection with `@csrf_exempt` or similar decorators
-- Flask-WTF's `wtforms.Form` subclasses only validate CSRF when `CSRFProtect` is initialised on the app - a form used without it validates fields and nothing else
+- Distinguish the two form bases: `flask_wtf.FlaskForm` carries a CSRF token and checks it during `validate_on_submit()` on its own, while a plain `wtforms.Form` has no token at all and validates fields only. `CSRFProtect(app)` is what extends the check to every state-changing route rather than only those that happen to be built from a form
+- FastAPI has no framework-native CSRF protection, so "enable it globally" is not available there. With `starlette-wtf`, adding `CSRFProtectMiddleware` only makes the token available and validates nothing - the enforcement point is the `@csrf_protect` decorator on each state-changing route, so a cookie-authenticated endpoint without it is unprotected
 - Exempting an endpoint (`@csrf_exempt`, an excluded path) is the shape most findings take; check the exclusion list as well as the handler
 
 ## Taint Sinks

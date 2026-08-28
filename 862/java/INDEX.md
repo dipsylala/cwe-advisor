@@ -11,7 +11,8 @@ In Spring applications, Missing Authorization typically appears as a `@RestContr
 - For resource-level checks, use `@PreAuthorize("@orderSecurity.isOwner(#id, authentication.name)")` calling a bean that loads the entity and compares ownership, not just a role check
 - A valid role does not imply ownership of every record of that type; pair role checks with resource-level checks for actions on a specific entity
 - Prefer `@PreAuthorize` at the service layer over controller-only checks so the rule applies regardless of which controller or scheduled job invokes the method
-- Unauthorized calls should raise `AccessDeniedException`, handled by Spring Security's default `AccessDeniedHandler` as a 403 - do not catch and suppress it
+- Unauthorized calls should raise `AccessDeniedException`, handled by Spring Security's default `AccessDeniedHandler` as a 403 - do not catch and suppress it. That is the right answer for a role or authority gate; for ownership of a guessable identifier, prefer a repository method scoped by owner (`findByIdAndOwnerId`) whose empty result becomes a 404
+- On Jakarta EE without Spring Security, the equivalents are `@RolesAllowed` on the EJB or JAX-RS resource and a `SecurityContext.isUserInRole()` check; `@PermitAll` on a class silently covers every method that does not override it
 - `hasRole('CUSTOMER')` proves the caller's role and nothing about the record being touched - pair it with an ownership check against a server-loaded copy of the resource
 - Cover the authorization rules with `MockMvc` (or equivalent) tests that call the endpoint directly as a second user, since a UI-driven test never exercises the path an attacker uses
 
@@ -27,4 +28,4 @@ In Spring applications, Missing Authorization typically appears as a `@RestContr
 - Add resource-based authorization - For entity-specific actions, reference a security bean from the SpEL expression that verifies the authenticated user owns or has a granted relationship to the specific record; the bean needs an explicit name (`@Component("orderSecurity")`) for the `@beanName.method(...)` reference to resolve
 - Reconcile with `SecurityFilterChain` - Ensure `authorizeHttpRequests` matchers cover the new route explicitly and that the chain ends with a deny-by-default rule
 - Harden configuration - Confirm `@EnableMethodSecurity` is active so `@PreAuthorize` annotations are enforced
-- Test - Write `@WithMockUser` integration tests that call each endpoint as an authenticated user lacking the required role or ownership and assert HTTP 403
+- Test - Write `@WithMockUser` integration tests that call each endpoint as an authenticated user lacking the required role and assert 403, and as a user who owns a different record and assert the 404 that a repository query scoped by owner returns

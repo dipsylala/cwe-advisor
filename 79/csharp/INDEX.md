@@ -8,14 +8,14 @@ XSS occurs when untrusted data is included in web output without proper encoding
 
 - Use Razor's automatic HTML encoding with `@variable` syntax (ASP.NET Core/MVC)
 - Apply context-specific encoders from `System.Text.Encodings.Web`: `HtmlEncoder` for HTML, `JavaScriptEncoder` for JS contexts, `UrlEncoder` for URLs
-- Outside Razor (Web Forms, handlers, hand-built responses) use `System.Net.WebUtility.HtmlEncode()` or `System.Web.HttpUtility.HtmlEncode()`; neither is a substitute for the JavaScript encoder inside a `<script>` block, where the literal sequence `</script>` closes the block from inside a JS string
+- Outside Razor (Web Forms, handlers, hand-built responses) use `System.Net.WebUtility.HtmlEncode()` or `System.Web.HttpUtility.HtmlEncode()` for markup. Neither belongs inside a `<script>` block: HTML encoding does escape `<`, but a `<script>` element is raw text where the browser never decodes entities, so the value arrives in the JS string still spelled `&quot;` while the backslashes and U+2028/U+2029 line terminators that can break the literal go untouched. Use `HttpUtility.JavaScriptStringEncode()` or `JavaScriptEncoder.Default.Encode()` there
 - Sanitize rich HTML with HtmlSanitizer library before using `@Html.Raw()`
 - Implement Content Security Policy headers for defence-in-depth
 - Validate input format as secondary defence, never rely on it alone
 
 ## Taint Sinks
 
-`@Html.Raw()`, `Response.Write()`, `Literal.Text`, `HttpResponse.WriteAsync()`
+`@Html.Raw()`, `Response.Write()`, `Literal.Text`, `HttpResponse.WriteAsync()`, Blazor `MarkupString`
 
 ## Remediation Steps
 

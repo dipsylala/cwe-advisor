@@ -11,6 +11,7 @@ In Spring applications, uploads arrive as `MultipartFile` on a `@PostMapping` ha
 - Set `spring.servlet.multipart.max-file-size` and `spring.servlet.multipart.max-request-size` in `application.properties` to bound upload size before the file is fully buffered
 - Store files outside `src/main/resources/static`, `webapp`, or any directory Spring serves directly; use a path outside the deployed artifact, such as a configured storage directory or object storage
 - Generate the stored filename with `UUID.randomUUID()` rather than reusing `getOriginalFilename()`, which may contain path traversal sequences
+- Derive the stored extension from the Tika-detected type - a fixed map, or `MimeTypes.getDefaultMimeTypes().forName(type).getExtension()` - rather than from `getOriginalFilename()`. A random name with a client-chosen suffix still leaves the client deciding how the stored file will be served
 - For image uploads, re-encode with `javax.imageio.ImageIO` (read then write) before persisting, which strips embedded scripts or malformed metadata that raw bytes may carry
 - Detection identifies the prefix, not the whole file: a valid PNG with a payload appended after `IEND` still detects as `image/png`, so re-encoding - decode and re-emit, discarding everything that was not pixel data - is what removes the payload; a structural parse check is not equivalent
 

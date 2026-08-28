@@ -8,6 +8,8 @@ Improper Input Validation occurs when applications fail to enforce constraints o
 
 - CWE-20 is abstract - the correct fix depends on identifying the specific child CWE that matches how unvalidated input is actually used
 - Where the value reaches an interpreter (SQL, HTML, shell, LDAP, XML, eval), validation is supplementary and the encoding or parameterization is the fix; where it is used as an array index, quantity, loop bound, state selector, or business amount there is nothing to parameterize and constraint checking *is* the fix
+- Allowlist the accepted form rather than denylisting known-bad patterns: a denylist enumerates what someone thought of, so every encoding, case variant, or equivalent spelling omitted from it is accepted by default
+- Anchor validation regexes to the whole string: `$` matches before a trailing newline in Python's `re`, .NET's `Regex` and PCRE, so `^[a-zA-Z0-9.-]+$` accepts `evil.com\n`. Use `re.fullmatch()`, `Matcher.matches()`, or `\A...\z`
 - Address the specific security risk - remediation must target the vulnerability enabled by unconstrained input, not just add generic validation
 - Trace data flow completely - follow input from entry point through all transformations to where it's consumed
 - Defence-in-depth - combine input validation with context-specific output encoding, parameterized queries, and principle of least privilege

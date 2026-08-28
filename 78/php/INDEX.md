@@ -10,10 +10,11 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Use copy(), rename(), unlink(), mkdir() for file operations instead of system commands
 - Use cURL functions or file_get_contents() for HTTP requests instead of curl/wget commands
 - Use fsockopen() for network checks instead of ping command
-- Never use escapeshellarg() or escapeshellcmd() as a primary defence - they are insufficient
+- Neither `escapeshellarg()` nor `escapeshellcmd()` is a primary defence, and they are not interchangeable: `escapeshellcmd()` escapes metacharacters but does not quote, so the value can still split into extra arguments - treat a finding closed with it as still open. `escapeshellarg()` does quote, but its quoting is platform-dependent and correct only for the shell it targets
 - Never concatenate user input into command strings
 - Only use proc_open() as a last resort with an argument array; the `bypass_shell` option in `$other_options` avoids the `cmd.exe` wrapper but is Windows-specific and has no effect on Linux/macOS
-- A `.bat`/`.cmd` target re-enters `cmd.exe` regardless, because Windows parses the command line for batch files; PHP addressed the resulting injection in 2024 (CVE-2024-1874), so keep the runtime patched and prefer invoking the executable the batch file wraps
+- Prefer `Symfony\Component\Process\Process` constructed with an array of arguments over a hand-rolled `proc_open()` - it builds the argument vector itself and reaches a shell only via `Process::fromShellCommandline()`
+- On Windows a `.bat`/`.cmd` target re-enters `cmd.exe` even with `bypass_shell` set, because `CreateProcess` starts the shell for a batch file. PHP fixed this for `proc_open()` with an argument array in 8.1.28, 8.2.18 and 8.3.5 (CVE-2024-1874), then fixed a trailing-space bypass of that fix in 8.1.29, 8.2.20 and 8.3.8 (CVE-2024-5585) - require 8.3.8 or later, since the first fix alone is bypassable. The patch does not reach `exec()`, `system()`, `shell_exec()` or backticks, which invoke a shell by design and are unaffected either way, and it cannot help when the batch file itself interpolates `%1` into a further command - invoke the executable the batch file wraps
 - An argument array prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
 ## Taint Sinks

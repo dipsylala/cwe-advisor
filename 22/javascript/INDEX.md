@@ -24,8 +24,8 @@ Path Traversal in JavaScript/Node.js occurs when applications use unsanitized us
 
 - Replace direct file path parameters with indirect references (database IDs, UUIDs)
 - Validate the value the framework already decoded - Express populates `req.params`/`req.query` decoded, so a further `decodeURIComponent()` manufactures `../` and throws `URIError` on a malformed sequence such as `%c0%ae`
-- Use `path.resolve()` for path construction and `fs.realpathSync.native()` before containment checks
-- Verify the real requested path stays inside the real base directory using `path.relative()` - reject when the result starts with `..` or `path.isAbsolute()` is true
+- Use `path.resolve()` for path construction and `fs.realpathSync.native()` on both the candidate and the base before containment checks; `realpathSync` throws `ENOENT` for a destination that does not exist yet, so for an upload resolve the parent directory instead, check that, and require the supplied name to satisfy `path.basename(name) === name`
+- Verify the real requested path stays inside the real base directory using `path.relative()` - reject when the result is exactly `..`, starts with `'..' + path.sep`, or satisfies `path.isAbsolute()`; testing for a bare leading `..` also rejects a legitimate file named `..foo`
 - Implement allowlist validation for permitted file extensions and names
 - Sanitize input by rejecting `..`, null bytes, and encoded traversal attempts
 - Configure Express static middleware with `dotfiles: 'deny'` and strict root directories

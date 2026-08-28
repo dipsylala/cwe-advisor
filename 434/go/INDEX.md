@@ -10,6 +10,7 @@ Go's `net/http` exposes uploads through `multipart.FileHeader` after `r.ParseMul
 - Call `http.DetectContentType()` on the first 512 bytes of the opened file to determine the real content type, and check it against an allowlist
 - Call `r.ParseMultipartForm(maxMemory)` with an explicit `maxMemory` and additionally guard with `http.MaxBytesReader(w, r.Body, maxBytes)` before parsing, so an oversized request is rejected early rather than exhausting memory or disk
 - Generate the stored filename (e.g., with `crypto/rand` or a UUID library) instead of using `FileHeader.Filename`, which may contain path separators or traversal sequences
+- Take the stored extension from a fixed `map[string]string` keyed by the type `http.DetectContentType` returned, not from `filepath.Ext(FileHeader.Filename)` - the extension decides how the file is served back, so it has to come from the detected type. Avoid `mime.ExtensionsByType` for this, since its answer depends on the host's MIME database and can return several candidates
 - Store uploaded files outside any directory served by `http.FileServer` or `http.Dir`; serve them back through a handler that streams from private storage
 - Use `filepath.Clean` and `filepath.Join` cautiously and verify the resulting path stays within the intended storage directory before writing
 - `multipart.FileHeader.Filename` is attacker-supplied and may contain path separators - take the base name at most as a display value, and store under a server-generated name

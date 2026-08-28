@@ -16,12 +16,12 @@ Cross-Site Scripting (XSS) occurs when untrusted data is rendered in web pages w
 
 ## Taint Sinks
 
-`innerHTML`, `outerHTML`, `document.write()`, `dangerouslySetInnerHTML`, `v-html`, `insertAdjacentHTML()`
+`innerHTML`, `outerHTML`, `document.write()`, `insertAdjacentHTML()`, `dangerouslySetInnerHTML`, `v-html`, Angular `[innerHTML]` and `DomSanitizer.bypassSecurityTrustHtml()`/`bypassSecurityTrustScript()`/`bypassSecurityTrustResourceUrl()`, `jQuery.html()`/`.append()`, `Range.createContextualFragment()`, `eval()`/`new Function()`, `res.send()`/`res.write()` built from a template literal. DOM-XSS sources feeding these: `location.hash`, `location.search`, `document.referrer`, and the `data` of a `postMessage` event
 
 ## Remediation Steps
 
 - Replace `innerHTML` with `textContent` or framework-safe rendering
-- Enable auto-escaping in template engines (EJS, Pug, Handlebars)
+- Do not look for an auto-escaping switch in EJS, Pug or Handlebars - none of them has one, because all three escape by default. The bug is always the raw-output tag: replace EJS `<%- %>` with `<%= %>`, Handlebars `{{{ }}}` with `{{ }}`, and Pug `!{}`/`!=` with `#{}`/`=`
 - Sanitize user-generated HTML with `DOMPurify.sanitize()` and assign only its return value to `innerHTML`
-- Set CSP headers - `Content-Security-Policy - default-src 'self'; script-src 'self'`
-- Validate and encode URL parameters before rendering
+- Set CSP headers - `Content-Security-Policy: default-src 'self'; script-src 'self'`
+- For a value that lands in `href` or `src`, percent-encoding is not the control - it leaves the `javascript:` and `data:text/html` schemes intact and merely encodes their payload. Parse with `new URL(value, base)`, reject anything whose `parsed.protocol` is outside an allowlist such as `https:`/`http:`/`mailto:`, and render the parsed result

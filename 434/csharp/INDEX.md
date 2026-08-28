@@ -7,12 +7,12 @@ ASP.NET Core receives uploads as `IFormFile` on an action method. The common mis
 ## Key Principles
 
 - Do not gate validation on `IFormFile.ContentType` or the extension of `IFormFile.FileName` - both are client-supplied request metadata
-- Read the file signature from `IFormFile.OpenReadStream()` and compare the leading bytes against known magic numbers for the allowed types (or use a library such as a maintained magic-byte/file-signature package)
+- Read the file signature from `IFormFile.OpenReadStream()` and compare the leading bytes against known magic numbers for the allowed types (or use a maintained magic-byte/file-signature package). A single `Read` may return fewer bytes than requested, so use `ReadAtLeastAsync` or loop until the header is filled - a short read leaves the rest of the buffer zeroed and the comparison is then made against bytes that were never in the file
 - Configure `FormOptions.MultipartBodyLengthLimit` (and `[RequestSizeLimit]`/`[RequestFormLimits]` on the action) to bound upload size before the body is fully buffered
-- Generate the stored filename with `Path.GetRandomFileName()`; never use `IFormFile.FileName` as the storage path
+- Generate the stored filename with `Guid.NewGuid().ToString("N")` and append the extension mapped from the detected type; never use `IFormFile.FileName` as the storage path. `Path.GetRandomFileName()` returns an 8.3-style name that already contains a dot, so appending an extension to it yields a double-extension name
 - Store files outside `wwwroot` (or any directory served by `UseStaticFiles`); serve them back through an authorized action that streams from private storage
 - Re-encode images (e.g., via `System.Drawing` alternatives like `SixLabors.ImageSharp`, decode then re-save) before persisting, to strip embedded active content
-- Keep the upload directory out of `UseStaticFiles()`: a file served from the static pipeline is delivered by the server, and `.aspx`, `.ashx` and `.cshtml` under a handler-mapped path are executed rather than delivered
+- Keep the upload directory out of `UseStaticFiles()`, but for the right reason: ASP.NET Core has no IIS-style handler mapping, so an uploaded `.aspx`, `.ashx` or `.cshtml` is not executed - the middleware knows around 400 content types, passes an unmapped extension down the pipeline, and the request ends as a 404 unless `ServeUnknownFileTypes` was turned on. The live risk is the types it does know: an uploaded `.html` or `.svg` under `wwwroot` is served from the application's own origin and runs script against that session. Writes landing outside `wwwroot` in the content root are the other half, since configuration and application files sit there
 - Store under a server-generated name and serve through a controller action that sets the content type and `Content-Disposition`, rather than exposing the directory
 
 ## Taint Sinks
@@ -25,6 +25,6 @@ ASP.NET Core receives uploads as `IFormFile` on an action method. The common mis
 - Trace data flow - Follow `ContentType` and `FileName` from the model binder through to storage and any action that serves the file back
 - Replace the unsafe pattern - Remove any check that trusts `ContentType` or the `FileName` extension as the sole gate
 - Bind, encode, validate, or authorize - Read the stream via `OpenReadStream()`, check the file signature against an allowlist, and reject on mismatch
-- Break taint after allowlist validation - Use the signature-matched type and a `Path.GetRandomFileName()` value for storage, not the client-supplied `FileName`; rewind with `stream.Seek(0, SeekOrigin.Begin)` after reading the header bytes and write with `FileMode.CreateNew`
+- Break taint after allowlist validation - Use the signature-matched type and a `Guid.NewGuid().ToString("N")` value, with the extension mapped from that detected type, not the client-supplied `FileName`; rewind with `stream.Seek(0, SeekOrigin.Begin)` after reading the header bytes and write with `FileMode.CreateNew`
 - Harden configuration - Set `FormOptions.MultipartBodyLengthLimit`, and confirm the storage path is outside `wwwroot`
 - Test - Verify rejection of files with a mismatched extension/signature pair, oversized files, and traversal sequences in `FileName`

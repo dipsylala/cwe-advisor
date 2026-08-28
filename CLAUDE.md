@@ -15,6 +15,7 @@ This repository is a local CWE remediation knowledge base used by the `cwe-advis
 - The root `{CWE_ID}/INDEX.md` is language-agnostic guidance.
 - Language folders are lowercase ecosystem names. Existing folders include `c`, `cpp`, `csharp`, `java`, `android`, `javascript`, `perl`, `php`, `python`, `go`, and `ruby`.
 - Language-specific files supplement the root guidance; they do not replace it.
+- `77/{language}` deliberately covers non-shell command interpreters only. `77/INDEX.md` routes shell sinks to CWE-78, so shell guidance belongs under `78/` and should not be duplicated into `77/`.
 - [references/cwe-identifier.md](references/cwe-identifier.md) maps vulnerability names and common industry synonyms (e.g. "SQLi", "XSS", "SSRF") to CWE IDs, so SKILL.md Step 1 can resolve a description without asking the developer to look up the number.
 
 ## SKILL.md Maintenance

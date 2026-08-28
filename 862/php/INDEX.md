@@ -13,7 +13,7 @@ In Laravel, Missing Authorization typically appears as a controller method reach
 - Use the `can` middleware (`->middleware('can:update,order')`) on routes so authorization is visible in the route definition and cannot be silently omitted from a handler
 - Let unauthorized `authorize()` calls throw `AuthorizationException`, which Laravel converts to a 403 response by default - do not catch and suppress it
 - Use the framework's authorization layer rather than an inline check - Symfony's `denyAccessUnlessGranted()`/`#[IsGranted(...)]` and Laravel's policies keep the rule in one place and apply it to every route that declares it
-- Prefer the "deny as not found" form (Symfony's `Response::denyAsNotFound()`, Laravel's `findOrFail` after a scoped query) so "not yours" and "does not exist" are indistinguishable and the id space cannot be walked
+- Prefer the "deny as not found" form so "not yours" and "does not exist" are indistinguishable and the id space cannot be walked. In Laravel that is `Response::denyAsNotFound()` returned from a Policy method, or `findOrFail` after a query already scoped to the user; in Symfony it is `#[IsGranted(..., statusCode: 404)]` (6.2+) or throwing `createNotFoundException()` from the controller
 
 ## Taint Sinks
 
@@ -27,4 +27,4 @@ In Laravel, Missing Authorization typically appears as a controller method reach
 - Add the check - Call `$this->authorize('update', $order)` at the top of the controller action, or attach `->middleware('can:update,order')` to the route
 - Cover role-only actions - For actions not tied to a specific model instance, use `Gate::define()` and `Gate::allows('manage-orders')` or `$this->authorize('manage-orders')`
 - Reconcile route files - Audit `routes/web.php` and `routes/api.php` to confirm every sensitive route applies the same `can` middleware or authorize call as comparable routes
-- Test - Write feature tests that call each route as an authenticated user without the required role or ownership and assert a 403 response
+- Test - Write feature tests that call each route as an authenticated user without the required role and assert 403, and as a user who owns a different record and assert the 404 that the deny-as-not-found form produces

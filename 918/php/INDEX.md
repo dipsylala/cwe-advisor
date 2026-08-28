@@ -9,7 +9,7 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Use strict allowlist validation for permitted domains before making requests
 - Block private, reserved, and loopback IP ranges using PHP's filter functions
 - Disable URL redirects or validate redirect destinations
-- Restrict protocols to HTTPS only, never allow file://, gopher://, or other schemes
+- Restrict protocols to HTTPS only, never allow file://, gopher://, or other schemes - check the scheme after `parse_url()` and constrain cURL itself with `CURLOPT_PROTOCOLS => CURLPROTO_HTTPS`, since the `parse_url()` test governs only your own branch and not what cURL will agree to fetch
 - Implement DNS rebinding protection by validating all A/AAAA records before connecting and enforcing egress controls
 - Pin the request to the validated IP with `CURLOPT_RESOLVE => ["host:port:ip"]` rather than passing the original URL to cURL for re-resolution - `parse_url()` and cURL's own URL parser can disagree on malformed input, so the host that was validated is not guaranteed to be the host cURL would otherwise connect to
 - Block the whole `169.254.0.0/16` range rather than the single address `169.254.169.254`, and include the ranges PHP's own filter flags miss - `100.64.0.0/10` (CGNAT), `192.0.0.0/24`, `0.0.0.0/8` and the NAT64 prefix `64:ff9b::/96`, which spells an IPv4 address inside an ordinary IPv6 one
@@ -28,5 +28,5 @@ Server-Side Request Forgery (SSRF) allows attackers to make the server perform H
 - Check hostname against an allowlist of permitted domains
 - Ensure only HTTPS protocol is used via `parse_url()`
 - Disable `CURLOPT_FOLLOWLOCATION` or validate all redirect targets
-- Set timeouts and use `CURLOPT_PROTOCOLS` to restrict allowed protocols
+- Set timeouts and restrict allowed protocols with `CURLOPT_PROTOCOLS => CURLPROTO_HTTPS`
 - Pin the connection to the validated IP with `CURLOPT_RESOLVE` so cURL cannot independently re-resolve or re-parse the host

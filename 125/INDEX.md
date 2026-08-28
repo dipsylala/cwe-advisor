@@ -12,6 +12,8 @@ An out-of-bounds read happens when a program reads data past the end, or before 
 - Prefer bounds-checked accessor types over raw pointer arithmetic or unchecked indexing wherever available
 - Add the bounds check immediately before the read, in the same function that performs it, not in an unrelated caller
 - Apply defence-in-depth: run sanitizers and fuzzers against any function that reads from a buffer using an attacker-influenced offset or length
+- A scanner may report this as the generic CWE-119, or as the direction-specific CWE-126 (buffer over-read) or CWE-127 (buffer under-read); the guidance here applies unchanged to all three
+- Check the write side of the same call as well: one untrusted length typically drives both ends of a `memcpy()`, so a finding here usually has a CWE-787 counterpart in the same statement
 
 ## Remediation Steps
 

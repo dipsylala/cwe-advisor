@@ -12,13 +12,14 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
 - Employ parameterized queries through PDO or MySQLi, never string concatenation
 - Use ORMs (Laravel Eloquent, Doctrine) that handle parameterization automatically
 - Apply input validation as a secondary defence layer, but never as the primary protection
-- Reject escape functions (mysql_real_escape_string) as the sole defence mechanism
+- Reject escape functions as the sole defence; note that `mysql_real_escape_string()` and the rest of the `mysql_*` extension were removed in PHP 7.0, so code still calling it does not run on any supported version and needs porting to PDO or MySQLi rather than patching
 - Bind `LIKE` wildcard values as a parameter too - concatenating `"%$search%"` into an otherwise-prepared query still injects the wildcard portion
 - Treat `PDO::quote()` as manual escaping, not parameterization - it builds a string for you to concatenate and is easy to misuse; prefer bound parameters
 - `prepare()` plus `bindValue()`/`execute([...])` is the fix; `mysqli_real_escape_string()` and `pg_escape_string()` are escaping functions that do nothing for an unquoted numeric context and depend on the connection's charset being set correctly
 - PostgreSQL's `pg_query_params()` is the parameterized form for the pgsql extension - use it rather than interpolating with `sprintf()`
 - In Laravel, `whereRaw()`/`selectRaw()`/`orderByRaw()` are the raw sinks and take bindings as a second argument; `whereIn()` binds each element, while a hand-built `IN` list does not
 - An identifier - a table, a column, an `ORDER BY` direction - cannot be bound and needs allowlist validation against a fixed set
+- Construct PDO with `PDO::ATTR_EMULATE_PREPARES => false` so a real prepared statement reaches the server. Emulation is on by default for MySQL, and with it PDO assembles the final SQL client-side, which is precisely what makes the connection charset security-relevant - set it in the DSN as `charset=utf8mb4` rather than issuing `SET NAMES` afterwards, which changes the server's view but not the client library's
 
 ## Taint Sinks
 

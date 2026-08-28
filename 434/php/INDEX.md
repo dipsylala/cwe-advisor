@@ -7,8 +7,9 @@ PHP uploads arrive via the `$_FILES` superglobal and are typically persisted wit
 ## Key Principles
 
 - Never trust `$_FILES['x']['type']` or the extension of `$_FILES['x']['name']` - both come from the client and can be set to anything
-- Detect the real MIME type from the uploaded file's bytes using the Fileinfo extension (`finfo_open(FILEINFO_MIME_TYPE)` + `finfo_file()`), and check it against an allowlist
-- Disable script execution in the upload directory: an `.htaccess` with `php_flag engine off` (Apache) or, for nginx, a `location` block that does not pass `.php` requests in that path to PHP-FPM - do this even when files are also stored outside the webroot, as defence-in-depth
+- Detect the real MIME type from the uploaded file's bytes using the Fileinfo extension (`finfo_open(FILEINFO_MIME_TYPE)` + `finfo_file()`), and check it against an allowlist. Confirm the extension is actually present with `extension_loaded('fileinfo')` at startup - when it is missing the function does not exist at all, so the failure arrives as a fatal `Error` rather than a validation result, and an absent check looks identical to one that passed
+- Confirm the upload succeeded before reading it: `$_FILES['x']['error']` must equal `UPLOAD_ERR_OK`. On a partial or failed upload `tmp_name` can be empty or the file truncated, and a truncated file may still pass a prefix-based type check
+- Disable script execution in the upload directory, and establish which SAPI is in use first: `php_flag engine off` in `.htaccess` is a mod_php directive and is silently ignored under PHP-FPM, where the directory looks configured but is not. Under FPM with Apache, deny the handler instead - a `<FilesMatch "\.ph(p[0-9]?|tml)$">` block containing `Require all denied` and `SetHandler none`; under nginx, a `location` block for that path that never forwards to the FPM socket
 - Store uploads outside the document root (`DOCUMENT_ROOT`) whenever possible; serve them back through a script that streams the file, not by direct URL
 - Generate the stored filename server-side, for example with `bin2hex(random_bytes(16))`; never build the storage path from `$_FILES['x']['name']`
 - Enforce `upload_max_filesize`/`post_max_size` in `php.ini` and re-check size in code, since `$_FILES['x']['size']` alone is not sufficient validation
