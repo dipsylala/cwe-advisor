@@ -35,10 +35,10 @@ Remaining, in rank order:
 | 18 | CWE-863 Incorrect Authorization | yes | 6 | **Reviewed.** Agrees with CWE-862; boundary stated consistently in both. All six language entries carry framework traps. No changes |
 | 19 | CWE-918 SSRF | yes | 6 | **Reviewed.** Stronger than the note implied. One gap: `python` - see below |
 | 20 | CWE-119 Buffer bounds | yes | 0 | **Reviewed.** Read/write split to 125/787 is complete; now also names 121 for a stack buffer |
-| 21 | CWE-476 NULL Pointer Dereference | yes | 0 | Root **reviewed** and strong. Language entries still to author - see below |
+| 21 | CWE-476 NULL Pointer Dereference | yes | 3 | **Done.** Root reviewed; `c`, `cpp` and `java` entries authored |
 | 22 | CWE-798 Hard-coded Credentials | yes | 6 | **Reviewed.** Root and five language entries condensed - see below |
-| 23 | CWE-190 Integer Overflow | yes | 3 | Root and `java` **reviewed**, both strong. `go`/`csharp` still to author - see below |
-| 24 | CWE-400 Uncontrolled Resource Consumption | **missing** | - | Not in the knowledge base at all |
+| 23 | CWE-190 Integer Overflow | yes | 5 | **Done.** Root and `java` reviewed; `csharp` and `go` entries authored |
+| 24 | CWE-400 Uncontrolled Resource Consumption | yes | 0 | **Done.** Root authored; routes to CWE-1333 and CWE-674 where the finding names a mechanism |
 | 25 | CWE-306 Missing Authentication | yes | 6 | **Reviewed.** Root is strong - routing-table framing, gateway-only trap, unlinked-route point. No changes |
 
 ### Rebuild the eval corpus around incomplete fixes
@@ -140,20 +140,39 @@ say what breaks and whether a dual-key window is needed; and that entropy-based 
 random strings while missing default passwords, dictionary-word HMAC keys and account numbers used
 as API keys.
 
-### Still to author (rank 21 and 23)
+### Authored this pass (ranks 21, 23, 24)
 
-Both are absences rather than defects, so they are authoring decisions:
+Six new entries, all built around what a model does not reliably carry rather than around the
+primary defence:
 
-- **CWE-476 language entries.** The root is strong; `c`/`cpp` and `java` would carry what it cannot:
-  the C case where the compiler deletes a null check placed after a dereference because the
-  dereference already made the pointer non-null by assumption, `assert` compiled out under `NDEBUG`,
-  and in Java the unboxing NPE where a null `Integer` in an arithmetic or ternary expression throws
-  at a line with no visible dereference.
-- **CWE-190 `go` and `csharp`.** C# is the higher-value one: arithmetic is *unchecked by default*,
-  so `checked` blocks or `<CheckForOverflowUnderflow>` decide whether the overflow throws or wraps -
-  an API default of exactly the kind the eval runs showed the knowledge base earns its place on. Go
-  has no checked arithmetic at all and `int` width is platform-dependent.
+- **`cwe/190/csharp`** - C# integral arithmetic is unchecked by default, so the reported overflow
+  wraps silently unless `checked` or `<CheckForOverflowUnderflow>` says otherwise. The trap worth
+  writing down is that `checked` applies only to what is *textually* inside it: a method called from
+  inside a `checked` block does not inherit the context, so a guard placed around the call site does
+  nothing. Also that constant expressions are checked by default, so a literal calculation compiling
+  proves nothing about the runtime path beside it, and that `decimal` throws in both contexts.
+- **`cwe/190/go`** - no checked arithmetic at all, wraparound is defined rather than trapping, and
+  `int` is platform-width, so the same expression overflows on a 32-bit target and not on amd64. Use
+  `math.MaxInt` (Go 1.17+) rather than a literal bound, and treat unsigned subtraction on a length as
+  the dangerous case, since the result cannot be negative to test for.
+- **`cwe/476/c`** - the ordering rule: a null check placed *after* the first dereference can be
+  deleted as dead code, because the dereference already licensed the assumption that the pointer is
+  non-null (CVE-2009-1897 is the canonical instance). Also that `assert` disappears under `NDEBUG`,
+  and that `realloc` returning null leaves the original block valid.
+- **`cwe/476/cpp`** - defers to `c/` for the shared undefined-behaviour cases and covers what C++
+  adds: express absence in the type, `operator*` on an empty `std::optional` is undefined the same
+  way a null dereference is while `.value()` throws, `dynamic_cast` reports failure differently for
+  pointers and references, and `map::operator[]` inserts rather than reporting absence.
+- **`cwe/476/java`** - the Java-specific cases are the ones with no visible dereference: unboxing a
+  null wrapper in arithmetic, and the conditional operator unboxing *both* branches when their types
+  differ, so `flag ? 0 : nullInteger` throws even when the null branch is not taken. Java 14+ helpful
+  NPE messages name the exact subexpression, which is the fastest route to the producer.
+- **`cwe/400`** - the one Top 25 entry with no directory. Written around the property that makes it
+  different from an injection class: every request is individually legitimate, so the fix is a bound
+  at the point of acquisition rather than validation. Routes to CWE-1333 for regex backtracking and
+  CWE-674 for recursion where the finding names a mechanism.
 
+**TODO section 1 is complete.** All eleven of MITRE Top 25 ranks 15-25 are now reviewed or authored.
 
 ### Config-first remediation ordering - swept and fixed
 

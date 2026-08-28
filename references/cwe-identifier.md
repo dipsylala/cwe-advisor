@@ -114,6 +114,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 384 | Session Fixation | - |
 | 385 | Covert Timing Channel | - |
 | 398 | Indicator of Poor Code Quality | - |
+| 400 | Uncontrolled Resource Consumption | resource exhaustion, DoS, denial of service |
 | 401 | Missing Release of Memory after Effective Lifetime (Memory Leak) | memory leak |
 | 402 | Transmission of Private Resources into a New Sphere ('Resource Leak') | resource leak |
 | 404 | Improper Resource Shutdown or Release | unclosed resource |
