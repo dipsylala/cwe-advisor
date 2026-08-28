@@ -1,8 +1,11 @@
 # Errors found in `docs/`
 
+**Status: all four findings resolved in `docs/`.** Verified against the updated copy - see
+"Resolution" below. Retained as a record of what was checked and why.
+
 Findings from checking `docs/` against current upstream sources, written up for review in the
 repository `docs/` came from. Paths and line numbers are as of the copy present in `cwe-advisor`
-at the time of writing.
+at the time of writing, and no longer match the corrected files.
 
 ## Scope and method
 
@@ -95,6 +98,34 @@ overstates it. The stronger argument, which the same sentence already makes, is 
 `URL.equals`/`hashCode` perform DNS resolution.
 
 This error was shared with the `cwe-advisor` knowledge base, which has been corrected.
+
+## Resolution
+
+All four were fixed in `docs/`, and the fixes are correct:
+
+1. **PHP `proc_open` versions** - `docs/CWE-78/php` now gives CVE-2024-1874 as fixed in 8.1.28,
+   8.2.18 and 8.3.6, names CVE-2024-5585 as the bypass, sets the floor at 8.1.29 / 8.2.20 / 8.3.8,
+   and links the php-src advisory. It also resolves the 8.3.5-vs-8.3.6 ambiguity in favour of
+   8.3.6, which matches the security-release announcement; `cwe-advisor` has been aligned to match
+   rather than keep hedging.
+2. **`gorilla/csrf`** - rewritten rather than patched. `docs/CWE-352/go` now leads with
+   `net/http.CrossOriginProtection`, tells the reader not to reach for `gorilla/csrf`, names both
+   CVE-2025-24358 and CVE-2025-47909, and points at `filippo.io/csrf` and the drop-in
+   `filippo.io/csrf/gorilla`.
+3. **`_FORTIFY_SOURCE`** - now `=3` in `CWE-121/c`, `CWE-125/c`, `CWE-787/c` and also `CWE-823/c`,
+   which was not in the original finding. `CWE-134/c`'s "`=2` or higher" is a statement about which
+   level enables a check rather than a recommendation, and is correct as written.
+4. **`java.net.URL`** - now "deprecated as of Java 20, though only softly - the annotation is
+   `@Deprecated(since="20")` without `forRemoval=true`", and leads with the DNS-resolution
+   behaviour as the actual reason to migrate.
+
+### One item flowing the other way
+
+`docs/CWE-352/go:251-254` carries something the knowledge base did not have: `CrossOriginProtection`
+itself had a bypass in **Go 1.25.0**, where `AddInsecureBypassPattern` also exempted requests that
+`ServeMux` would have *redirected* to the pattern (CVE-2025-47910, GO-2025-3955), fixed in
+**1.25.1**. `cwe-advisor`'s `352/go` recommended `CrossOriginProtection` at "Go 1.25+" with no
+caveat and has been corrected to 1.25.1+.
 
 ## Corrections to previously reported `docs/` problems
 
