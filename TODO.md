@@ -11,9 +11,7 @@ stand on their own against current sources, which is how this pass verified them
 
 ## 1. Open
 
-- **`306/` has no language directories.** Noticed while adding the ASP.NET Core `FallbackPolicy`
-  technique to `287/csharp`, which is where it landed. Whether CWE-306 warrants its own per-language
-  entries is a coverage decision, not a defect.
+Nothing outstanding.
 
 ## Done this session (context)
 
@@ -38,5 +36,10 @@ stand on their own against current sources, which is how this pass verified them
   `proc_open` fix versions are 8.1.28/8.2.18/8.3.5 with a further bypass fixed in 8.1.29/8.2.20/8.3.8
   (CVE-2024-5585), `gorilla/csrf` has no fixed release for CVE-2025-47909, and ASP.NET Core does not
   execute uploaded `.aspx`/`.cshtml` at all - unknown content types 404.
+- `306/` given the same six language entries its siblings `287/` and `862/` carry (csharp, go, java,
+  javascript, php, python), each covering where routes escape the framework's auth wiring.
+- Two corrections from reading `docs/`: the CVE-2024-1874 fix version for the PHP 8.3 branch is
+  reported inconsistently (8.3.5 vs 8.3.6), so `78/php` now anchors on the CVE-2024-5585 floor
+  instead; and `434/csharp` names Razor runtime compilation as the content-root code-execution path.
 - `CLAUDE.md` now states that `77/{language}` covers non-shell interpreters only, with shell sinks
   routed to `78/`; `scripts/lint.py` strips a `#fragment` before checking a link target exists.
