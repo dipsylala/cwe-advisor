@@ -80,7 +80,7 @@ version-claim sweep covered all of them for that one error class only.
   `Runtime.exec(String)`, Go 1.24 `crypto/rand` panic, PHP 8.4 `LIBXML_NO_XXE`, `tarfile` filter
   default from 3.14, `closefrom` in glibc 2.34, XStream 1.4.7/1.4.18, AWS SDK for Java v1 end of
   support, Node CVE-2016-2216, PHP 5.1.2 `header()`, and the Spring Security `sessionFixation()`
-  default. The `88/java` error was shared with `docs/` and is logged in `UPDATE_DOCS.md`.
+  default. The `88/java` error was shared with `docs/`, which has since been corrected there.
 - `SKILL.md` hardened on two evidenced defects: Step 5 no longer licenses supplying a library
   version from model recall (the failure mode behind three wrong version claims found this
   session), and Step 4 now treats a non-exploitable trace as a valid outcome in *both* modes -

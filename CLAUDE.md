@@ -84,6 +84,34 @@ Content expectations:
 - Prose carries what a sample cannot: why an order matters, what a check collides with, which branch applies. That generalizes to the developer's actual code, where a sample only exhibits one instance of the fix and dates faster than the prose around it.
 - Prefer modern framework-native protections, but account for common legacy APIs when they are likely scanner findings.
 
+## Version and Advisory Claims
+
+Version and advisory metadata is where entries have gone wrong most often - the errors cluster
+here rather than in technical explanation, and it is the part a developer acts on without
+re-checking. Every rule below comes from an error found in this repository.
+
+- **Cite the release that shipped the fix, not the CVE record's affected range.** The two
+  disagree. CVE-2024-1874's record reads "8.3.\* before 8.3.5" while the security release
+  carrying the fix was 8.3.6. A release number is actionable; an affected-range boundary is
+  off-by-one whenever the fix landed in the following patch.
+- **State the operative floor, not the first fix.** A fix can be bypassed, and a fix can introduce
+  a new weakness. CVE-2024-5585 defeated the CVE-2024-1874 fix; `gorilla/csrf` v1.7.3 closed
+  CVE-2025-24358 and opened CVE-2025-47909; `net/http.CrossOriginProtection` needed Go 1.25.1
+  after a bypass in 1.25.0. Give the version carrying the fix *and* every known bypass of it, and
+  say why the earlier one is not enough.
+- **A library may have no fixed release at all.** `gorilla/csrf` has none for CVE-2025-47909.
+  Say so and name the replacement: an upgrade instruction is wrong there, and "use the latest
+  version" is not a fix.
+- **Distinguish deprecated, deprecated for removal, and removed.** Three states, and entries have
+  confused all three. `libxml_disable_entity_loader()` is deprecated since PHP 8.0 and still
+  present; `java.net.URL`'s public constructors are `@Deprecated(since="20")` without
+  `forRemoval=true`; the `mysql_*` extension really was removed, in PHP 7.0. Calling a live API
+  "removed" turns working code into a false finding, and calling a soft deprecation "for removal"
+  overstates the migration's urgency.
+- **Trace every version claim to the vendor, not to recall.** A release announcement, an advisory,
+  or the API's own documentation. SKILL.md Step 5 forbids the model from supplying a version from
+  its own knowledge, which only works if the entry carries one.
+
 ## Maintenance Workflow
 
 1. Confirm the CWE ID and vulnerability name against the existing directory naming pattern.
@@ -94,8 +122,9 @@ Content expectations:
 6. Keep concrete syntax as inline code inside a bullet; neither root nor language files carry code blocks.
 7. For entries that mention third-party libraries, check that the guidance supports a future dependency version review.
 8. Review for duplicated generic explanation, missing source/sink tracing, vague validation advice, and unsupported framework claims.
-9. Add or update the corresponding row in [references/cwe-identifier.md](references/cwe-identifier.md): CWE ID, official name, and any common industry synonyms a developer might type instead of the number. Leave the aliases column as `-` if the official name has no common shorthand - do not restate words already in the name.
-10. Run `python scripts/lint.py` and fix any reported errors before finishing. It is a deterministic, non-LLM check for required headings, code fences in any entry, broken Markdown links, and `references/cwe-identifier.md` staying in sync with the CWE directories - it does not check writing quality or technical accuracy.
+9. When checking whether an entry already covers something, search for the claim rather than the term. A grep for a function name finds the lines naming it, not the sentence two lines above that states its status - a review finding was raised and withdrawn for exactly that, because the statement was worded "these functions" and matched no search for the function.
+10. Add or update the corresponding row in [references/cwe-identifier.md](references/cwe-identifier.md): CWE ID, official name, and any common industry synonyms a developer might type instead of the number. Leave the aliases column as `-` if the official name has no common shorthand - do not restate words already in the name.
+11. Run `python scripts/lint.py` and fix any reported errors before finishing. It is a deterministic, non-LLM check for required headings, code fences in any entry, broken Markdown links, and `references/cwe-identifier.md` staying in sync with the CWE directories - it does not check writing quality or technical accuracy.
 
 ## Quality Checklist
 
@@ -103,7 +132,7 @@ Content expectations:
 - Language files name concrete APIs and safe replacement patterns.
 - Remediation steps start with locating the source, sink, and data flow.
 - The fix guidance distinguishes primary defences from secondary validation or hardening.
-- Named library guidance makes dependency version checks possible.
+- Named library guidance makes dependency version checks possible, and any version given is the operative floor traced to a vendor release or advisory.
 - Recommended fixes do not introduce unrelated vulnerabilities.
 - Concrete syntax an LLM cannot derive - argument shapes, string formats, escape values - is present as inline code rather than assumed.
 - The entry is concise enough to be loaded as LLM context.
