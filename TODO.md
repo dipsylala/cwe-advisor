@@ -228,8 +228,20 @@ Top 25 and none previously recorded:
   before compiling; .NET has **no** built-in binding at all, since `XPathExpression.SetContext`
   resolves namespaces rather than variables, so the practical fix there is a static node set compared
   in C#, or LINQ to XML. CWE-91 now routes the query half of its scope to CWE-643.
-- **CWE-327 and CWE-501 have root guidance but no language directories.** CWE-328 likewise. Still
-  open.
+- **CWE-328** now has `csharp`, `java`, `php` and `python` entries. Password hashing is where the
+  language-specific traps concentrate, and each is an API default a model does not reliably carry:
+  .NET's `Rfc2898DeriveBytes` derives with **HMAC-SHA1** unless a `HashAlgorithmName` is passed, and
+  its legacy default iteration count is 1000 - so the obvious "move off MD5" fix lands on SHA-1 while
+  looking correct; every constructor is obsolete from .NET 10. Python's `usedforsecurity=False` (3.9+)
+  resolves a cache-key finding without changing the algorithm at all. PHP's `PASSWORD_DEFAULT` is
+  *designed* to change between releases, which is why `password_needs_rehash()` is not optional. Java
+  has no password hasher in the JDK, and `MessageDigest` is not thread-safe, so a shared static
+  instance corrupts digests under concurrency. `javascript` and `go` are still to add.
+- **CWE-327 and CWE-501 have root guidance but no language directories.** Still open. Note CWE-327
+  overlaps `cwe/326`, which already has five language entries covering cipher and mode selection, so
+  the split needs deciding before authoring rather than after.
+- **CWE-916 is referenced by CWE-327 but has no entry.** The reference now says so and points at
+  CWE-328 for the password-hashing guidance.
 
 None is a defect in existing guidance; they are absences. Recorded here rather than fixed, since
 adding entries is authoring work and a separate decision.
