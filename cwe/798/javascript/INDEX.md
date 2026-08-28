@@ -6,11 +6,8 @@ Hard-coded credentials in JavaScript/Node.js occur when sensitive values (passwo
 
 ## Key Principles
 
-- Store all secrets in environment variables (process.env) or dedicated secret managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault)
-- Use .env files only for local development and ensure .gitignore excludes them from version control
-- Rotate credentials immediately when hardcoded secrets are discovered in code or git history
-- Implement secret scanning in CI/CD pipelines to prevent accidental credential commits
-- Apply principle of least privilege to all API keys and service credentials
+- Read secrets from `process.env` or a secrets manager, and keep `.env` to local development with a `.gitignore` entry that actually matches it
+- A secret reachable from client-side code is disclosed the moment the bundle ships: a key inlined by the bundler through `process.env.*` in front-end code, or one sent to the browser in a config endpoint, is public regardless of where it was loaded from
 - Environment variables are a practical fallback but not risk-free - they can leak through process inspection (`/proc/<pid>/environ`), crash reports, or cloud metadata endpoints, so prefer a secrets manager in production
 
 ## Taint Sinks

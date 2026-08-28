@@ -6,11 +6,7 @@ Hard-coded credentials in source code are exposed in version control, decompiled
 
 ## Key Principles
 
-- Never embed passwords, API keys, tokens, or secrets directly in source code or properties files committed to version control
-- Use environment variables or system properties for runtime credential injection
-- Use cloud-native secrets managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault) for production environments
-- Implement proper access controls and encryption for configuration files containing sensitive data
-- Rotate credentials regularly and revoke any previously hard-coded credentials immediately
+- Inject credentials at runtime from a secrets manager (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault), or from the environment or system properties where no manager is available
 - Environment variables are a reasonable fallback but not immune to leakage - they can be read via process inspection, crash dumps, or cloud metadata services, so prefer a secrets manager for production
 - `application.properties` with `${DB_PASSWORD}`-style placeholders resolves from the environment, which is the right shape - but a committed `.env` or a profile-specific properties file holding the literal defeats it
 - Check the built artifact as well as the source: a value bound at build time is inside the JAR and is recoverable from it

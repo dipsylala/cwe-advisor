@@ -35,11 +35,11 @@ Remaining, in rank order:
 | 18 | CWE-863 Incorrect Authorization | yes | 6 | **Reviewed.** Agrees with CWE-862; boundary stated consistently in both. All six language entries carry framework traps. No changes |
 | 19 | CWE-918 SSRF | yes | 6 | **Reviewed.** Stronger than the note implied. One gap: `python` - see below |
 | 20 | CWE-119 Buffer bounds | yes | 0 | **Reviewed.** Read/write split to 125/787 is complete; now also names 121 for a stack buffer |
-| 21 | CWE-476 NULL Pointer Dereference | yes | 0 | Warrants `c`/`cpp`/`java` entries |
-| 22 | CWE-798 Hard-coded Credentials | yes | 6 | Full graded review |
-| 23 | CWE-190 Integer Overflow | yes | 3 | Only c/cpp/java; likely needs go/csharp |
+| 21 | CWE-476 NULL Pointer Dereference | yes | 0 | Root **reviewed** and strong. Language entries still to author - see below |
+| 22 | CWE-798 Hard-coded Credentials | yes | 6 | **Reviewed.** Root and five language entries condensed - see below |
+| 23 | CWE-190 Integer Overflow | yes | 3 | Root and `java` **reviewed**, both strong. `go`/`csharp` still to author - see below |
 | 24 | CWE-400 Uncontrolled Resource Consumption | **missing** | - | Not in the knowledge base at all |
-| 25 | CWE-306 Missing Authentication | yes | 6 | Language entries added this session; root not graded |
+| 25 | CWE-306 Missing Authentication | yes | 6 | **Reviewed.** Root is strong - routing-table framing, gateway-only trap, unlinked-route point. No changes |
 
 ### Rebuild the eval corpus around incomplete fixes
 
@@ -121,6 +121,38 @@ but the compatible form `::7f00:1` is a separate case a mapped-only check misses
 
 Checked and correct: `918/csharp`'s `IsIPv6UniqueLocal` (.NET 6+) claim, verified against the API
 reference, which lists net-6.0 through net-11.0.
+
+
+### CWE-798 review finding
+
+Every language entry opened with four or five bullets restating that secrets should not be
+committed, should come from environment variables or a manager, should be rotated, and should be
+least-privileged. That is what CLAUDE.md's quality bar rules out and what runs 1-4 showed
+empirically: restating the primary defence bought nothing, while naming a concrete trap prevented
+harm. Condensed to one line each in `csharp`, `java`, `javascript`, `php` and `python`, keeping the
+language-specific bullets that follow. `go` was left alone - its opening bullets already name the
+`.go` declaration forms, an SDK path, a fail-fast startup check and the "`go vet` does not do this"
+point.
+
+The root gained two things it lacked: that a hard-coded signing or encryption key makes every token
+or record produced with it forgeable, so rotation invalidates all of them at once and the fix has to
+say what breaks and whether a dual-key window is needed; and that entropy-based scanning finds long
+random strings while missing default passwords, dictionary-word HMAC keys and account numbers used
+as API keys.
+
+### Still to author (rank 21 and 23)
+
+Both are absences rather than defects, so they are authoring decisions:
+
+- **CWE-476 language entries.** The root is strong; `c`/`cpp` and `java` would carry what it cannot:
+  the C case where the compiler deletes a null check placed after a dereference because the
+  dereference already made the pointer non-null by assumption, `assert` compiled out under `NDEBUG`,
+  and in Java the unboxing NPE where a null `Integer` in an arithmetic or ternary expression throws
+  at a line with no visible dereference.
+- **CWE-190 `go` and `csharp`.** C# is the higher-value one: arithmetic is *unchecked by default*,
+  so `checked` blocks or `<CheckForOverflowUnderflow>` decide whether the overflow throws or wraps -
+  an API default of exactly the kind the eval runs showed the knowledge base earns its place on. Go
+  has no checked arithmetic at all and `int` width is platform-dependent.
 
 
 ### Config-first remediation ordering - swept and fixed

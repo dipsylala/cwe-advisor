@@ -6,10 +6,7 @@ Hard-coded credentials (passwords, API keys, connection strings, encryption keys
 
 ## Key Principles
 
-- Externalize all credentials to secure storage outside source code and version control
-- Use .NET User Secrets during development and Key Vault or environment variables in production
-- Implement least-privilege access with managed identities where possible
-- Rotate credentials regularly and audit all secret access
+- Use .NET User Secrets in development and Key Vault in production, and prefer a managed identity over any stored credential - it removes the secret rather than relocating it
 - Treat environment variables as a fallback, not a vault - they can still leak via process listings, crash dumps, or platform metadata endpoints, so prefer Key Vault for production
 - A connection string in `web.config`/`appsettings.json` is still a hard-coded credential - move it to a secret store and authenticate with a workload identity (`DefaultAzureCredential`) so there is no secret to place at all
 

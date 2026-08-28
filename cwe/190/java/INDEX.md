@@ -9,7 +9,7 @@ Java's `int` and `long` arithmetic wraps silently on overflow - no exception, no
 - Replace `+`, `-`, `*` with `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact` (Java 8+) on any value derived from input, so an overflow becomes a caught exception rather than a silent result
 - Validate the input ranges before the arithmetic as well - bounding `count` and `itemSize` separately stops the problem before it reaches an operator, and gives a clearer error
 - `Math.toIntExact(long)` is the right narrowing at a `long`-to-`int` boundary; a plain `(int)` cast truncates silently (CWE-197)
-- Watch the mixed-width case: `int * int` is computed in `int` and wraps *before* being assigned to a `long`, so widen an operand first or use `Math.multiplyFull`
+- Watch the mixed-width case: `int * int` is computed in `int` and wraps *before* being assigned to a `long`, so widen an operand first or use `Math.multiplyFull` (Java 9+)
 - `Math.abs(Integer.MIN_VALUE)` returns `Integer.MIN_VALUE` - still negative - so an `abs()` used to sanitise an index is not a bound
 - Use `BigInteger` where the value can legitimately exceed `long` range, and `Math.floorDiv`/`floorMod` where negative operands are possible
 - Java has no unsigned primitives before the `Integer.compareUnsigned`/`divideUnsigned` helpers; a value read as a signed `int` from a wire format needs `Integer.toUnsignedLong()` rather than a comparison against zero

@@ -6,11 +6,7 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 
 ## Key Principles
 
-- Never commit credentials to version control; use `.gitignore` for local config files
-- Separate configuration from code using environment variables or external config files
-- Use secrets managers for production deployments with automatic rotation
-- Apply principle of least privilege to all credentials
-- Implement secure defaults and fail securely when credentials are missing
+- Read secrets from the environment or a secrets manager, and fail closed at startup when one is absent rather than falling back to a default that silently works in development
 - Environment variables are a practical fallback but can still leak via process inspection (`/proc/<pid>/environ`), crash dumps, or cloud metadata endpoints, so prefer a secrets manager where available
 - `os.environ.get('SECRET')` is the right read; the finding is usually the `config.py` or committed `.env` that puts the literal there
 - Build connection strings with a helper that takes the secret as a parameter (SQLAlchemy's `URL.create`) rather than formatting it into a URL, which then appears in logs and exception messages

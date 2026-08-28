@@ -6,11 +6,7 @@ Hard-coded credentials (passwords, API keys, database credentials, encryption ke
 
 ## Key Principles
 
-- Never commit credentials to version control (use .gitignore for .env files)
-- Store secrets in environment variables or external configuration
-- Use different credentials per environment (dev/staging/production)
-- Implement secrets rotation and access controls
-- Validate all credentials come from secure external sources
+- Read secrets from the environment (`getenv()`, or the framework's `env()` helper used only inside cached config), keeping distinct credentials per environment
 - Environment variables reduce exposure versus hard-coding but are not foolproof - they can still leak through process inspection, debug output, or misconfigured server status pages
 - A `config.php` holding literals is still hard-coded even when it is not the application code: read from the environment through `config()`/`getenv()`, keep the file out of version control, and confirm it is not served (below the document root, or denied in the `VirtualHost`/`.htaccess`)
 - A `.env` deployed inside the web root is fetchable by name whether or not directory listing is on

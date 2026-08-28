@@ -6,10 +6,9 @@ Hard-coded credentials occur when authentication secrets (passwords, API keys, e
 
 ## Key Principles
 
-- Remove hard-coded secrets from source and config
-- Load secrets from environment variables or a secrets manager
-- Rotate and revoke exposed credentials
-- Restrict secret access by least privilege
+- Load the secret from a secrets manager or the environment at runtime, remove the literal from source and config, and scope the runtime identity to only the secrets it needs
+- Establish what the secret currently authenticates before replacing it: a hard-coded signing or encryption key means every token, cookie, or record ever produced with it is forgeable, and rotating it invalidates all of them at once. Say what the rotation breaks - outstanding sessions, stored ciphertext, in-flight webhooks, cached client credentials - and whether a dual-key window is needed to roll it without an outage
+- Entropy-based scanning finds the long random-looking strings and misses everything else: a default password, an HMAC key that is a dictionary word, a customer number used as an API key, and a private key split across concatenated lines are all hard-coded credentials no scanner will flag
 - Treat environment variables as a fallback, not a risk-free store - they can still leak via process inspection, debug dumps, or cloud metadata endpoints
 - Search for comparisons as well as assignments: a hard-coded credential used to *check* an incoming value (`if key == "..."`) is a backdoor, and every `password=`-style pattern finds only the assignment half
 - Treat test fixtures as in scope - a mock credential is frequently a real one that was pasted in
