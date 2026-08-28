@@ -5,17 +5,18 @@ This repository is a local CWE remediation knowledge base used by the `cwe-advis
 ## Repository Shape
 
 ```text
-{CWE_ID}/
-  INDEX.md
-  {language}/
+cwe/
+  {CWE_ID}/
     INDEX.md
+    {language}/
+      INDEX.md
 ```
 
-- CWE directories are numeric only, for example `89/` or `352/`.
-- The root `{CWE_ID}/INDEX.md` is language-agnostic guidance.
+- CWE directories are numeric only and all live under `cwe/`, for example `cwe/89/` or `cwe/352/`. Paths below are written relative to `cwe/` unless stated otherwise.
+- The root `cwe/{CWE_ID}/INDEX.md` is language-agnostic guidance.
 - Language folders are lowercase ecosystem names. Existing folders include `c`, `cpp`, `csharp`, `java`, `android`, `javascript`, `perl`, `php`, `python`, `go`, and `ruby`.
 - Language-specific files supplement the root guidance; they do not replace it.
-- `77/{language}` deliberately covers non-shell command interpreters only. `77/INDEX.md` routes shell sinks to CWE-78, so shell guidance belongs under `78/` and should not be duplicated into `77/`.
+- `cwe/77/{language}` deliberately covers non-shell command interpreters only. `cwe/77/INDEX.md` routes shell sinks to CWE-78, so shell guidance belongs under `cwe/78/` and should not be duplicated into `cwe/77/`.
 - [evals/](evals/) holds the validation harness: externally authored test cases, the pre-registered rubric, and run results. It is not part of the knowledge base and is skipped by the linter.
 - [references/cwe-identifier.md](references/cwe-identifier.md) maps vulnerability names and common industry synonyms (e.g. "SQLi", "XSS", "SSRF") to CWE IDs, so SKILL.md Step 1 can resolve a description without asking the developer to look up the number.
 
@@ -46,7 +47,7 @@ Write to teach the LLM what to do, not what it already knows - every sentence sh
 
 ## Root CWE File
 
-Create `{CWE_ID}/INDEX.md` from [templates/general-cwe.md](templates/general-cwe.md).
+Create `cwe/{CWE_ID}/INDEX.md` from [templates/general-cwe.md](templates/general-cwe.md).
 
 Required sections:
 
@@ -65,7 +66,7 @@ Use `Remediation Steps` for new files. Some older entries use `Actionable Steps`
 
 ## Language-Specific File
 
-Create `{CWE_ID}/{language}/INDEX.md` from [templates/language-cwe.md](templates/language-cwe.md).
+Create `cwe/{CWE_ID}/{language}/INDEX.md` from [templates/language-cwe.md](templates/language-cwe.md).
 
 Required sections:
 
@@ -116,7 +117,7 @@ re-checking. Every rule below comes from an error found in this repository.
 ## Maintenance Workflow
 
 1. Confirm the CWE ID and vulnerability name against the existing directory naming pattern.
-2. Check whether `{CWE_ID}/INDEX.md` already exists before creating a new directory.
+2. Check whether `cwe/{CWE_ID}/INDEX.md` already exists before creating a new directory.
 3. Read nearby or related entries for tone and specificity, for example injection, XSS, path traversal, CSRF, or crypto entries.
 4. Create or update the root guidance first.
 5. Add only the language folders that have meaningful, language-specific guidance.

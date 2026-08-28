@@ -28,13 +28,13 @@ Extract the CWE number from the user's message (e.g. "CWE-89", "CWE 89", or just
 
 ### Step 2: Load General Guidance
 
-Read the top-level index: `{CWE_ID}/INDEX.md`
+Read the top-level index: `cwe/{CWE_ID}/INDEX.md`
 
 (Paths are relative to the directory containing this SKILL.md.)
 
 If the file doesn't exist, tell the user this CWE isn't in the knowledge base. You may explain what class of vulnerability the CWE ID belongs to (e.g., injection, broken auth) and recommend the user consult the MITRE CWE entry. Do not propose specific code changes.
 
-Some entries route rather than remediate: MITRE marks the ID Discouraged or Prohibited for mapping, so the guidance names a more specific child weakness instead of carrying the fix (CWE-20, CWE-119 and CWE-269 are the common cases). When the loaded guidance routes to a child CWE that matches the finding, read that child's `{CWE_ID}/INDEX.md` as well, treat it as the primary guidance, and use the child's ID for the language lookup in Step 3. Take one hop only, and keep the parent's guidance for context. If the child's directory doesn't exist, continue with the parent.
+Some entries route rather than remediate: MITRE marks the ID Discouraged or Prohibited for mapping, so the guidance names a more specific child weakness instead of carrying the fix (CWE-20, CWE-119 and CWE-269 are the common cases). When the loaded guidance routes to a child CWE that matches the finding, read that child's `cwe/{CWE_ID}/INDEX.md` as well, treat it as the primary guidance, and use the child's ID for the language lookup in Step 3. Take one hop only, and keep the parent's guidance for context. If the child's directory doesn't exist, continue with the parent.
 
 ### Step 3: Load Language-Specific Guidance
 
@@ -59,7 +59,7 @@ If the language is not listed above, check whether a matching lowercase subfolde
 
 Some findings are rooted in a platform manifest or configuration file rather than in program source code - for example, an Android component-export finding (CWE-926) lives in `AndroidManifest.xml`, not in the Kotlin/Java source that happens to sit alongside it. When the finding concerns a platform configuration file, check for a platform-named subfolder under the CWE directory (e.g., `android/`) instead of the inferred source-language subfolder. Keep platform guidance under its own platform name rather than folding it into a language subfolder. If guidance exists for both the platform (the manifest/config fix) and the language (any code-level handling) for the same CWE, load both.
 
-Check whether the subfolder exists, then read it: `{CWE_ID}/{language}/INDEX.md`
+Check whether the subfolder exists, then read it: `cwe/{CWE_ID}/{language}/INDEX.md`
 
 If no language or platform subfolder exists, rely solely on the general guidance from Step 2.
 

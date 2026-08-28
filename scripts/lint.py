@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+# Numeric CWE directories live under cwe/ so the repo root stays readable.
+CWE_ROOT = ROOT / "cwe"
 
 # docs/ is a separate, gitignored human-facing tree - not part of the knowledge base spec.
 SKIP_DIRS = {".git", "docs", "evals"}
@@ -120,10 +122,12 @@ def parse_identifier_ids():
 
 def main():
     cwe_dirs = sorted(
-        (p for p in ROOT.iterdir() if p.is_dir() and p.name.isdigit()),
+        (p for p in CWE_ROOT.iterdir() if p.is_dir() and p.name.isdigit()),
         key=lambda p: int(p.name),
     )
     cwe_ids = {p.name for p in cwe_dirs}
+    if not cwe_dirs:
+        errors.append(f"no CWE directories found under {rel(CWE_ROOT)}/")
 
     for cwe_dir in cwe_dirs:
         cwe_id = cwe_dir.name
@@ -141,7 +145,7 @@ def main():
     for cwe_id in sorted(cwe_ids - identifier_ids, key=int):
         errors.append(f"references/cwe-identifier.md: missing row for CWE-{cwe_id}")
     for cwe_id in sorted(identifier_ids - cwe_ids, key=int):
-        errors.append(f"references/cwe-identifier.md: row for CWE-{cwe_id} has no matching directory")
+        errors.append(f"references/cwe-identifier.md: row for CWE-{cwe_id} has no matching cwe/ directory")
 
     print(f"Checked {len(cwe_dirs)} CWE directories.")
 
