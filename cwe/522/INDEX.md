@@ -22,4 +22,4 @@ This vulnerability occurs when credentials (passwords, API keys, tokens) are sto
 - Implement strong encryption - use bcrypt, Argon2, or PBKDF2 for password hashing; encrypt sensitive data at rest with AES-256
 - Secure transmission - enforce HTTPS/TLS for all credential transmission; never send credentials in URL parameters or GET requests
 - Implement proper access controls - use multi-factor authentication, enforce least-privilege principles, and rotate credentials on a regular schedule
-- Remove credentials from version control history using tools like git-filter-repo or BFG Repo-Cleaner
+- Rotate first, then clean up - revoke anything that reached version control before rewriting history, since rotation is what ends the exposure and a rewrite reaches neither existing clones nor forks. `git filter-repo` is what git's own documentation recommends over `filter-branch`

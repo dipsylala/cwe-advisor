@@ -2,27 +2,30 @@
 
 ## LLM Guidance
 
-Insufficiently Protected Credentials in Java occurs when passwords, API keys, or authentication tokens are hardcoded, stored in plaintext, weakly encrypted, or transmitted insecurely. The core fix is to externalize credentials to secure vaults (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault), use environment variables or encrypted configuration files, and use Java's KeyStore or strong encryption (AES-256) when storage is necessary. Never log, hardcode, or commit credentials to version control.
+Insufficiently protected credentials in Java appear as plaintext or weakly hashed passwords, secrets in `.properties` files, and credentials that survive in memory or logs. Separate the two cases before fixing either: a user password is hashed with an adaptive algorithm and never read back, while a credential the application presents to another system is fetched at runtime from a vault. In Spring Security the encoder choice is not simply "use bcrypt" - the framework has a specific answer built around migrating between algorithms.
 
 ## Key Principles
 
-- Store credentials in external secret management systems (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault)
-- Use environment variables or encrypted configuration files with restricted file permissions
-- Encrypt credentials at rest using a secrets manager/KMS, platform-backed storage, or PKCS12 KeyStore when local storage is unavoidable; never store plaintext passwords
-- Hash user passwords with `BCryptPasswordEncoder` (Spring Security) or Argon2 (`argon2-jvm`); never encrypt passwords reversibly or store them in plaintext
-- Transmit credentials only over TLS/SSL; use char[] for passwords in memory and clear immediately after use
-- Implement credential rotation policies and audit access logs regularly
+- Spring Security's default is `DelegatingPasswordEncoder`, built by `PasswordEncoderFactories.createDelegatingPasswordEncoder()`, not `BCryptPasswordEncoder` used alone. It stores the algorithm in the value as `{bcrypt}$2a$10$...`, which is what lets a deployment verify legacy formats and re-encode to the current one. A bare hash with no `{id}` prefix fails at match time with `IllegalArgumentException: There is no PasswordEncoder mapped for the id "null"`, so migrating an existing column means prefixing it, not just swapping the encoder
+- **Floor Spring Security at 6.4.5 or 6.3.9 for bcrypt.** CVE-2025-22228 made `BCryptPasswordEncoder.matches()` return true for any password sharing the first 72 characters, fixed in 6.4.4/6.3.8 - and that fix broke the timing-attack mitigation in `DaoAuthenticationProvider` (CVE-2025-22234), fixed in 6.4.5/6.3.9. The earlier release is not sufficient
+- The 72-byte limit is enforced asymmetrically: `BCrypt.hashpw` throws `IllegalArgumentException("password cannot be more than 72 bytes")` when encoding, while the matching path passes `for_check` and skips the check. Existing over-length passwords keep verifying while new ones are rejected, so the failure surfaces at registration and password change rather than at login
+- `BCryptPasswordEncoder`'s default strength is 10, and the reference docs ask you to tune it "so that it takes roughly 1 second to verify a password" on the target hardware rather than adopting a number from guidance
+- Spring Security ships `Argon2PasswordEncoder` (`@since 5.3`) and `SCryptPasswordEncoder`, both requiring BouncyCastle, so `argon2-jvm` is not the only route. Use the `defaultsForSpringSecurity_v5_8()` factories; the `v5_2` and `v4_1` ones exist for reading old hashes
+- **The `char[]` advice cannot be honoured at the Spring layer**, and the entry should say which layer it applies to. `PasswordEncoder.encode` and `matches` take `CharSequence`, and `AbstractValidatingPasswordEncoder` calls `rawPassword.toString()` before hashing. Where `char[]` does apply is the JDK's own APIs - `Console.readPassword`, `JPasswordField.getPassword`, and `PBEKeySpec`, whose Javadoc gives the rationale ("the String class is immutable and there is no way to overwrite its internal value") and whose `clearPassword()` is the zeroing call
+- MD5 still works. The JDK's `java.security` restrictions on it - `jdk.certpath.disabledAlgorithms`, `jdk.jar.disabledAlgorithms`, `http.auth.digest.disabledAlgorithms`, `jdk.security.legacyAlgorithms` - cover certificate paths, signed JARs, HTTP Digest and tool warnings, and none of them stops `MessageDigest.getInstance("MD5")` returning a working digest
+- A PKCS12 keystore can hold a bare passphrase, not only keys and certificates: JEP 229 records that from JDK 8 it stores secret keys too, and `keytool -importpass` writes one as a `KeyStore.SecretKeyEntry`. PKCS12 has been the default type since JDK 9
+- Spring Security's `CompromisedPasswordChecker` with `HaveIBeenPwnedRestApiPasswordChecker` (`@since 6.3`) is picked up automatically as a bean by `DaoAuthenticationProvider`, and rejects known-breached passwords with `CompromisedPasswordException`
 
 ## Taint Sinks
 
-hardcoded `String password = "..."`, `MessageDigest.getInstance("MD5")`, plaintext `.properties` files, `String` (not `char[]`) for passwords
+`MessageDigest.getInstance("MD5"|"SHA-1"|"SHA-256")` used as a password hash, `NoOpPasswordEncoder`, a stored hash with no `{id}` prefix under a delegating encoder, hardcoded `String password = "..."`, plaintext credentials in `.properties` or a committed profile file, a token compared with `equals()`
 
 ## Remediation Steps
 
-- Remove hardcoded credentials from source code; scan with tools like git-secrets or TruffleHog
-- Migrate credentials to AWS Secrets Manager, Azure Key Vault, or HashiCorp Vault; on AWS use SDK for Java v2 (`software.amazon.awssdk.services.secretsmanager.SecretsManagerClient`), since v1's `com.amazonaws.services.secretsmanager` reached end of support in December 2025
-- Configure application to retrieve credentials at runtime from secret manager or environment variables
-- Use PKCS12 KeyStore or platform-backed storage for local encrypted credential storage if a secrets manager is not available
-- Hash user passwords with `BCryptPasswordEncoder` or Argon2 before storage; verify with the same encoder's `matches()`/`verify()` method, never a manual comparison
-- Replace String passwords with char[] and zero out arrays after authentication
-- Enable TLS 1.3 for all credential transmission; never send credentials in URLs or logs
+- Separate the two cases - Hash what only needs recognising; fetch what must be presented elsewhere
+- Replace the encoder - Move to `PasswordEncoderFactories.createDelegatingPasswordEncoder()`, prefix existing stored hashes with their algorithm id, and let `upgradeEncoding` re-encode on successful login
+- Check the floor - Confirm Spring Security is at 6.4.5/6.3.9 or later before treating bcrypt verification as sound
+- Decide the length policy - Establish what happens to a password over 72 bytes at registration, since encode throws where match does not
+- Externalise the rest - Fetch credentials from Secrets Manager, Key Vault or Vault at runtime; on AWS use SDK v2 (`software.amazon.awssdk.services.secretsmanager.SecretsManagerClient`), since v1's `com.amazonaws.services.secretsmanager` reached end of support on 31 December 2025
+- Apply char[] where the API allows it - At JDK entry points that hand back an array, clear it with `Arrays.fill` or `PBEKeySpec.clearPassword()`; do not claim it for the Spring encoder path, which takes a `CharSequence`
+- Rotate - Treat anything that reached version control or a log as compromised and revoke it before or alongside the cleanup
