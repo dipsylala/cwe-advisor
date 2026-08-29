@@ -347,11 +347,23 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 2 - CWE-611 and CWE-918 (11 entries). All 11 defective.
 - Batch 3 - CWE-22 and CWE-94 (10 entries). All 10 defective.
 - Batch 4 - CWE-79, CWE-943, CWE-502, CWE-90 (10 entries). All 10 defective.
+- Batch 5 - CWE-77, CWE-91, CWE-95 (11 entries). All 11 defective.
+- Batch 6 - CWE-41, CWE-88 (9 entries, plus the CWE-88 root). All 9 defective.
+- Batch 7 - CWE-93, CWE-113 (9 entries, plus the CWE-113 root). All 9 defective.
+- Batch 8 - CWE-80 (6 entries). All 6 defective.
 
-**Running count: 51 of 287 language files reviewed, 51 carried at least one defect.**
+**Running count: 86 of 287 language files reviewed, 86 carried at least one defect.**
 
-The rate has not moved across four batches and 79 CWEs' worth of subject matter. Treat every
+The rate has not moved across eight batches and the whole injection family. Treat every
 unreviewed language entry as suspect rather than sampling further to confirm it.
+
+**Two roots turned out to be in scope after all.** The sweep excluded root files on the strength of
+`cwe/676` carrying nothing falsifiable. That does not generalise: `cwe/88/INDEX.md` and
+`cwe/113/INDEX.md` both named specific third-party options and per-platform behaviours, and both
+were wrong - CWE-113's root claimed PHP "drops the header entirely" (true mid-string, but a value
+whose only newline trails is silently trimmed and sent) and that Tomcat and Jetty replace CR and LF
+(they replace every control character except TAB). Check a root for named APIs before skipping it;
+skip it only when it is genuinely vendor-neutral prose.
 
 **Recurring defect shapes**, worth briefing future batches on explicitly:
 
@@ -367,6 +379,19 @@ unreviewed language entry as suspect rather than sampling further to confirm it.
 - *Guidance that has dated.* CWE-611/python described an XXE that CPython closed in 3.6.8/3.7.1 and
   prescribed a dependency last released in 2021 - a false-positive generator.
 - *The case the fix does not cover.* Identifiers in every CWE-89 entry; create in CWE-863/python.
+- *A right conclusion resting on wrong reasons.* All four CWE-88 entries argued for a
+  first-character allowlist because a denylist "misses `--`, unicode dashes, and leading
+  whitespace". `--` does begin with a dash; getopt treats only ASCII 0x2D as an option introducer.
+  The advice was right and every stated reason was wrong, so a reread by its author would pass it.
+- *A prescribed test that passes against the unfixed code.* CWE-93/javascript told the model to
+  confirm no extra header appeared - which it does not, because Nodemailer replaces the CRLF with a
+  space; meanwhile the envelope has been rewritten to the attacker alone. CWE-80/javascript tested
+  with `<script>`, which `innerHTML` never executes. Check what the payload actually proves.
+- *A sanitizer that strips rather than rejects, changing the value into a different valid one.*
+  Nodemailer's CRLF-to-space turns an injected recipient into RFC 5322 group syntax. This is the
+  concrete form of the root files' "reject rather than strip" principle.
+- *A named library that has stopped.* `bleach` ended maintenance in June 2026 with an open advisory
+  that can never be fixed. "Use a sanitization library" needs the library checked, not just named.
 
 ### The docs/ reconciliation step - now mandatory per batch
 
@@ -413,7 +438,10 @@ A per-bullet patch is how a corpus starts contradicting itself, and lint cannot 
 ### Where to pick up
 
 Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then reconciliation
-(fc9bce0) and restoration (d97d283). 51 of 287 language files reviewed; every one carried a defect.
+(fc9bce0) and restoration (d97d283). Batches 5-8 completed the injection family (705c76a, 19089d8,
+f4cfab2, 4ed535e). 86 of 287 language files reviewed; every one carried a defect.
+
+**The injection family is done.** Next is authn/authz, starting with CWE-862.
 
 The per-batch loop, in full:
 
@@ -429,8 +457,7 @@ The per-batch loop, in full:
 5. Run the `docs/` reconciliation for that CWE family (see above) and fix both directions.
 6. `python scripts/lint.py`, check no language file has grown past ~950 words, commit.
 
-**Remaining, in the intended order:** the rest of the injection family (22, 94, 90, 943, 77, 91, 79,
-502, 41, 88, 93, 95, 113, 80), then authn/authz (862, 863, 287, 306, 285, 522, 566, personal 798),
+**Remaining, in the intended order:** authn/authz (862, 863, 287, 306, 285, 522, 566, personal 798),
 crypto and randomness (326, 330, 331, 338, 347, 295, 780, 316), web hygiene (352, 601, 614, 434, 942,
 209, 201), and last the memory/native and resource entries (125, 787, 121, 415, 416, 823, 824, 401,
 362, 367, 377), which are the least likely to be handed to this skill by a web-application scanner.
