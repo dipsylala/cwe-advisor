@@ -114,6 +114,58 @@ re-checking. Every rule below comes from an error found in this repository.
   or the API's own documentation. SKILL.md Step 5 forbids the model from supplying a version from
   its own knowledge, which only works if the entry carries one.
 
+## Remediation Claims
+
+Version metadata is where entries went wrong most often; this is where they went wrong next.
+Twelve sweep batches traced 126 language entries to vendor sources and every one carried a
+defect. Each rule below is a shape that recurred, stated as the check that would have caught it.
+
+- **Apply the prescribed edit literally, to a real tree, before writing it down.** Three failure
+  modes, all shipped. A *no-op*: `cwe/287/go` said to take the session with `gorilla/sessions`
+  `store.New` rather than `store.Get` so a planted cookie is discarded, but `New` decodes the
+  cookie and sets `IsNew = false` exactly as `Get` does. A *panic*: `cwe/306/go` prescribed a
+  `grpc.UnaryInterceptor` and a chi `Use()` that both fail on code already carrying one. And an
+  edit that *breaks the application*: `cwe/522/php` said to add `Deny from all` to `.htaccess`,
+  which is Apache 2.2 syntax supplied in 2.4 only by the deprecated `mod_access_compat` and has
+  no filename scoping of its own - written bare it denies the whole directory. Ask what the edit
+  does when applied, not whether it is correct in principle.
+- **State the default before prescribing a change to it.** `AllowAutoRedirect` is true; `fetch`
+  follows redirects; `CURLOPT_FOLLOWLOCATION` is already off; Django autoescaping is on, so
+  "enable autoescaping" is usually a no-op while the `|safe` marker is the live issue; PHP's
+  `session.use_strict_mode` is off. An entry that omits the default cannot tell the model whether
+  the finding is real.
+- **Do not list the framework's own recommended API as a taint sink.** Eight instances so far:
+  `user.IsInRole()`, which appears in Microsoft's own resource-based handler sample;
+  `@login_not_required`, which Django requires on the login view; `__return_true`, which
+  WordPress core's own notice prescribes for a public route; `PASSWORD_HASHERS` "strongest
+  first", which would flag Django's shipped default. Each points the model at correct code.
+  Deletion is not always the fix - grepping for the name can be how the exceptions get audited -
+  but then the entry has to say what the finding is *not*.
+- **Check what a prescribed test proves against the unfixed code.** `cwe/93/javascript` said to
+  confirm no extra header appears; it does not appear either way, because Nodemailer replaces the
+  CRLF with a space - meanwhile the envelope has been rewritten to the attacker alone.
+  `cwe/80/javascript` tested with `<script>`, which `innerHTML` never executes. A test that
+  passes before the fix verifies nothing.
+- **Check the reasons, not only the conclusion.** All four CWE-88 entries argued for a
+  first-character allowlist because a denylist "misses `--`, unicode dashes, and leading
+  whitespace". `--` does begin with a dash, and getopt treats only ASCII `0x2D` as an option
+  introducer. The advice was right and every stated reason was wrong, which a reread for
+  plausibility passes.
+- **A constant shared across a family behaves differently in each ecosystem.** bcrypt's 72-byte
+  ceiling is one fact with five behaviours: PHP truncates silently, Spring throws on encode and
+  skips the check on match, Go rejects with `ErrPasswordTooLong`, Python's `bcrypt` 5.0 raises
+  where it used to truncate, and `bcryptjs` neither enforces nor documents it. A sentence written
+  once and copied across the language files will be wrong in most of them.
+- **Sweep doctrine across the family rather than file by file.** CWE-862 and CWE-863 disagreed on
+  the status an ownership failure returns - 404 in one, 403 in the other - in both their `go` and
+  `javascript` pairs. No per-file review finds that, because each file is internally consistent.
+- **Prefer rejecting a bad value to stripping it.** Stripping turns the value into a different
+  valid one: Nodemailer's CRLF-to-space rewrite produces RFC 5322 group syntax, so the injected
+  recipient survives sanitization.
+- **A named library can stop.** `bleach` ended maintenance in June 2026 with an open advisory
+  that will never be fixed. "Use a sanitization library" needs the library checked for
+  maintenance status, not just named.
+
 ## Maintenance Workflow
 
 1. Confirm the CWE ID and vulnerability name against the existing directory naming pattern.
@@ -147,3 +199,4 @@ re-checking. Every rule below comes from an error found in this repository.
 - Do not rewrite unrelated sections just to normalize style.
 - If an entry has clear correctness issues, fix them directly and keep the diff small.
 - When adding a language-specific file, make sure it agrees with the root CWE guidance and does not contradict sibling language entries.
+- After editing a `Key Principles` bullet, read the whole file before committing. Patching per bullet is how an entry starts arguing with its own `Remediation Steps`, and the linter cannot see it - five entries were left self-contradicting that way.

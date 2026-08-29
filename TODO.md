@@ -386,6 +386,12 @@ whose only newline trails is silently trimmed and sent) and that Tomcat and Jett
 (they replace every control character except TAB). Check a root for named APIs before skipping it;
 skip it only when it is genuinely vendor-neutral prose.
 
+**The durable half of this list now lives in `CLAUDE.md`**, under `Remediation Claims`, so an
+authoring or editing session inherits it without reading this file. What stays here is the
+sweep's live state: the instance counts, the per-batch evidence, and the shapes still too thinly
+evidenced to promote. When one recurs across batches, move it up rather than lengthening the list
+below.
+
 **Recurring defect shapes**, worth briefing future batches on explicitly:
 
 - *A helper offered as the safe one that the vendor says is not.* Go's `net.IP.IsPrivate` carries
