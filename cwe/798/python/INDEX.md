@@ -14,7 +14,7 @@ Hard-coded credentials in Python are usually a module-level literal or a keyword
 - New work should use psycopg 3, imported as `psycopg` rather than `psycopg3`, which takes the same `password=` keyword; psycopg2 remains supported but is documented as not expecting new features
 - `boto3` resolves credentials in a documented order that starts with the arguments passed to `client()`, so a literal there wins over every environment and role-based source - removing the argument is what lets the instance role take over, and AWS's own guidance is not to hard-code them
 - Generate replacement credentials with `secrets`, not `random`: the standard library states `secrets` "should be used in preference to" `random`, whose generator is for modelling rather than security. `secrets.token_urlsafe()` is the usual shape
-- Environment variables are a fallback rather than a store, but state the exposure accurately: `/proc/<pid>/environ` is governed by a `PTRACE_MODE_READ_FSCREDS` check, so it is readable by the same user or a process holding `CAP_SYS_PTRACE`, not by any local account
+- Environment variables are a fallback rather than a store, but state the exposure accurately: `/proc/<pid>/environ` is governed by a `PTRACE_MODE_READ_FSCREDS` check, so it is readable by the same user or a process holding `CAP_SYS_PTRACE`, not by any local account. The concrete exposures are `docker inspect`, which Docker documents as where `ENV` values can be viewed, and inheritance by every child process
 
 ## Taint Sinks
 
