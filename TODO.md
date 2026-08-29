@@ -418,9 +418,12 @@ went through the two-model review.
 
 - On a *vendor fact* - a version floor, a default, a CVE, an API's documented behaviour - the skill is
   usually ahead, because the sweep traced these to primary sources and `docs/` largely does not carry
-  them. `docs/` is sometimes wrong in the false-finding direction (it says .NET Framework processes
-  DTDs by default, true only below 4.5.2; its CWE-943 root says "never enable" server-side JavaScript,
-  which MongoDB ships enabled).
+  them. `docs/` is sometimes wrong in the false-finding direction - CWE-88's `--` support and
+  CWE-113's PHP header behaviour were both wrong this pass, and are recorded with the vendor
+  evidence in `DOCS_UPDATE.md`. Two older examples once cited here have since been withdrawn: the
+  CWE-943 "never enable" note kept its "derived from user input" qualifier all along, and the
+  .NET Framework DTD claim conflated the `XmlResolver` default with DTD parsing and was never
+  traced to a primary source.
 - On *operational detail* - what a fix fails to cover, what a test actually proves, which precondition
   a defence needs - `docs/` is usually ahead, because compression dropped it. This is where the
   restoration pass in commit d97d283 came from.

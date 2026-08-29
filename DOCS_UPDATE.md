@@ -93,9 +93,11 @@ Correct for CR and LF, but both containers replace considerably more:
 
 Two consequences worth carrying:
 
-- A reader may infer that NUL, DEL or U+2028 survives where CR/LF does not. None does.
-  This is also why the Unicode line terminators are not an HTTP response-splitting vector
-  on either container - they cannot reach the wire as themselves.
+- A reader may infer that a control character other than CR/LF survives. Mostly it does not -
+  but the containers differ, and **an earlier revision of this file got that wrong**: Tomcat
+  filters DEL (0x7F), Jetty does not. The safe statement true of both is "every C0 control
+  character except TAB". This is also why the Unicode line terminators are not an HTTP
+  response-splitting vector on either container - they cannot reach the wire as themselves.
 - Tomcat's filter had a bounds defect (`bc.getLength()` where `bc.getEnd()` was meant),
   so with a non-zero offset trailing bytes went unfiltered. Fixed in **Tomcat 11.0.23,
   10.1.56 and 9.0.119**, and not mentioned in the changelog. A page giving measured
@@ -126,16 +128,20 @@ subtree. That is a genuine unaudited path.
 
 ---
 
-## Carried over from earlier passes - not re-verified this session
+## Carried over from earlier passes - both now withdrawn
 
-Recorded in this repo's `TODO.md` from the batch 1-4 reconciliation. Flagged here for
-completeness; treat the confidence as lower than the section above.
+Recorded in this repo's `TODO.md` from the batch 1-4 reconciliation and reproduced here without
+re-verification. **Both have since been checked and neither stands.**
 
-- **`docs/` states that .NET Framework processes DTDs by default.** True only below
-  4.5.2.
-- **The CWE-943 root says "never enable" server-side JavaScript.** MongoDB ships it
-  enabled, so the instruction reads as a configuration change that is already the
-  default the other way.
+- ~~The CWE-943 root says "never enable" server-side JavaScript.~~ **Withdrawn - no defect.**
+  `docs/CWE-943/index.md:39` reads "Never enable server-side code execution features (such as
+  MongoDB's `$where`) **with any part of the expression derived from user input**". The
+  qualifier was intact; the `TODO.md` note dropped it and this file carried the drop forward.
+- ~~`docs/` states that .NET Framework processes DTDs by default; true only below 4.5.2.~~
+  **Withdrawn as stated.** `CWE-611/csharp/index.md:31,53` do want a version qualifier, but
+  "true only below 4.5.2" conflates the `XmlResolver` default with DTD parsing itself, and no
+  primary source was reached for either. Needs its own pass rather than a swap of one
+  imprecise claim for another.
 
 ---
 
@@ -144,20 +150,27 @@ completeness; treat the confidence as lower than the section above.
 Not a per-file defect, but the single highest-value thing to act on. `docs/` carries
 almost no version or advisory metadata, and across eight sweep batches that was the
 category where this repo most often had to add something rather than correct something.
+
+**Treat this table as a starting list, not a change set.** These are advisory-derived floors
+as of the sweep, and floors move - re-check each row against the vendor before adopting it.
+Note also that *floor* and *latest release* are different numbers: the floor is the lowest
+version carrying every known fix, which is the actionable one, and CLAUDE.md's rule is that
+"use the latest version" is not a fix.
+
 Floors traced to vendor releases this pass, on subjects `docs/` covers without them:
 
 | Subject | Floor / status |
 |---|---|
 | `bleach` (Python sanitizer) | **End of maintenance.** 6.4.0 (June 2026) is final; repo archived; an open `linkify` advisory has no fix and no prospect of one. Successor is `nh3` |
-| DOMPurify | **3.4.13** - a long chain of bypasses, several documented as incomplete fixes for the previous one |
+| DOMPurify | **3.4.13** - the highest *fixed* version across its advisories, so the minimum safe one. Latest release is 3.4.14, which carries no advisory of its own |
 | jsdom, for server-side DOMPurify | **20.0.0+**; DOMPurify's README says happy-dom "is not considered safe" |
-| HtmlSanitizer (.NET) | **9.0.967**; three of its four bypasses are unlocked by permissive configuration, and the highest-severity one carries no CVE |
+| HtmlSanitizer (.NET) | **9.2.1039**. The advisory-derived floor is 9.0.967, but the record undercounts twice: the highest-severity issue has no CVE, and the `SanitizeDom` bypass fixed in 9.2.1039 was never filed |
 | FreeMarker auto-escaping | **2.3.24+**, and off by default (`undefined` output format "does no escaping") |
 | Jakarta Mail SMTP injection | CVE-2025-7962, fixed in `org.eclipse.angus:smtp` **2.0.4** / `com.sun.mail:jakarta.mail` **2.0.2** and **1.6.8** - the implementation artifact, not the API one |
 | PyYAML | **5.4** (last `FullLoader` RCE fix), **6.0** (`Loader` becomes mandatory) |
 | Jinja2 sandbox | **3.1.6** |
 | Spring `UriComponentsBuilder` | **6.1.6 / 6.0.19 / 5.3.34** - three CVEs, each bypassing the last |
-| Spring `redirect:` open redirect | OSS floors **7.0.9** and **6.2.19**; 6.1.x and older have no OSS fix |
+| Spring `redirect:` open redirect | **7.0.9** on 7.0.x, covering both CVEs - 41844 alone landed in 7.0.8. On 6.2.x, 6.2.19 closes 41844 only; 47887's fix there is Enterprise-only. 6.1.x and older have no OSS fix for either |
 | Node `child_process` on Windows | **18.20.4 / 20.15.1 / 22.4.1** (CVE-2024-27980, then CVE-2024-36138 bypassing it) |
 | PHP `proc_open` array form on Windows | **8.1.29 / 8.2.20 / 8.3.8** (CVE-2024-1874, then CVE-2024-5585) |
 | CGI.pm `escapeHTML` | **4.21** - before it, `'` was escaped only for ISO-8859-1/Windows-1252 charsets |
