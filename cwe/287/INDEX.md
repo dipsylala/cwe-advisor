@@ -12,7 +12,7 @@ Improper authentication occurs when an application fails to correctly verify use
 - Enforce authentication uniformly across all protected resources
 - Properly manage session lifecycle (generation, timeout, invalidation)
 - Regenerate the session identifier after a successful login, so a value the attacker planted beforehand cannot become an authenticated session
-- Fail closed with `401` on a missing, malformed, expired, or invalid credential rather than falling through to an anonymous path
+- Fail closed with `401` on a missing, malformed, expired, or invalid credential rather than falling through to an anonymous path, and send the `WWW-Authenticate` challenge header that a 401 requires - a denial for a caller who is authenticated but not permitted is `403` instead
 - In any lookup-then-verify flow - login, reset-token redemption, API key or TOTP checks - do the same work when the record is missing: verify the submitted credential against a dummy hash and discard the result, so response time cannot answer which accounts exist
 - Produce that dummy with the application's own hasher at its configured parameters; an empty or malformed placeholder fails the format check in microseconds and leaves the gap open, as does a stored hash left empty for SSO-only accounts
 - Do not assume the framework closes that gap - some hash on the unknown-user branch and some do not; confirm it for the one in use

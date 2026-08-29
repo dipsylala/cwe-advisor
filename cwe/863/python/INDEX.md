@@ -2,23 +2,24 @@
 
 ## LLM Guidance
 
-In Django REST Framework, Incorrect Authorization commonly appears as a `permissions.BasePermission` that implements `has_permission` (checked before the view runs, role-only) but not `has_object_permission` (checked against the specific instance), so any authenticated user with the right role can act on any object regardless of ownership. It also appears as a denylist role comparison (`if request.user.role != 'admin'`) that fails open on new role values, or a check duplicated inconsistently across function-based views. Fix by implementing both permission methods and using an explicit role allowlist plus an ownership comparison in `has_object_permission`.
+In Django REST Framework, Incorrect Authorization commonly appears as a `permissions.BasePermission` that implements `has_permission` (checked before the view runs, role-only) but not `has_object_permission` (checked against the specific instance), so any authenticated user with the right role can act on any object regardless of ownership. It also appears as an inline role comparison (`if request.user.role != 'admin'`, on a `role` field the project defines - Django's own user model has `groups`, `user_permissions` and `has_perm()` instead), or a check duplicated inconsistently across function-based views. Fix by implementing both permission methods and using an explicit role allowlist plus an ownership comparison in `has_object_permission`.
 
 ## Key Principles
 
 - Implement both `has_permission` (coarse, role-level) and `has_object_permission` (per-instance, ownership) on `BasePermission` subclasses - DRF only calls `has_object_permission` for views that call `self.check_object_permissions(request, obj)` or use generic views' `get_object()`, so confirm the view path actually reaches it
-- Use an explicit allowlist for role checks (`request.user.role in {'admin', 'editor'}`) instead of `!=` denylist comparisons
+- Use an explicit allowlist for role checks (`request.user.role in {'admin', 'editor'}`) rather than a chain of inline comparisons, and prefer Django's own `request.user.has_perm('app.change_order')` or `DjangoModelPermissions` where the project has no separate role field
 - `has_object_permission` does not run on create. DRF's documentation is explicit that because `get_object()` is not called, object-level permissions are not applied when creating objects - so a permission class that is correct for the detail routes still leaves POST unguarded. Enforce the ownership or tenancy constraint in the serializer's `validate()` or in `perform_create()` as well
 - `has_object_permission` is only reached if `has_permission` already returned true, so the two layer in one direction only: a coarse check that passes everyone through is what exposes the per-object gap
 - Compare the object's owning user field to `request.user` inside `has_object_permission`, not just the object's type or existence
 - Never resolve role or ownership from request data (`request.data.get('role')`); always read from `request.user`, populated by DRF's authentication classes from the verified session or token
-- Apply the permission class via the view's `permission_classes` attribute so it runs for every method (GET/PUT/PATCH/DELETE) on that view, rather than adding inline checks per view function
+- Apply the permission class via the view's `permission_classes` attribute rather than adding inline checks per view function, but do not treat it as uniform across the view: `@action(permission_classes=[...])` and `get_permissions()` both override it per action, and DRF warns that calling `.as_view()` on a viewset with `@action` methods "may ignore action settings like `permission_classes`"
 - Return `False` explicitly for any unmatched role or failed ownership comparison; do not rely on falsy defaults from an incomplete conditional
+- Where a permission is assembled from several conditions, DRF's composition operators (`&`, `|`, `~`, with `~` binding tightest, then `&`, then `|`) express it without a hand-written boolean an inversion can silently flip
 - Scope `get_queryset()` on the `ModelViewSet` to the requesting user: an object-level permission does not fire on `list`, so the collection endpoint returns rows the detail endpoint would refuse
 
 ## Taint Sinks
 
-`has_permission()` implemented without `has_object_permission()`, `request.user.role != 'admin'`, `request.data.get('role')`
+`has_permission()`, `has_object_permission()`, `check_object_permissions()`, `get_object()`, `get_queryset()`, `perform_create()`, `permission_classes`, `request.data`, `request.user`
 
 ## Remediation Steps
 
@@ -28,4 +29,4 @@ In Django REST Framework, Incorrect Authorization commonly appears as a `permiss
 - Bind, encode, validate, or authorize - Add `has_object_permission` that compares `obj.owner_id == request.user.id` alongside the role check
 - Break taint after allowlist validation - Read role and identity from `request.user`, never from `request.data` or query parameters, before evaluating permissions
 - Harden configuration - Set `permission_classes` on the `ViewSet`/`APIView` so the check applies uniformly across all actions, and confirm custom views call `check_object_permissions` explicitly if not using generic views
-- Test - Add DRF `APITestCase` tests where a non-owner with a valid role, and a user with an unrecognized role, both attempt the action and receive HTTP 403
+- Test - Add DRF `APITestCase` tests where a non-owner with a valid role, and a user with an unrecognized role, both attempt the action. Expect 403 for the unrecognised role; for the non-owner, expect the 404 that a `get_queryset()` scoped to the user already produces at lookup time, since `get_object()` filters the queryset before it reaches the object permission

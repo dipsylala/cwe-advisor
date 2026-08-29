@@ -14,7 +14,7 @@ verified them. Where the two disagree, that is a question about which is right, 
 a fault here. `docs/` has since been through actor/critic review between two model families
 (Claude and Codex), which this repo has not.
 
-**That once made `docs/` the default winner on a factual disagreement. Eight sweep batches have
+**That once made `docs/` the default winner on a factual disagreement. Nine sweep batches have
 since retired that rule** - see "The docs/ reconciliation step" below for the split that replaced
 it. The short form: on a vendor fact - a version floor, a default, a CVE, an API's documented
 behaviour - the skill is now usually ahead, because the sweep traces these to primary sources and
@@ -40,7 +40,7 @@ Remaining, in rank order:
 | 15 | CWE-269 Improper Privilege Management | yes | 0 | **Reviewed.** Router; all four children it names (250, 272, 273, 274) exist. No changes |
 | 16 | CWE-502 Deserialization | yes | 6 | **Reviewed.** Four corrections - see below |
 | 17 | CWE-200 Information Exposure | yes | 0 | **Reviewed.** Routes correctly; all seven children exist. Added to SKILL.md's router list |
-| 18 | CWE-863 Incorrect Authorization | yes | 6 | **Reviewed.** Agrees with CWE-862; boundary stated consistently in both. All six language entries carry framework traps. No changes |
+| 18 | CWE-863 Incorrect Authorization | yes | 6 | **Superseded by batch 9.** This pass read it as sound - "all six language entries carry framework traps, no changes". The evidence pass found all six defective, and the two entries did *not* agree with CWE-862 on the ownership status. Kept as a record of what plausibility review misses |
 | 19 | CWE-918 SSRF | yes | 6 | **Reviewed.** Stronger than the note implied. One gap: `python` - see below |
 | 20 | CWE-119 Buffer bounds | yes | 0 | **Reviewed.** Read/write split to 125/787 is complete; now also names 121 for a stack buffer |
 | 21 | CWE-476 NULL Pointer Dereference | yes | 3 | **Done.** Root reviewed; `c`, `cpp` and `java` entries authored |
@@ -359,10 +359,12 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 6 - CWE-41, CWE-88 (9 entries, plus the CWE-88 root). All 9 defective.
 - Batch 7 - CWE-93, CWE-113 (9 entries, plus the CWE-113 root). All 9 defective.
 - Batch 8 - CWE-80 (6 entries). All 6 defective.
+- Batch 9 - CWE-862, CWE-863 (12 entries, plus both roots). All 12 defective.
 
-**Running count: 86 of 287 language files reviewed, 86 carried at least one defect.**
+**Running count: 98 of 287 language files reviewed, 98 carried at least one defect.**
 
-The rate has not moved across eight batches and the whole injection family. Treat every
+The rate has not moved across nine batches, the whole injection family, and now the first
+authz pair. Treat every
 unreviewed language entry as suspect rather than sampling further to confirm it.
 
 **Two roots turned out to be in scope after all.** The sweep excluded root files on the strength of
@@ -452,7 +454,63 @@ Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then re
 (fc9bce0) and restoration (d97d283). Batches 5-8 completed the injection family (705c76a, 19089d8,
 f4cfab2, 4ed535e). 86 of 287 language files reviewed; every one carried a defect.
 
-**The injection family is done.** Next is authn/authz, starting with CWE-862.
+**The injection family is done, and CWE-862/863 with it.** Next in authn/authz: CWE-287,
+CWE-306, CWE-522, CWE-798 - and a full evidence pass over CWE-285 and CWE-566, which
+batch 9 touched only for the three cross-cutting items below.
+
+### Batch 9 - what it changed about the method
+
+Two findings generalise past the two CWEs swept, and both argue for checking a *family*
+rather than a CWE at a time:
+
+- **A defect can live in the seam between two entries.** CWE-862 and CWE-863 contradicted
+  each other on the status an ownership failure returns - 404 in one, 403 in the other -
+  in both the `go` and `javascript` pairs, and CWE-566's root contradicted its own three
+  language files and its own Key Principles in the same sentence. No per-file review finds
+  these, because each file is internally consistent. Sweep the doctrine across the family
+  in one pass.
+- **Prose review does not substitute for the evidence pass.** Section 1 recorded CWE-863
+  as "Reviewed. All six language entries carry framework traps. No changes." All six were
+  defective. The earlier pass read for plausibility; this one traced claims to vendors.
+
+**Three items were swept family-wide** (862, 863, 285, 566, 287) rather than per batch,
+since they recur in every authn/authz entry:
+
+1. *The 401/403/404 doctrine.* RFC 9110 puts credentials-present-but-refused under 401 as
+   well, so "401 only when authentication is missing" was wrong; the `WWW-Authenticate`
+   MUST appeared nowhere in the corpus; and the 862/863 pairs disagreed with each other.
+2. *"Indistinguishable in status and body" was overstated.* Laravel's `denyAsNotFound()`
+   throws a different exception class from a genuine miss and renders a different default
+   body, so the two 404s are separable unless the body is asserted too.
+3. *`Taint Sinks` had drifted off its own contract.* Several files listed expression
+   fragments (`role != "admin"`), prose ("routes missing shared authorization middleware")
+   or, in `863/go`, `authorize...Access()` - a name that by construction does not exist in
+   the code being searched, since the finding *is* its absence.
+
+**New recurring defect shapes**, to brief future batches on:
+
+- *An API named that does not exist.* `IAuthorizationHandler<TRequirement, TResource>` has
+  no generic form; the type is the abstract class `AuthorizationHandler<,>`. Same shape as
+  the CWE-502/javascript `serialize-javascript` defect.
+- *A fix that has been removed from the framework's default skeleton.* `$this->authorize()`
+  was the primary remediation in both PHP entries, prescribed six times; Laravel 11 dropped
+  `AuthorizesRequests` from the base controller, so it is undefined on a default app.
+- *An opt-in that is off by default.* `@Secured` is inert without
+  `@EnableMethodSecurity(securedEnabled = true)`, while both Java entries accepted its
+  presence as evidence the method was protected.
+- *A stated benefit that fails in the case it names.* "Prefer `@PreAuthorize` at the service
+  layer so the rule applies regardless of which caller invokes it" - method security is
+  proxy-based, so a self-invocation on `this` bypasses it entirely.
+- *A claim about the framework's own recommended API.* `user.IsInRole()` was listed as a
+  taint sink; it appears inside Microsoft's own resource-based handler sample, so flagging
+  it generates findings against correct code.
+- *An identity claim assumed to hold the user id.* `ClaimTypes.NameIdentifier` is populated
+  only while inbound claim mapping is on, and the API that disables it renamed at ASP.NET
+  Core 8.
+- *A described vulnerability that does not occur.* CWE-863/php claimed a class-level
+  `can('update', Order::class)` "skips ownership entirely"; Laravel shifts the class-name
+  argument off and the documented use is abilities taking only a user. The entry described
+  a fail-open that the framework does not produce.
 
 The per-batch loop, in full:
 

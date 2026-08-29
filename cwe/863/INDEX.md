@@ -6,15 +6,14 @@ Incorrect Authorization occurs when an authorization check exists but its logic 
 
 ## Key Principles
 
-- Prefer allowlists (explicit permitted roles or permissions) over denylists - a denylist fails open when a new or unexpected value appears
+- Prefer allowlists (explicit permitted roles or permissions) over denylists - a denylist enumerates the values it rejects and permits everything else, so a role introduced later is allowed by default. Establish which shape the code actually has before calling it a denylist: a guard that denies unless the role equals one permitted value is an allowlist of one and fails closed, while the fail-open shape is the one that names the roles to reject
 - Re-run authorization server-side on every path that reaches the sensitive action, not only the primary UI path - cover alternate HTTP methods, API variants, and bulk/batch operations
 - Never trust a client-supplied role, permission, or ownership claim; always resolve the acting user's authorization from a trusted server-side source
 - Pair resource-type checks with resource-ownership or tenant checks - confirming "this is a document" is not the same as confirming "this is the caller's document"
 - Scrutinize boolean logic for inversions, wrong operator precedence, and short-circuit mistakes (`||` where `&&` was intended)
 - Fail closed - unmatched, unknown, or error states in the authorization decision must deny access, not default to allow
-- Look for the recurring logic shapes: a denylist comparison where an allowlist was meant, a resource-*type* check with no matching ownership or tenant check, an inverted or short-circuited boolean, and a path (another HTTP method, a bulk operation, an internal API) that never reaches the check at all
 - Submit a role value the allowlist does not recognize and confirm it is denied rather than silently permitted
-- Assert the denials are indistinguishable: an id that exists in no row and an id owned by another user must return the identical status and body, since a 403 for one and a 404 or 500 for the other is an existence oracle whichever way round it falls
+- Assert the denials are indistinguishable: an id that exists in no row and an id owned by another user must return the identical status and body, since a 403 for one and a 404 or 500 for the other is an existence oracle whichever way round it falls. Compare the bodies rather than assuming they match - a framework's deny-as-not-found helper may attach its own message, which separates the two responses just as a differing status would
 
 ## Remediation Steps
 

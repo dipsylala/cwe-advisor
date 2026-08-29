@@ -14,13 +14,13 @@ In Express applications, improper authorization occurs when route handlers perfo
 
 ## Taint Sinks
 
-`router.get/post/put/delete` handlers without authorization middleware, trusting `req.body.role`/query-string role values
+`router.get()`, `router.post()`, `router.put()`, `router.delete()`, `router.use()`, `req.body`, `req.query`, `req.user`, `jwt.verify()`
 
 ## Remediation Steps
 
 - Identify unprotected routes - look for `router.get/post/put/delete` handlers that perform privileged operations without authorization middleware
-- Create role-check middleware functions that verify `req.user.role` or `req.user.permissions` from the decoded token/session
+- Create role-check middleware functions that verify the role or permissions from the decoded token/session. Confirm which property carries it: Express defines no `req.user`, and express-jwt has placed the payload on `req.auth` since v7
 - Apply the middleware directly on the route or router group: `router.delete('/users/:id', requireRole('admin'), deleteUser)`
-- For object-level authorization (IDOR), verify the resource owner matches `req.user.id` inside the handler after retrieval
-- Test with tokens representing different roles and confirm lower-privileged requests return 403
+- For object-level authorization (IDOR), scope the lookup by the authenticated user rather than fetching by id and comparing afterwards, so a record belonging to someone else cannot be returned at all
+- Test with tokens representing different roles and confirm lower-privileged requests are denied: 403 where a role or permission is the gate, and - for a guessable resource id - the same 404 an unknown id returns, matching body as well as status
 - Apply `express-rate-limit` to sensitive routes to slow enumeration of authorization gaps

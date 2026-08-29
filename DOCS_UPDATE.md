@@ -188,12 +188,41 @@ Floors traced to vendor releases this pass, on subjects `docs/` covers without t
 | CGI.pm `escapeHTML` | **4.21** - before it, `'` was escaped only for ISO-8859-1/Windows-1252 charsets |
 | Python `email` header rejection | **3.8.20 / 3.9.20 / 3.10.15 / 3.11.10 / 3.12.5 / 3.13** (CVE-2024-6923) |
 
+### 6. `docs/CWE-863/java`, `docs/CWE-862/java`, `docs/CWE-285/java` - `@PostAuthorize` offered for object-level authorization without the write-ordering caveat
+
+`docs/CWE-863/java/index.md:42` presents it as the missing half of a role-only check:
+
+> Spring Security has the missing half and it is easy to overlook because it looks like
+> more of the same annotation. `@PostAuthorize("returnObject.owner == authentication.name")`
+> evaluates against the loaded object
+
+That is correct for a read. The Spring Security reference carries a caveat none of the
+three files states, and it bites on exactly the update/delete paths these entries also
+cover:
+
+> Note that `@PostAuthorize` is not recommended for classes that perform database writes
+> since that typically means that a database change was made before the security
+> invariants were checked. A common example of doing this is if you have `@Transactional`
+> and `@PostAuthorize` on the same method. Instead, read the value first, using
+> `@PostAuthorize` on the read, and then perform the database write, should that read is
+> authorized.
+
+Source: https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html
+
+`docs/CWE-285/java` goes further and lists `@PostAuthorize`/`@PostFilter` as the way to
+"enforce object-level authorization where needed", which on a mutating method authorizes
+after the mutation. The fix in this repo was to move object-level enforcement to
+`@PreAuthorize` against a bean that loads the record, or to an owner-scoped repository
+query, and to state the ordering explicitly.
+
+---
+
 ---
 
 ## Where `docs/` was ahead
 
 Included so this file is not read as a one-directional critique. Adopted into this repo
-during batches 5-8:
+during batches 5-9:
 
 - `ffmpeg` has no `--opt=value` form, so a single injected argv element cannot carry its
   own value - a named false-positive case for CWE-88.
@@ -208,3 +237,15 @@ during batches 5-8:
   attacker-controlled text into a validated header.
 - The framing that CWE-80 names only element content, so one finding is a reason to sweep
   the contexts it does not name.
+- Laravel route model binding already answers 404 for an id with no row, so a policy
+  returning plain `false` answers 403 for one that exists - naming the mechanism that
+  creates the existence oracle rather than only the rule against it.
+- `denyAsNotFound()` and a genuine miss are thrown as different exception classes and
+  render different default bodies, so matching the status is not sufficient - the case
+  where "both are 404" is true and the endpoint is still an oracle.
+- `Collection::every()` returns true over an empty collection, so an empty batch
+  authorizes and then updates nothing; and `whereIn` silently drops ids that do not
+  exist, so a bulk policy has to compare the loaded count against the requested count.
+- Enumerating endpoints through `EndpointDataSource` in the ASP.NET Core test host, and
+  asserting each carries either a policy or an explicit `[AllowAnonymous]` - a mechanical
+  coverage audit rather than a per-endpoint test.
