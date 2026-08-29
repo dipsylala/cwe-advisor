@@ -20,7 +20,7 @@ Storing sensitive data (passwords, keys, tokens, PII) in memory as cleartext exp
 ## Remediation Steps
 
 - Identify where sensitive data enters memory - locate files, line numbers, and code patterns storing passwords, keys, tokens, or PII
-- Zero memory immediately after use - overwrite arrays/buffers with zeros using the language or platform's secure-clear function (see the language-specific guidance's Taint Sinks/Safe Pattern for concrete APIs)
+- Zero memory immediately after use - overwrite arrays/buffers with zeros using the language or platform's secure-clear function (see the language-specific guidance's Remediation Steps for concrete APIs)
 - Use mutable buffers over immutable strings where possible, or platform-specific secure memory APIs
 - Minimize data lifetime - load sensitive data only when needed, clear it in finally blocks or defer statements
 - Prevent swapping - use the platform's memory-locking API for highly sensitive data

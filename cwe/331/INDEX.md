@@ -21,6 +21,6 @@ CWE-331 occurs when a security-sensitive value is generated with insufficient ac
 - Identify the generation point - Locate where a security-sensitive random value (key, token, nonce, IV) is generated and how its underlying entropy source is obtained
 - Determine usage context - Check if random values are used for encryption keys, IVs/nonces, session tokens, CSRF tokens, or API keys
 - Assess entropy sufficiency - Confirm both the entropy source (a properly seeded OS/hardware entropy pool) and the output length carry enough randomness for the security purpose
-- Replace with a properly-seeded CSPRNG - Use the platform's blocking or entropy-aware random API where early-boot or low-entropy environments are a concern (see the language-specific guidance's Safe Pattern for concrete APIs)
+- Replace with a properly-seeded CSPRNG - Use the platform's blocking or entropy-aware random API where early-boot or low-entropy environments are a concern (see the language-specific guidance's Remediation Steps for concrete APIs)
 - Re-seed after cloning - For VM/container images, ensure the entropy pool is explicitly re-seeded on first boot after cloning rather than inheriting the template's state
 - Test unpredictability - Verify that sequential calls, including immediately after boot or VM clone, produce non-repeating, non-predictable values

@@ -383,6 +383,40 @@ source - so this is a case where reading the vendor's prose alone would leave th
 
 ---
 
+### 12. `docs/CWE-326/python/index.md:36` - Fernet offered as an AES-256 option, against the same page's own secure pattern
+
+The Overview's Primary Defence line reads:
+
+> **Primary Defence:** Use `cryptography` library with `Fernet` or AES-256-GCM for symmetric
+> encryption, `bcrypt` or `argon2` for password hashing, and avoid deprecated algorithms like
+> DES or MD5.
+
+Presented that way on a page about *encryption strength*, the "or" reads as a choice between
+two equivalent options. The same file already states the correct fact 580 lines further down,
+in the Fernet secure pattern:
+
+> Fernet is AES-128-CBC then HMAC-SHA256 over the result (encrypt-then-MAC).
+> generate_key() returns 32 bytes: 16 for the cipher, 16 for the MAC.
+
+Both are traceable to the Fernet spec's Key Format section - "Signing-key, 128 bits;
+Encryption-key, 128 bits" - and to `cryptography`'s own `fernet.py`, which splits `key[:16]` as
+the signing key and `key[16:]` as the AES key and runs it through `modes.CBC`. So the page is
+right in its detail and loose in its headline, and only the headline is near the top where a
+reader forming a plan will see it.
+
+Worth noting why this matters more here than it would elsewhere: `cryptography`'s Fernet page
+never states the cipher, the key size or the mode at all - its only key sentence is ":param
+key: A URL-safe base64-encoded 32-byte key." A reader who checks the vendor doc to resolve the
+ambiguity does not find the answer there. Suggested fix is to qualify the Overview line rather
+than remove Fernet, which is a sound construction: name it as the recipes-layer option at the
+128-bit level, and AES-256-GCM where 256 is the requirement.
+
+Sources: https://github.com/fernet/spec/blob/master/Spec.md ,
+https://github.com/pyca/cryptography/blob/main/src/cryptography/fernet.py ,
+https://cryptography.io/en/latest/fernet/
+
+---
+
 ## Systematic gap: version floors
 
 Not a per-file defect, but the single highest-value thing to act on. `docs/` carries
@@ -394,6 +428,7 @@ as of the sweep, and floors move - re-check each row against the vendor before a
 Note also that *floor* and *latest release* are different numbers: the floor is the lowest
 version carrying every known fix, which is the actionable one, and CLAUDE.md's rule is that
 "use the latest version" is not a fix.
+
 
 Floors traced to vendor releases this pass, on subjects `docs/` covers without them:
 

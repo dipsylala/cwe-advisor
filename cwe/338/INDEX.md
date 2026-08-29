@@ -19,7 +19,7 @@ Weak PRNG vulnerabilities occur when applications use cryptographically insecure
 ## Remediation Steps
 
 - Identify weak PRNG usage - Review flaw details for file/line number and trace data flow to determine if random values are used for security purposes (see the language-specific guidance's Taint Sinks for concrete function names)
-- Replace with secure alternatives - swap in the language's cryptographically secure random generator (see the language-specific guidance's Safe Pattern)
+- Replace with secure alternatives - swap in the language's cryptographically secure random generator (see the language-specific guidance's Remediation Steps)
 - Verify proper initialization - Ensure secure PRNGs are properly seeded by the OS
 - Review all usages - Search codebase for other instances of weak PRNGs in security contexts
 - Test the fix - Verify random values are unpredictable and non-reproducible across sessions
