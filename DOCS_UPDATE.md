@@ -15,6 +15,12 @@ corpora carried, found by tracing to source rather than by comparing the two, an
 are now fixed on this side. They are the reason the reconciliation runs both ways: a shared
 defect is invisible to a comparison.
 
+**Findings 10 and 11 come from batch 13** (CWE-285 and CWE-566) and are the same kind: a
+sentence true in general, asserted where the exception applies. Both were checked against the
+`docs/` file rather than against this repo's counterpart, and both turn on something the vendor
+states outside its own prose - a Javadoc element added in a point release, and an `Assert.state`
+in the configuration source.
+
 **Two items have been withdrawn on the maintainer's reading**, both in findings 5 and 9 and
 both the same error: a claim true of the API in general, asserted at a page that does not do
 the thing. Each was checked against the `docs/` original before withdrawal. That is now two
@@ -321,6 +327,57 @@ inside a *vulnerable* example showing a `SignatureValidator` that never verifies
 failure had nothing to bite. Same error class as finding 5's withdrawn half - a general truth about
 the API asserted at a page that does not exercise it. The advisory floor it carried is real and has
 moved to the floors table below.
+
+### 10. `docs/CWE-566/java/index.md:129` - a Hibernate `@Filter` does not cover the lookup this page is about
+
+Claim, verbatim:
+
+> For an application-wide version of the same idea, a Hibernate `@Filter` or a tenant
+> discriminator applies the predicate to every query rather than to the ones somebody
+> remembered.
+
+Hibernate's own `@FilterDef` Javadoc states the exception, and it is the case CWE-566 names:
+
+> By default, a filter does not apply to lookups by primary key, for example, when: fetching a
+> `@ManyToOne` association, or `find()` is called.
+
+Source: https://docs.hibernate.org/orm/6.6/javadocs/org/hibernate/annotations/FilterDef.html
+
+`findById()` resolves to `find()`, so an ownership filter left at the default does not apply to
+the taint sink the page traces. The element that changes this is `applyToLoadByKey`, and it is
+new: checked across the 6.0, 6.2, 6.3, 6.4, 6.5 and 6.6 Javadoc, `applyToLoadByKey` appears only
+at **6.6** and `autoEnabled` - which removes the per-session `Session.enableFilter` call - only at
+**6.5**. Below 6.6 there is no documented way to make a filter cover a by-id load at all.
+
+"Every query" is right for the query paths and wrong for the one the surrounding section is
+remediating. The fix is a qualifier rather than a deletion: name `applyToLoadByKey = true` and its
+6.6 floor, and keep `enableFilter`/`autoEnabled` distinct.
+
+### 11. `docs/CWE-285/java/index.md:259` - `.anyRequest()` before a specific matcher throws rather than shadows
+
+Claim, verbatim:
+
+> **Filter chain matcher order:** a broad `.anyRequest().authenticated()` or an earlier
+> `.requestMatchers("/api/**").permitAll()` placed before a more specific admin-only matcher
+> can shadow it; Spring Security uses the first matching rule, not the most specific one.
+
+The second half is correct - an earlier `permitAll()` on a broad pattern genuinely shadows a
+later, more specific rule, and first-match-wins is the vendor's documented semantics. The first
+half is a different outcome. `AbstractRequestMatcherRegistry` guards it:
+
+> `public C requestMatchers(RequestMatcher... requestMatchers) {`
+> `    Assert.state(!this.anyRequestConfigured, "Can't configure requestMatchers after anyRequest");`
+
+Source: https://github.com/spring-projects/spring-security/blob/main/config/src/main/java/org/springframework/security/config/annotation/web/AbstractRequestMatcherRegistry.java
+
+So a matcher added after `anyRequest()` is not silently shadowed - the context fails to start with
+`IllegalStateException: Can't configure requestMatchers after anyRequest`. The same guard covers a
+repeated `anyRequest()` ("Can't configure anyRequest after itself") and `dispatcherTypeMatchers`.
+
+Worth separating, because the two halves need opposite advice: the `permitAll()` case is a silent
+misconfiguration to audit for, while the `anyRequest()` case cannot reach production. The
+reference manual documents the ordering semantics but not the exception, which exists only in
+source - so this is a case where reading the vendor's prose alone would leave the page as it is.
 
 ---
 
