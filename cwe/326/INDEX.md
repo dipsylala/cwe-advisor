@@ -2,24 +2,22 @@
 
 ## LLM Guidance
 
-Inadequate Encryption Strength occurs when cryptographic algorithms or key sizes are too weak to provide effective protection, allowing attackers to break encryption and access sensitive data. The core fix is to use strong, industry-standard algorithms with appropriate key sizes and ensure cryptographic strength is server-controlled, not determined by legacy compatibility or client input.
+Inadequate Encryption Strength is a choice made once and never revisited: an algorithm or key size too weak for the data's lifetime, often still reachable through a legacy compatibility branch. Fix by making the decision central and server-controlled, and check each finding against the standard's actual status word first - several flagged algorithms are restricted for one operation and permitted for another, so treating a partial restriction as total turns working code into a false finding.
 
 ## Key Principles
 
-- Never allow cryptographic strength to be determined by legacy compatibility or client input
-- Cryptographic algorithms, protocols, and key sizes must be centrally defined and server-controlled
-- Constrain all cryptographic operations to secure minimums based on current industry standards
-- Replace weak algorithms (DES, 3DES, RC4, MD5, SHA-1) with strong alternatives (AES-GCM/ChaCha20-Poly1305, SHA-256/SHA-3)
-- Size keys by security strength rather than by digit count: RSA-3072, a 256-bit elliptic curve (P-256, X25519), and AES-128 all sit at the 128-bit level, so an EC key is about twice the length of the strength it delivers and RSA-4096 buys roughly 150-bit strength rather than the doubling its number suggests
-- RSA-2048 is 112-bit strength, which NIST SP 800-57 allows for *applying* protection through 2030 and disallows from 2031 - processing data already protected at that strength stays permitted, so this is a decision about new key material rather than a mandate to re-encrypt or re-sign existing data
-- AES-128 is not a finding on its own; treat an existing AES-128 deployment as a margin decision and mandate AES-256 as forward policy for long-retention data
-- For password hashing prefer Argon2id then scrypt; OWASP scopes bcrypt to legacy systems where neither is available, and stored hashes can only be upgraded as users next log in
+- Size keys by security strength, not digit count. NIST SP 800-57 Part 1 Rev. 5 Table 2 places RSA-3072, a 256-bit elliptic curve and AES-128 at the same 128-bit level, so an EC key is roughly twice the length of the strength it delivers. The table steps straight from RSA-3072 to RSA-7680, so any strength figure quoted for RSA-4096 is extrapolation rather than a published value
+- RSA-2048 is 112-bit strength: acceptable for applying protection through 2030, disallowed from 2031, with already-protected data still processable as legacy use. This governs new key material; it is not a mandate to re-encrypt or re-sign what exists
+- AES-128 is not a finding on its own: NIST rates AES-128, AES-192 and AES-256 alike as acceptable with no end date. Prefer AES-256 in new code as margin, not because 128 is disallowed
+- Read the operation, not just the algorithm name. 3DES is disallowed for encryption after 31 December 2023 but permitted for decryption as legacy use; SHA-1 is disallowed for signature generation, legacy use for verification, and still acceptable in non-signature applications until NIST's stated retirement date of 31 December 2030
+- Pick hashes by output length, not family - SHA-3 is an approved alternative to SHA-2 rather than its successor, and the 224-bit members of both sit on the same deprecation path as SHA-1
+- Use authenticated encryption (AES-GCM, ChaCha20-Poly1305). CBC without a MAC verified before decryption is a padding-oracle vector, not just a weaker mode
+- For password hashing OWASP prescribes Argon2id (19 MiB, 2 iterations, 1 degree of parallelism); scrypt where Argon2id is unavailable (N=2^17, r=8, p=1); bcrypt for legacy systems only, at work factor 10 or more with its 72-byte input limit; and PBKDF2-HMAC-SHA256 at 600,000 iterations where FIPS-140 compliance is required - a branch selected by compliance regime, not a last resort. Iteration counts are stated per HMAC, so a count quoted for one digest does not carry to another
 
 ## Remediation Steps
 
-- Review flaw details to identify where weak cryptographic algorithms or key sizes are used in your code
-- Identify weak algorithms - DES, 3DES, RC4, MD5, SHA-1, ECB mode, CBC without authentication, or policy-disallowed key sizes
-- Verify minimum key sizes - RSA ≥ 2048 bits, ECC ≥ 256 bits, AES ≥ 128 bits as an acceptable NIST-approved floor; standardize new code on AES-256 as the default unless a specific constraint requires 128
-- Use authenticated encryption such as AES-256-GCM (preferred) or ChaCha20-Poly1305; AES-128-GCM remains acceptable only where policy or a documented constraint permits it
-- Use SHA-256 or SHA-3 for hashing (not MD5 or SHA-1)
-- Implement centralized cryptographic configuration that enforces secure algorithm and key size minimums
+- Identify which operation the finding sits on and confirm the algorithm is disallowed for it, then trace what the value protects and for how long - a session token and a decade-retained record justify different margins
+- Replace the primitive: DES, 3DES, RC4 and ECB with an AEAD mode; MD5 and SHA-1 with SHA-256 or a SHA-3 variant of 256 bits or more; a bare password digest with the OWASP algorithm above
+- Centralize the choice in one helper so call sites cannot select a weaker cipher, and delete the legacy branch rather than leaving it unreachable
+- Keep a dual-read path for data already protected under the old algorithm. Swapping the cipher and shipping makes existing records undecryptable, and the change passes review because the new path works - test it against a fixture encrypted under the old one. Password hashes are the easier case: wrap the strong function around the stored digest and re-derive at next login, then assert the stored hash was rewritten rather than merely verified
+- Verify that identical plaintexts produce different ciphertexts, that a tampered ciphertext fails authentication, and that the weak path is gone rather than unused

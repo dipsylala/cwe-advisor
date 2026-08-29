@@ -2,26 +2,28 @@
 
 ## LLM Guidance
 
-Go's standard library still ships legacy packages (`crypto/des`, `crypto/md5`, `crypto/rc4`, `crypto/sha1`) for backward compatibility, and it is easy to build an insecure construction - AES run through a hand-rolled ECB loop, CBC with a static IV, or an RSA key of 1024 bits - even while using modern primitives elsewhere. The fix is authenticated encryption via `cipher.NewGCM` or `golang.org/x/crypto/chacha20poly1305`, adequate key sizes, modern hashing, and `crypto/tls.Config.MinVersion` for transport.
+Go still ships `crypto/des`, `crypto/rc4`, `crypto/md5` and `crypto/sha1`, each carrying a doc comment that the algorithm "is cryptographically broken and should not be used for secure applications" - but none is formally deprecated, so nothing in the toolchain flags them. The other half of this finding is an insecure construction built from sound primitives: AES through a hand-rolled ECB loop, CBC with a static IV, or an RSA key at the smallest size the toolchain still permits. Fix with `cipher.NewGCM` or `chacha20poly1305`, an adequate key size, and modern hashing - checking the Go version each time, because several of these behaviours changed in Go 1.24.
 
 ## Key Principles
 
-- Use AES-256-GCM (`crypto/aes` + `cipher.NewGCM`) or ChaCha20-Poly1305 (`golang.org/x/crypto/chacha20poly1305`) for symmetric encryption; both provide authentication, preventing undetected tampering
-- Never use `crypto/des`, `crypto/rc4`, or a manual ECB loop (`block.Encrypt` per block without chaining); avoid plain CBC without a MAC
-- Use `crypto/sha256` or `crypto/sha3` for hashing; avoid `crypto/md5` and `crypto/sha1` for anything security-relevant
-- Derive keys from passwords with `golang.org/x/crypto/argon2` (Argon2id) or `golang.org/x/crypto/bcrypt`; never a bare `md5.Sum` or `sha256.Sum256` of the password
-- Generate RSA keys with `rsa.GenerateKey(rand.Reader, 2048)` at minimum (4096 for long-lived secrets); use `rsa.EncryptOAEP`, not PKCS#1 v1.5 padding, for new code
-- For TLS, set `tls.Config.MinVersion: tls.VersionTLS12` or higher; leave `CipherSuites` unset to use Go's maintained safe defaults rather than hand-picking ciphers
+- Use AES-GCM (`crypto/aes` with `cipher.NewGCM`) or ChaCha20-Poly1305 (`golang.org/x/crypto/chacha20poly1305`). `NewGCM`'s documented "128-bit" is the block size, not the key size - pass a 32-byte key for AES-256. Prefer `chacha20poly1305.NewX` over `New` where nonces are randomly generated: `New`'s 12-byte nonce is documented as "too short to be safely generated at random if the same key is reused more than 2^32 times"
+- `crypto/rsa` rejects keys below 1024 bits from Go 1.24, in `GenerateKey` and in every `Sign`, `Verify`, `Encrypt` and `Decrypt` method, with `GODEBUG=rsa1024min=0` as the documented test-only escape. 1024 itself is still accepted, so the enforced floor is below the 2048 you want and a 1024-bit key passes silently. In FIPS 140-only mode the floor becomes a hard 2048
+- `crypto/sha3` entered the standard library in Go 1.24; before that the only import path is `golang.org/x/crypto/sha3`, which survives as a thin wrapper plus the legacy Keccak variants
+- `tls.Config.MinVersion` already defaults to TLS 1.2 - for clients since Go 1.18 and for servers since Go 1.22. Setting it explicitly is not a change on a current toolchain; its live effect is that it also overrides `GODEBUG=tls10server=1`. Leave `CipherSuites` nil, noting that the field governs TLS 1.0-1.2 only and TLS 1.3 suites are not configurable at all
+- `crypto/rand.Read` never returns an error from Go 1.24 - it calls `io.ReadFull` on `Reader` internally and crashes the program irrecoverably instead. Keep the `err` check for older toolchains, but the error branch has nothing useful to do; a fallback to `math/rand` there is itself the finding
+- `golang.org/x/crypto/bcrypt` is asymmetric about its 72-byte limit: `GenerateFromPassword` returns `ErrPasswordTooLong` (from x/crypto v0.5.0; earlier versions truncate silently) while `CompareHashAndPassword` has no length check at all and still truncates. `DefaultCost` is 10
+- `EncryptPKCS1v15` carries a "WARNING: use of this function to encrypt plaintexts other than session keys is dangerous. Use RSA OAEP in new protocols." PKCS#1 v1.5 *signatures* carry no such warning and remain standard - do not fold the two together
 
 ## Taint Sinks
 
-`crypto/des`, `crypto/rc4`, `crypto/md5`, `crypto/sha1`, `rsa.GenerateKey(rand.Reader, 1024)`, manual ECB `block.Encrypt` loops
+`crypto/des`, `crypto/rc4`, `crypto/md5`, `crypto/sha1`, `rsa.GenerateKey(rand.Reader, 1024)`, `cipher.NewCBCEncrypter`, `rsa.EncryptPKCS1v15`, manual per-block `block.Encrypt` loops
 
 ## Remediation Steps
 
-- Locate - search for `crypto/des`, `crypto/rc4`, `crypto/md5`, `crypto/sha1`, `rsa.GenerateKey(rand.Reader, 1024`, and manual per-block `Encrypt` loops
-- Trace data flow - identify what is encrypted or hashed (data at rest, tokens, passwords) and whether the value is persisted or transmitted long-term
-- Replace the unsafe pattern - swap DES/RC4/ECB for `cipher.NewGCM(block)` with an AES-256 key, or swap MD5/SHA-1 for `sha256.Sum256`; `gcm.Seal(nonce, nonce, plaintext, nil)` prefixes the nonce to the output so decryption can recover it
-- Generate keys and nonces securely - use `crypto/rand.Reader` with `io.ReadFull` for all keys, nonces, and salts; never derive them with `math/rand`. Size the nonce buffer from `gcm.NonceSize()` rather than a literal, and never reuse a nonce with the same key, which forfeits GCM's authentication as well as its confidentiality
-- Harden configuration - centralize the algorithm/key-size choice in one helper so call sites cannot select a weaker cipher, and set `MinVersion: tls.VersionTLS12` on any `tls.Config`
-- Test - verify ciphertext differs for identical plaintext blocks (no ECB pattern leakage), verify `gcm.Open` rejects tampered ciphertext, and confirm key and RSA key sizes meet the minimums in code review or a static check
+- Read `go.mod` for the language version first: the RSA floor, `crypto/sha3` and the `crypto/rand` guarantee all begin at Go 1.24
+- Trace what is protected and for how long, then replace the primitive: swap DES, RC4 and hand-rolled ECB for `cipher.NewGCM(block)` over an AES-256 key, and MD5 or SHA-1 for `sha256.Sum256`. `gcm.Seal(nonce, nonce, plaintext, nil)` prefixes the nonce because `dst` is the nonce slice and `Seal` appends to `dst`, so decryption must split it back as `gcm.Open(nil, out[:gcm.NonceSize()], out[gcm.NonceSize():], nil)` - or use `cipher.NewGCMWithRandomNonce` (Go 1.24), which does the prefixing and extraction itself
+- Derive password-based keys with `argon2.IDKey`, supplying RFC 9106's parameters explicitly - time=1, memory=2*1024*1024 KiB, threads=4, or time=3, memory=64*1024 KiB, threads=4 where memory is scarce. `IDKey` returns no error, so a bad parameter is not reported
+- For RSA-OAEP, pass the same hash on both sides (`sha256.New()` is the documented reasonable choice) and check the plaintext against OAEP's ceiling of the modulus length minus twice the hash length minus 2. Where the requirement is key agreement rather than key transport, X25519 establishes a shared secret and encrypts nothing, so it replaces RSA's transport role rather than RSA itself
+- Read nonces and keys with `crypto/rand`, sizing the buffer from `gcm.NonceSize()` rather than a literal, and never reuse a nonce under one key
+- Test with a payload that discriminates. Confirming that identical plaintext blocks yield differing ciphertext catches only the ECB case: RC4, DES-CBC and CBC with a static IV all pass it, because a stream cipher and CBC chaining both diverge within a message. Verify each sink by the construction it uses. Then decrypt through a separately constructed AEAD - a round-trip that keeps the nonce in a local variable passes while the stored ciphertext is undecryptable - and assert `key.N.BitLen()` after generation rather than trusting the argument to `rsa.GenerateKey`
+- If the build must run under FIPS 140-3 mode (`GOFIPS140`, or the `fips140` GODEBUG from Go 1.24), note that ChaCha20-Poly1305 is not among the approved algorithms - choose AES-GCM there rather than carrying an option the mode will refuse

@@ -2,25 +2,27 @@
 
 ## LLM Guidance
 
-Inadequate Encryption Strength in Java occurs when weak cryptographic algorithms (DES, RC4, MD5), insufficient key sizes (<128-bit for symmetric, <2048-bit for RSA), or deprecated ciphers are used, leaving data vulnerable to brute-force and cryptanalytic attacks. The core fix is to use strong, modern algorithms (AES-256, RSA-2048+, SHA-256+) with proper key generation from secure random sources via Java's JCA/JCE framework.
+Inadequate Encryption Strength in Java is usually a weak transformation string, an unauthenticated mode, or a key size chosen when the JDK's defaults were lower than they are now. Almost nothing here is enforced: the JDK's shipped restrictions cover TLS and certificate paths, not direct JCA use, so `Cipher.getInstance("DES")` and a 1024-bit RSA key still work. Fix by naming the full transformation, taking the current provider defaults rather than pinning older numbers, and - where it matters - turning on the one property that makes weak algorithms actually fail.
 
 ## Key Principles
 
-- Default new symmetric encryption code to AES-256; AES-128 is an acceptable NIST-approved floor only where a specific constraint requires it. Use RSA with minimum 2048-bit keys for asymmetric encryption
-- Generate cryptographic keys using `SecureRandom` with proper entropy, never hardcode or derive from weak sources
-- Specify complete cipher transformations including mode and padding (e.g., "AES/GCM/NoPadding") to avoid insecure defaults
-- Use authenticated encryption modes (GCM, CCM) that provide both confidentiality and integrity protection
-- Regularly update to latest JDK versions to benefit from security patches and modern algorithm support
+- Specify the complete transformation. Oracle documents that "the SunJCE and SunPKCS11 providers use ECB as the default mode and PKCS5Padding as the default padding for many symmetric ciphers", so a bare `Cipher.getInstance("AES")` resolves to ECB. Prefer `"AES/GCM/NoPadding"`, for which `NoPadding` is the only legal padding
+- Know the current defaults before changing them. Since JDK 19 the SunJCE `KeyGenerator` default for AES is 256 (where the crypto policy permits) and the SunRsaSign `KeyPairGenerator` default for RSA is 3072 - so pinning `initialize(2048)` is a downgrade on a modern JDK, and `init(256)` for AES changes nothing. Oracle still recommends initializing explicitly, because "defaults may vary across different providers" and may change again
+- `KeyGenerator` produces symmetric keys only; RSA key pairs come from `KeyPairGenerator`. Do not prescribe an RSA size on a `KeyGenerator` call
+- There is no 2048-bit RSA minimum in the JDK. The shipped `java.security` blocks RSA below 1024 for certificate-path and signed-JAR validation only; `jdk.security.legacyAlgorithms` lists RSA below 2048, which produces keytool and jarsigner warnings rather than rejection; `jdk.tls.disabledAlgorithms` has no RSA key-size entry at all
+- DES, DESede, RC4/ARCFOUR and Blowfish remain fully available from SunJCE. What was disabled is TLS: RC4 in JDK 9 and 8u60, 3DES suites removed from the default enabled list in JDK 19. Nothing stops direct `Cipher.getInstance("DES")` unless you set `jdk.crypto.disabledAlgorithms`, which ships commented out and makes `getInstance` throw `NoSuchAlgorithmException`
+- AES-256 needs no policy-file install: unlimited jurisdiction policy has been the default since JDK 9, backported to 8u161. On a JDK explicitly set to `crypto.policy=limited`, `KeyGenerator.init(256)` throws `InvalidParameterException` - that is the only place the key size itself fails
+- `GCMParameterSpec`'s first argument is the tag length in *bits*; SunJCE accepts 96 to 128 in multiples of 8. Use `GCMParameterSpec(128, iv)` with a fresh 12-byte IV per message
 
 ## Taint Sinks
 
-`Cipher.getInstance("DES")`, `Cipher.getInstance("AES")` (no mode/padding, defaults to ECB), `MessageDigest.getInstance("MD5")`, `MessageDigest.getInstance("SHA-1")`, `KeyPairGenerator.getInstance("RSA").initialize(1024)` (below the 2048-bit minimum)
+`Cipher.getInstance("DES")`, `Cipher.getInstance("DESede")`, `Cipher.getInstance("RC4")`, `Cipher.getInstance("Blowfish")`, `Cipher.getInstance("AES")` (mode and padding omitted, so ECB), `MessageDigest.getInstance("MD5")`, `MessageDigest.getInstance("SHA-1")`, `KeyPairGenerator.initialize(1024)`
 
 ## Remediation Steps
 
-- Replace DES, 3DES, RC4, Blowfish with AES-256; replace MD5, SHA-1 with SHA-256 or SHA-512
-- Update `KeyGenerator.getInstance()` calls to specify explicit key sizes - default to 256 for AES (128 remains acceptable only where a specific constraint requires it), and 2048+ for RSA
-- Change cipher initialization to use explicit modes - prefer "AES/GCM/NoPadding" over "AES", initialized with a `GCMParameterSpec(128, iv)` (128-bit tag) over a fresh 12-byte `SecureRandom` IV
-- Replace `new Random()` or `Math.random()` with `SecureRandom` for all cryptographic operations
-- Review and update key storage mechanisms to use Java KeyStore with strong passwords
-- Add cipher strength validation in security configuration or startup checks
+- Classify the use before choosing a replacement, because "use a modern algorithm" has four different answers. Password storage takes Argon2 or bcrypt through `Argon2PasswordEncoder` or `BCryptPasswordEncoder`; encryption takes `"AES/GCM/NoPadding"`; integrity takes `Mac.getInstance("HmacSHA256")`; signatures take `SHA256withRSA` at 3072 bits or `SHA256withECDSA`. A general-purpose digest is right for integrity and wrong for passwords however modern it is, so "replace MD5 with SHA-256" is not password advice
+- Replace the transformation and account for what the change breaks downstream: moving from ECB/PKCS5Padding to GCM/NoPadding adds a 16-byte tag, removes the padding, and requires the IV to be carried to the decrypting side. Moving from DES to AES changes both the key length and the block size, so hard-coded `SecretKeySpec` byte arrays and IV lengths in the caller need updating
+- Give each message a fresh GCM IV, and do not rely on the JDK to catch a repeat. SunJCE does throw `InvalidAlgorithmParameterException("Cannot reuse iv for GCM encryption")`, but the check is undocumented, lives on the `Cipher` instance, compares only against the immediately preceding encrypt init, and is skipped for decryption - a new `Cipher` with the same key and IV throws nothing
+- Leave key generation to `KeyGenerator.init(int)` and `KeyPairGenerator.initialize(int)`, which already draw from the highest-priority provider's `SecureRandom` and accept no `java.util.Random`. `SecureRandom` is what you supply for IVs, salts and tokens generated by hand
+- Store keys in a PKCS12 keystore, the default `keystore.type` since JDK 9. A finding naming JKS is about the proprietary legacy format specifically, not the `KeyStore` API
+- Enforce the outcome rather than trusting a code review: set `jdk.crypto.disabledAlgorithms` in `java.security` so the weak names fail at `getInstance`, and confirm the running JDK is 19 or later if the entry's defaults are being relied on rather than set explicitly
