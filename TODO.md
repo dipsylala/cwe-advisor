@@ -12,9 +12,17 @@ since the derivation - this repo toward LLM-facing remediation, `docs/` toward h
 so entries here are expected to stand on their own against current sources, which is how this pass
 verified them. Where the two disagree, that is a question about which is right, not automatically
 a fault here. `docs/` has since been through actor/critic review between two model families
-(Claude and Codex), which this repo has not, and the version-claim pass found it correct and this
-repo behind on several claims - so on a factual disagreement the working assumption is that
-`docs/` is right until checked against the vendor.
+(Claude and Codex), which this repo has not.
+
+**That once made `docs/` the default winner on a factual disagreement. Eight sweep batches have
+since retired that rule** - see "The docs/ reconciliation step" below for the split that replaced
+it. The short form: on a vendor fact - a version floor, a default, a CVE, an API's documented
+behaviour - the skill is now usually ahead, because the sweep traces these to primary sources and
+`docs/` largely does not carry them. `docs/` was wrong on CWE-88's `--` support (findutils
+documents that `--` does *not* work for `find`, and git needs `--end-of-options`) and on CWE-113's
+PHP behaviour (a header whose only newline trails is silently trimmed and sent, not dropped). On
+operational detail - what a fix fails to cover, what a test actually proves - `docs/` is still
+usually ahead. Check both against the vendor rather than deferring to either.
 
 ## 1. Open
 
