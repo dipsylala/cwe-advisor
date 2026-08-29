@@ -47,7 +47,7 @@ Remaining, in rank order:
 | 22 | CWE-798 Hard-coded Credentials | yes | 6 | **Reviewed.** Root and five language entries condensed - see below |
 | 23 | CWE-190 Integer Overflow | yes | 5 | **Done.** Root and `java` reviewed; `csharp` and `go` entries authored |
 | 24 | CWE-400 Uncontrolled Resource Consumption | yes | 0 | **Done.** Root authored; routes to CWE-1333 and CWE-674 where the finding names a mechanism |
-| 25 | CWE-306 Missing Authentication | yes | 6 | **Reviewed.** Root is strong - routing-table framing, gateway-only trap, unlinked-route point. No changes |
+| 25 | CWE-306 Missing Authentication | yes | 6 | **Superseded by batch 11.** This pass read the root as strong and left the language entries alone. The evidence pass found all six defective. Same lesson as CWE-863 at rank 18 |
 
 ### Rebuild the eval corpus around incomplete fixes
 
@@ -361,17 +361,18 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 8 - CWE-80 (6 entries). All 6 defective.
 - Batch 9 - CWE-862, CWE-863 (12 entries, plus both roots). All 12 defective.
 - Batch 10 - CWE-287 (6 entries). All 6 defective. Evidence re-gathered from scratch and applied.
+- Batch 11 - CWE-306 (6 entries). All 6 defective. Started cold, as the lost batch-10 evidence required.
 
-**Running count: 104 of 287 language files reviewed, 104 carried at least one defect.**
+**Running count: 110 of 287 language files reviewed, 110 carried at least one defect.**
 
-The rate has not moved across ten batches, the whole injection family, and now the first
-authz pair and CWE-287. Treat every
-unreviewed language entry as suspect rather than sampling further to confirm it.
+The rate has not moved across eleven batches, the whole injection family, and now the authz pair,
+CWE-287 and CWE-306. Treat every unreviewed language entry as suspect rather than sampling further
+to confirm it.
 
 **Batch 10 was re-run rather than trusted.** Its first pass gathered evidence for CWE-287 and
 CWE-306 but committed none of it, leaving the findings only in a session transcript that was gone by
 the next session - so this file's own instruction applied and the batch was re-gathered from a cold
-start. Only CWE-287 was re-run; CWE-306 is unstarted and becomes batch 11. The re-run reproduced
+start. CWE-287 was re-run as batch 10 and CWE-306 followed as batch 11. The re-run reproduced
 every defect the summary described and added several the summary did not carry, which is the
 argument for the rule: a summary of evidence is not evidence. **Commit each batch's patches with the
 batch.**
@@ -422,9 +423,9 @@ skip it only when it is genuinely vendor-neutral prose.
 
 CWE-287 and CWE-306 were the strongest entries the sweep has read: several traps came back clean and
 306/csharp had six of eight confirmed outright. They still hit 12 of 12, but the defects were almost
-all *time* rather than error. **The CWE-287 half of this section has since been re-verified against
-source and applied; the CWE-306 examples below survive only as this summary and must be re-derived
-in batch 11.** Three sub-shapes, worth briefing every future batch on:
+all *time* rather than error. **Both halves have since been re-verified against source and applied - CWE-287 in batch 10, CWE-306
+in batch 11 - so the examples below are now evidence-backed rather than recalled. Batch 11 confirmed
+every CWE-306 example this summary carried.** Three sub-shapes, worth briefing every future batch on:
 
 - **The library absorbed the fix.** `gorilla/sessions` `store.New` (which does not discard a planted
   cookie - `CookieStore.New` decodes it and sets `IsNew = false`); Laravel's `Timebox`, which pads
@@ -440,11 +441,20 @@ in batch 11.** Three sub-shapes, worth briefing every future batch on:
   creating by default the hash mismatch that entry warns about. This one is the hardest to catch:
   the advice stays right while its justification stops being true, so a reread passes it.
 
-**A fourth pattern, now at five instances: the entry lists the vendor's own recommended API as a
+**A fourth pattern, now at eight instances: the entry lists the vendor's own recommended API as a
 taint sink.** `user.IsInRole()` (in Microsoft's own handler sample), `@login_not_required` (required
 by Django on the login view), `__return_true` (what WordPress core's `_doing_it_wrong` string tells
 you to use for public routes), `PASSWORD_HASHERS` "strongest first" (which would flag Django's
-shipped default), and `@PreAuthorize` on a Jersey resource. All five point the model at correct code.
+shipped default), and `@PreAuthorize` on a Jersey resource. Batch 11 added three more, all in
+CWE-306: php naming "`permission_callback` returning true" where core's own notice names
+`__return_true` as the fix for a public route, python listing `@login_not_required` a second time,
+and java's `@PermitAll` at class level. All eight point the model at correct code.
+
+**The fix for this shape is not always deletion.** Two of batch 11's three were kept in Taint Sinks
+with a guard, because grepping for them is how the exceptions get audited - what changed is the
+entry now says what the finding is *not*. Only php's was rewritten outright, to the absent
+`permission_callback` that is the real defect. Decide per entry whether the name is a bad search
+target or a good one described wrongly.
 
 **Briefing note for the authz batches still ahead:** `docs/CWE-566/java` is where that family's
 operational detail lives - it carries the `@PostAuthorize` write-ordering caveat completely,
@@ -461,7 +471,9 @@ batch.
 `docs/` mirrors the tree as `docs/CWE-{ID}/{language}/index.md`, is gitignored (so it is not versioned
 here and can change underneath us), and is maintained elsewhere by actor/critic review across two model
 families. **Language coverage is not 1:1, and an earlier version of this note said it was.** Checked
-across all 333 language directories, 28 have no `docs/` counterpart: all six of `cwe/306`, `cwe/328`
+across all 333 language directories, 28 have no `docs/` counterpart: all six of `cwe/306` (whose
+root `docs/CWE-306/index.md` does exist - the gap is the language tier only, and batch 11 reconciled
+the root against it and found nothing in either direction), `cwe/328`
 and `cwe/501`; `cwe/476/{c,cpp,java}`; `cwe/643/{csharp,java,python}`; `cwe/190/{csharp,go}`;
 `cwe/382/java`; `cwe/926/android`. The rule is not "two exceptions" but "anything authored here has no
 parent" - each of those was written in this repository rather than derived from `docs/`, so it has
@@ -513,10 +525,25 @@ Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then re
 (fc9bce0) and restoration (d97d283). Batches 5-8 completed the injection family (705c76a, 19089d8,
 f4cfab2, 4ed535e); batch 9 did CWE-862/863 and the authn/authz doctrine (7c73974).
 
-**CWE-287 is done and committed.** Next is **batch 11: CWE-306**, the half of batch 10 that was
-never applied and whose evidence is gone - start it cold rather than from the defect-families
-section above. After it: CWE-522 and CWE-798, then a full evidence pass over CWE-285 and CWE-566,
-which batch 9 touched only for the three cross-cutting items below.
+**CWE-287 and CWE-306 are done and committed** (batch 10; batch 11 as 79ee709, cf6140d, 083bb0c).
+Next is **batch 12: CWE-522 and CWE-798**, then a full evidence pass over CWE-285 and CWE-566, which
+batch 9 touched only for the three cross-cutting items below.
+
+**Batch 11 landed in three commits rather than one**, because the session limit killed two of the
+six evidence agents mid-run. The four that returned were judged, patched and committed before the
+survivors were re-dispatched. That is a deliberate softening of "commit each batch's patches with
+the batch": the rule exists so evidence is not lost to a dead transcript, and committing a partial
+batch serves it better than holding four entries hostage to two. Split by entry, never mid-entry.
+
+**What batch 11 found, beyond confirming the batch-10 summary:** Spring Security 6.0's flip of an
+unmatched `authorizeHttpRequests` rule to `DENY` is recorded in *neither* the 6.0 migration guide
+nor the 6.0 What's New page - only in gh-11958 and the commit. A quiet release note is not evidence
+of a quiet release, so read the issue tracker when a claim turns on a default. Two Spring CVEs were
+traced and deliberately omitted (CVE-2023-34035, CVE-2025-41248) because both floors now sit below
+every supported branch: a floor no supported version fails is words without a fix. And go's entry
+gave two remediations that *panic* - `grpc.UnaryInterceptor` set twice, and chi's `Use()` after a
+route - which is the no-op shape from batch 10 in a louder form, and worth briefing as its own
+check: does the prescribed edit survive being applied to code that already has the thing?
 
 **What the CWE-287 re-run found**, beyond confirming the summary: `golang-jwt` has no floor anywhere
 in the go entry (v5.2.2 / v4.5.2); the csharp entry names only the legacy
@@ -535,8 +562,12 @@ spent. All six unsourced timing figures ("0.003 ms against 63 ms" and its five s
 six independent agents each returned NO PRIMARY SOURCE FOUND for the one they were given, and the
 quantities were replaced with what the source actually shows, that the miss branch never reaches the
 hasher at all. That paid for the version floors: the CWE-287 files went from 613-744 words to
-723-827 against CLAUDE.md's ~800 guideline. **There is no comparable slack left**, so batch 11 needs
-something to come out of CWE-306 before its floors go in.
+723-827 against CLAUDE.md's ~800 guideline.
+
+**That warning did not generalise, and batch 11 is the correction.** CWE-306's six entries started
+at 496-618 words, so each had 180-300 words of headroom and nothing had to come out; they landed at
+716-789. The constraint is per-CWE, not a property of the sweep - measure the entries before
+planning a trade. It will bind again wherever a family already sits near 800.
 
 ### Batch 9 - what it changed about the method
 
