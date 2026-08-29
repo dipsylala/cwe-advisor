@@ -138,10 +138,22 @@ re-verification. **Both have since been checked and neither stands.**
   MongoDB's `$where`) **with any part of the expression derived from user input**". The
   qualifier was intact; the `TODO.md` note dropped it and this file carried the drop forward.
 - ~~`docs/` states that .NET Framework processes DTDs by default; true only below 4.5.2.~~
-  **Withdrawn as stated.** `CWE-611/csharp/index.md:31,53` do want a version qualifier, but
-  "true only below 4.5.2" conflates the `XmlResolver` default with DTD parsing itself, and no
-  primary source was reached for either. Needs its own pass rather than a swap of one
-  imprecise claim for another.
+  **Withdrawn as stated** - the claim conflated the `XmlResolver` default with DTD parsing
+  itself. But the disentangled version does exist, in this repo's `cwe/611/csharp/INDEX.md`,
+  where it was traced during sweep batch 2. Offered here since it is the qualifier
+  `CWE-611/csharp/index.md:31,53` wants:
+
+  > The safe defaults are dated per API rather than per runtime, and the split is not
+  > Core-versus-Framework: `XmlReaderSettings.DtdProcessing` has defaulted to `Prohibit`
+  > since .NET Framework **4.0**, and `XmlReaderSettings.XmlResolver` to `null` since
+  > .NET Framework **4.5.2**. `XmlDocument` is the real exception - Microsoft documents no
+  > null default for its `XmlResolver`, and states that when the document is not loaded
+  > through an `XmlReader` its own resolver is always used.
+
+  So there are three separate dates, not one: DTD *processing* (4.0), the *resolver* (4.5.2),
+  and `XmlDocument`, which never got a safe default at all. That third one is the reachable
+  finding, and it is the API most likely to be in legacy code. Provenance caveat: batch 2
+  traced this, not this session, so re-check it against Microsoft before adopting.
 
 ---
 
