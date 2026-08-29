@@ -363,11 +363,12 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 10 - CWE-287 (6 entries). All 6 defective. Evidence re-gathered from scratch and applied.
 - Batch 11 - CWE-306 (6 entries). All 6 defective. Started cold, as the lost batch-10 evidence required.
 - Batch 12 - CWE-798 (6 entries) and CWE-522 (5 entries), plus both roots. All 11 defective.
+- Batch 13 - CWE-285 and CWE-566 (8 entries, plus both roots). All 8 defective. Completes the authn/authz group.
 
-**Running count: 126 of 287 language files reviewed, 126 carried at least one defect.**
+**Running count: 134 of 287 language files reviewed, 134 carried at least one defect.**
 
-The rate has not moved across twelve batches, the whole injection family, the authz pair, CWE-287,
-CWE-306 and now the credential pair. Treat every unreviewed language entry as suspect rather than
+The rate has not moved across thirteen batches, the whole injection family, the authz pair, CWE-287,
+CWE-306, the credential pair and now CWE-285/CWE-566. Treat every unreviewed language entry as suspect rather than
 sampling further to confirm it.
 
 **Batch 10 was re-run rather than trusted.** Its first pass gathered evidence for CWE-287 and
@@ -474,10 +475,13 @@ entry now says what the finding is *not*. Only php's was rewritten outright, to 
 `permission_callback` that is the real defect. Decide per entry whether the name is a bad search
 target or a good one described wrongly.
 
-**Briefing note for the authz batches still ahead:** `docs/CWE-566/java` is where that family's
-operational detail lives - it carries the `@PostAuthorize` write-ordering caveat completely,
-including the transaction-rollback condition, which three sibling pages do not. Check it before
-writing up an authz finding.
+**That briefing note is spent, and was slightly overstated.** `docs/CWE-566/java` does carry the
+`@PostAuthorize` transaction-rollback condition that three sibling pages lack, and it was worth
+reading before the authz write-ups. But "completely" was wrong: a grep of that file for
+`EnableTransactionManagement` returns nothing, so it has the failure condition and neither of the
+vendor's two remedies - read first and then write, or order `@EnableTransactionManagement` ahead of
+`@EnableMethodSecurity`. `cwe/285/java` now carries both. The same correction applies to the claim
+made in `DOCS_UPDATE.md` finding 1.
 
 ### The docs/ reconciliation step - now mandatory per batch
 
@@ -543,10 +547,36 @@ Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then re
 (fc9bce0) and restoration (d97d283). Batches 5-8 completed the injection family (705c76a, 19089d8,
 f4cfab2, 4ed535e); batch 9 did CWE-862/863 and the authn/authz doctrine (7c73974).
 
-**CWE-287, CWE-306, CWE-798 and CWE-522 are done and committed** (batch 10; batch 11 as 79ee709,
-cf6140d, 083bb0c; batch 12 as 48e46cc, bcb5cef, aaae74a, 709109c). Next is **batch 13: a full
-evidence pass over CWE-285 and CWE-566**, which batch 9 touched only for the three cross-cutting
-items below.
+**The authn/authz group is complete.** CWE-287, CWE-306, CWE-798, CWE-522, CWE-285 and CWE-566 are
+all done and committed (batch 10; batch 11 as 79ee709, cf6140d, 083bb0c; batch 12 as 48e46cc,
+bcb5cef, aaae74a, 709109c; batch 13 as c2630cc, 6e69b63). Next is **batch 14, the first of the
+crypto and randomness group** - 326, 330, 331, 338, 347, 295, 780, 316 in that order. Nothing in
+that group has been read since the version-claim sweep, which covered one error class only.
+
+**What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
+CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
+a hard failure: `.Where()` chained onto a `ValueTask`, a Django sink given a SQLAlchemy expression,
+a `queryset` class attribute referencing `request`, `.requestMatchers()` after `anyRequest()`
+asserting at startup. The batch-11 check ("does the edit survive being applied to code that already
+has the thing?") generalises further than it was written: ask whether the edit *compiles*, then
+whether it runs, then whether it enforces anything. Sequelize's `findByPk` is the one that fails at
+the third question only, which is why it had survived twelve batches of review.
+
+**A new shape, and it is the cheapest one to find: the defect in the seam between two bullets of
+the same file.** Batch 9 named the seam between two *entries*; this is one file arguing with
+itself. `cwe/285/javascript` recommended `express-jwt-permissions` in one bullet and noted
+express-jwt's `req.auth` rename in another, and the pair as documented reads a property the
+verifier never writes. `cwe/566/java` warned against comparing a numeric id to a username string
+and then named `@AuthenticationPrincipal`, whose default principal supplies exactly that string.
+`cwe/285/python` recommended overriding `get_object()` in one bullet and stated in the next that
+overriding it drops the object-permission check. None needs a vendor lookup to find - only reading
+the file end to end, which is the process rule already recorded above for Key Principles edits.
+
+**Also new: a fix that is inert under the configuration the same entry recommends.** DRF's shipped
+permission classes do not implement `has_object_permission` (its base returns `True`), so
+`cwe/285/python`'s prescribed `check_object_permissions` call checked nothing under the
+`IsAuthenticated`/`IsAdminUser` the same file recommends. Distinct from batch 10's no-op, where the
+API never did the thing; here the API works and the entry's own surrounding advice disables it.
 
 **What batch 12 changed about the method.** The credential pair were the thinnest entries the sweep
 has read - 246 to 472 words against a ~800 guideline - and the finding rate held at 11 of 11 anyway.
@@ -677,8 +707,8 @@ The per-batch loop, in full:
 5. Run the `docs/` reconciliation for that CWE family (see above) and fix both directions.
 6. `python scripts/lint.py`, check no language file has grown past ~950 words, commit.
 
-**Remaining, in the intended order:** authn/authz (862, 863, 287, 306, 285, 522, 566, personal 798),
-crypto and randomness (326, 330, 331, 338, 347, 295, 780, 316), web hygiene (352, 601, 614, 434, 942,
+**Remaining, in the intended order:** authn/authz is complete (862, 863, 287, 306, 285, 522, 566, 798);
+next is crypto and randomness (326, 330, 331, 338, 347, 295, 780, 316), web hygiene (352, 601, 614, 434, 942,
 209, 201), and last the memory/native and resource entries (125, 787, 121, 415, 416, 823, 824, 401,
 362, 367, 377), which are the least likely to be handed to this skill by a web-application scanner.
 

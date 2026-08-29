@@ -72,8 +72,10 @@ same page uses `@PreAuthorize("... @orderSecurity.isOwner(#id, authentication.na
 `docs/CWE-285/java`. Neither carries the defect - 862/java's only `@PostAuthorize` mention is
 a comment about `@EnableMethodSecurity`, and the phrase attributed to 285/java appears
 nowhere in the corpus. Both were asserted from this repo's own files without reading the
-`docs/` originals. `docs/CWE-566/java:770` already states the caveat completely, including
-the transaction-rollback condition.
+`docs/` originals. `docs/CWE-566/java:770` states the transaction-rollback condition, which
+those two do not - but not the whole caveat: batch 13 grepped that file and it carries no
+`EnableTransactionManagement` mention at all, so it gives the failure condition and neither of
+the vendor's two remedies.
 
 ### 2. `docs/CWE-611/csharp/index.md:31,53` - the .NET DTD defaults want a per-API qualifier
 
