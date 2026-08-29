@@ -15,6 +15,12 @@ corpora carried, found by tracing to source rather than by comparing the two, an
 are now fixed on this side. They are the reason the reconciliation runs both ways: a shared
 defect is invisible to a comparison.
 
+**Two items have been withdrawn on the maintainer's reading**, both in findings 5 and 9 and
+both the same error: a claim true of the API in general, asserted at a page that does not do
+the thing. Each was checked against the `docs/` original before withdrawal. That is now two
+false positives from this side against three confirmed shared defects, which is the ratio to
+keep in mind when reading anything here that has not been re-verified.
+
 **Before acting on any of it, re-verify.** Floors move, APIs change, and some items are
 older than the pass that recorded them; provenance caveats are noted in place.
 
@@ -140,32 +146,34 @@ destroy timestamp, and the pitfall as written tells a reader the opposite is sim
 at least acknowledging the trade-off. This repo carried the same unconditional instruction and now
 carries the trade-off instead.
 
-### 5. `docs/CWE-287/python/index.md:104` - `User()` should be the configured user model
+### 5. `docs/CWE-287/python/index.md:104` - the `ModelBackend` mechanism sentence wants a version qualifier
 
-Claim, verbatim:
+**The `User()` half of this finding is withdrawn as a false positive against `docs/`.** It read:
 
-> `User().set_password(password)` in the `DoesNotExist` branch is what stops the *response time*
-> from answering "does this address have an account".
+> Django's own implementation uses the configured `AUTH_USER_MODEL`, not
+> `django.contrib.auth.models.User` [...] `User()` hashes against the wrong model
 
-Django's own implementation uses the configured `AUTH_USER_MODEL`, not
-`django.contrib.auth.models.User`: `ModelBackend.authenticate` calls `UserModel().set_password(password)`
-(and, from 6.1, `check_password_with_timing_attack_mitigation` calls `get_user_model()().set_password(password)`).
-On a project with a custom user model - which Django recommends for new projects - `User()` hashes
-against the wrong model, and the surrounding code will already be using `get_user_model()`.
+The page binds `User = get_user_model()` at line 83, inside the same `authenticate()` as the
+`User()` call at line 90, and never imports `django.contrib.auth.models.User` anywhere. `User()`
+there *is* the configured model. What the name is bound to decides this, and the finding checked the
+name.
 
-The rest of that paragraph is more careful than this repo's counterpart: it scopes the measurement
-to Django 6.1, which is the release where `check_password_with_timing_attack_mitigation()` exists at
-all. Confirmed since: the function is present in `stable/6.1.x` and absent from `stable/6.0.x`, and
-earlier releases equalise the branches inline instead, so an entry naming the function without the
-version describes a mechanism most projects do not have. This repo's version cited it without the
-version; both that and the `User()` model are now corrected here.
+Worth recording how it happened, because the file's own process note - quote the `docs/` file, not
+this repo's counterpart - was added in the same revision that carried this finding, and did not
+prevent it. The note is necessary and not sufficient: quoting the line is not enough when the defect
+claim depends on a binding established 7 lines earlier. **Read the enclosing scope, not just the
+quoted line.** This repo's counterpart has been amended to check the import rather than the name,
+so it stops generating the same false finding in developer code.
 
-One more line on that page, unrelated to the model: at 104, "`django.contrib.auth.backends.ModelBackend`
-already does this through `check_password_with_timing_attack_mitigation()`" is unscoped, while the
-*measurement* two sentences earlier is scoped to 6.1. The function is 6.1+ only - present in
-`stable/6.1.x`, absent from `stable/6.0.x` - and earlier releases equalise the branches inline in
-`ModelBackend.authenticate` instead. The conclusion (stock backend, false positive) holds on every
-release; only the named mechanism does not.
+What survives, and is not disputed: at 104,
+
+> `django.contrib.auth.backends.ModelBackend` already does this through
+> `check_password_with_timing_attack_mitigation()`
+
+is unscoped, while the *measurement* two sentences earlier is correctly scoped to Django 6.1. That
+function is 6.1+ only - present in `stable/6.1.x`, absent from `stable/6.0.x` - and earlier releases
+equalise the branches inline in `ModelBackend.authenticate` instead. The conclusion (stock backend,
+false positive) holds on every release; only the named mechanism does not.
 
 ### 6. `docs/CWE-287/go/index.md:215,229` - `store.New` does not discard a planted session cookie
 
@@ -296,23 +304,23 @@ Two things the page could carry instead of the wrapper, both of which bite in re
 The wrapper is still required on 0.5.x and earlier, so this wants a version qualifier rather than
 deletion. This repo carried the same instruction and it is now corrected here.
 
-### 9. Two version qualifiers, offered rather than reported
+### 9. A version qualifier for jjwt, offered rather than reported
 
-Neither is a defect; both are cases where a correct sentence has stopped naming the thing a reader
-should search for.
+Not a defect. `docs/CWE-287/java/index.md:63` describes the unsigned `parse()`/`parseClaimsJwt()`
+methods accurately. From jjwt **0.12** those paths reject an `alg: none` token by default -
+`DefaultJwtParser` carries "Unsecured JWSs (those with an alg header value of 'none') are disallowed
+by default as mandated by RFC 7518 3.6. If you wish to allow them to be parsed, call the
+JwtParserBuilder.unsecured() method" - so on a current version the finding to look for is that
+opt-in, not the method choice. Both methods are deprecated since 0.12, not removed.
 
-- `docs/CWE-287/java/index.md:63` describes the unsigned `parse()`/`parseClaimsJwt()` methods
-  accurately. From jjwt **0.12** those paths reject an `alg: none` token by default -
-  `DefaultJwtParser` carries "Unsecured JWSs (those with an alg header value of 'none') are
-  disallowed by default as mandated by RFC 7518 3.6. If you wish to allow them to be parsed, call
-  the JwtParserBuilder.unsecured() method" - so on a current version the finding to look for is that
-  opt-in, not the method choice. Both methods are deprecated since 0.12, not removed.
-- `docs/CWE-287/csharp/index.md` names `TokenValidationParameters` throughout but never the handler
-  split. From .NET 8 the bearer handler validates with `JsonWebTokenHandler` from
-  `Microsoft.IdentityModel.JsonWebTokens`, selected through `JwtBearerOptions.TokenHandlers`, and
-  `TokenValidatedContext.SecurityToken` is a `JsonWebToken` - so code casting it to
-  `JwtSecurityToken` compiles and fails at run time. Advisory floor for those packages:
-  CVE-2024-21319, fixed in 7.1.2 / 6.34.0 / 5.7.0.
+**A second item here has been withdrawn.** It reported `docs/CWE-287/csharp/index.md` for not
+carrying the .NET 8 handler split, on the grounds that `TokenValidatedContext.SecurityToken` is now
+a `JsonWebToken` and code casting it to `JwtSecurityToken` fails at run time. That page casts
+nothing: `JwtSecurityToken` appears exactly once, at line 71, as `new JwtSecurityToken(token)`
+inside a *vulnerable* example showing a `SignatureValidator` that never verifies. The run-time
+failure had nothing to bite. Same error class as finding 5's withdrawn half - a general truth about
+the API asserted at a page that does not exercise it. The advisory floor it carried is real and has
+moved to the floors table below.
 
 ---
 
@@ -346,4 +354,5 @@ Floors traced to vendor releases this pass, on subjects `docs/` covers without t
 | Node `child_process` on Windows | **18.20.4 / 20.15.1 / 22.4.1** (CVE-2024-27980, then CVE-2024-36138 bypassing it) |
 | PHP `proc_open` array form on Windows | **8.1.29 / 8.2.20 / 8.3.8** (CVE-2024-1874, then CVE-2024-5585) |
 | CGI.pm `escapeHTML` | **4.21** - before it, `'` was escaped only for ISO-8859-1/Windows-1252 charsets |
+| `Microsoft.IdentityModel.*` / `System.IdentityModel.Tokens.Jwt` | **7.1.2** on 7.x, **6.34.0** on 6.x, **5.7.0** on 5.x (CVE-2024-21319 / GHSA-59j7-ghrg-fj52, a denial of service through JWE token decompression) |
 | Python `email` header rejection | **3.8.20 / 3.9.20 / 3.10.15 / 3.11.10 / 3.12.5 / 3.13** (CVE-2024-6923) |
