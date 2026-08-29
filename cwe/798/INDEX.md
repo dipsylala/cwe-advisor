@@ -11,6 +11,8 @@ Hard-coded credentials occur when authentication secrets (passwords, API keys, e
 - Entropy-based scanning finds the long random-looking strings and misses everything else: a default password, an HMAC key that is a dictionary word, a customer number used as an API key, and a private key split across concatenated lines are all hard-coded credentials no scanner will flag
 - Treat environment variables as a fallback, not a risk-free store - they can still leak via process inspection, debug dumps, or cloud metadata endpoints
 - Search for comparisons as well as assignments: a hard-coded credential used to *check* an incoming value (`if key == "..."`) is a backdoor, and every `password=`-style pattern finds only the assignment half
+- Decide which half the finding is before choosing a fix. A credential the product *sends* belongs in a managed store; a credential the product *accepts* has no correct home, because relocating it leaves the same authenticator working on every installation. A fixed hash is a fixed credential for the same reason
+- Remove an accepted credential rather than storing it: issue a unique value per installation and refuse to serve traffic until enrolment completes, since a default that merely warns stays in place. That fix also needs a rollout plan rather than a commit, as the credential is already published in every shipped artifact
 - Treat test fixtures as in scope - a mock credential is frequently a real one that was pasted in
 - Rotate before removing: deleting the literal changes what the code does and not who holds the secret, since it remains in history, in clones, in CI logs, and in built artifacts
 
