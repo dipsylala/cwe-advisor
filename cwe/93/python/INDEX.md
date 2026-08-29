@@ -2,29 +2,30 @@
 
 ## LLM Guidance
 
-In Python, the common concrete case of general CRLF injection (as opposed to CWE-113's HTTP-header-specific case) is email header injection: untrusted input placed into an email subject, recipient, or custom header lets an attacker inject `\r\n`-delimited headers to add BCC recipients, forge the sender, or append a second message. The `email` package's `EmailMessage` object rejects or folds embedded newlines when headers are set through it, but building the raw message as a formatted string (`f"Subject: {user_input}\r\n\r\n{body}"`) and handing it to `smtplib.SMTP.sendmail()` bypasses that protection entirely, since `sendmail()` sends whatever raw string it is given. Always build the message with `email.message.EmailMessage` and let it construct the raw payload.
+In Python, the common concrete case of general CRLF injection (as opposed to CWE-113's HTTP-header-specific case) is email header injection: untrusted input placed into an email subject, recipient, or custom header. Which protection you actually get depends on the *policy* the message carries and on the interpreter version, and building the raw message as a formatted string (`f"Subject: {user_input}\r\n\r\n{body}"`) and handing it to `smtplib.SMTP.sendmail()` bypasses all of it - `sendmail` not only skips validation, it normalizes lone newlines up into full CRLF on the way out.
 
 ## Key Principles
 
-- Never hand-build CRLF-delimited text for any line-oriented sink (mail header, HTTP header, log line, or other protocol command) by concatenating untrusted data into a raw string - use the sink's structured API instead
-- For mail, build the message with `email.message.EmailMessage` (or `email.mime.text.MIMEText`) and set headers via item assignment (`msg['Subject'] = value`), not by formatting a raw message string
-- For HTTP response headers, use Flask's/Django's redirect and header helpers, which validate values - see CWE-113's Python guidance for depth
+- **`EmailMessage` rejects; it does not fold.** Under `email.policy.default` - which `EmailMessage()` uses when no policy is given - assigning a header containing CR or LF raises `ValueError` at the assignment. That is the protection to rely on
+- **`MIMEText` and `Message` are not equivalent.** They default to the legacy `compat32` policy, which stores the injected value verbatim and fails only later, at serialization, with `HeaderWriteError` - and that backstop (`verify_generated_headers`) is the CVE-2024-6923 fix, so it exists only from **3.8.20 / 3.9.20 / 3.10.15 / 3.11.10 / 3.12.5 / 3.13**. On an older interpreter there is no check at all on that path. Prefer `EmailMessage`, and pass `policy=email.policy.default` if you must use the MIME classes
+- Build the message with `email.message.EmailMessage` and set headers via item assignment (`msg['Subject'] = value`), then send with `SMTP.send_message()` rather than a hand-built string. `send_message` validates nothing itself - its safety is that it serializes through `BytesGenerator`, which is where the check above fires
+- **`parseaddr()` is not a CRLF validator, and the display name is exactly where it fails.** Given `Real\r\nName <a@b.com>` it collapses the newline to a space and returns success. It signals a malformed address only by returning `('', '')`, which is easy to miss. Its `strict=True` default arrived in **3.13** (backported to 3.8.20+) for CVE-2023-27043; with `strict=False` a crafted address returns a plausible but wrong result
+- Reject `\r` and `\n` at your own boundary rather than relying on any of the above to do it, and validate with a whole-string match (`re.fullmatch()`), since `$` in Python's `re` also matches before a trailing newline and `^...$` therefore admits the exact character being excluded
+- `smtplib` guards its own commands: `putcmd` raises `ValueError` for CR or LF, from **3.6.15 / 3.7.12 / 3.8.12 / 3.9.7 / 3.10**. That covers the envelope addresses `sendmail` builds, and nothing in `msg` - the DATA payload never passes through it
+- For HTTP response headers, see CWE-113's Python guidance for depth. Note the two checks there are separate layers: Django's `BadHeaderError` is its own, while `h11`'s `LocalProtocolError` covers ASGI servers such as uvicorn and hypercorn - a WSGI app under gunicorn has neither
 - For log statements, use structured (JSON) logging, or explicitly encode `\r`/`\n` before writing to a plain-text log - see CWE-117's guidance for depth
-- Strip or reject `\r` and `\n` from untrusted input as defense in depth, regardless of sink, even when using `EmailMessage`
-- Validate recipient/sender addresses with `email.utils.parseaddr()`/`getaddresses()` before use, since a crafted display name can also carry CRLF
-- Django raises `BadHeaderError` and the `h11`-based stacks raise `LocalProtocolError` for a header value containing CR or LF - so an unvalidated value surfaces as a 500 rather than a split response, which is a denial of service to fix rather than a control to rely on
-- Validate with a whole-string match (`re.fullmatch()`), since `$` in Python's `re` also matches before a trailing newline and `^...$` therefore admits the exact character being excluded
 
 ## Taint Sinks
 
-`smtplib.SMTP.sendmail()` fed a raw formatted message string, raw-concatenated email header assignment (not `EmailMessage`), `response.headers[...] =` with unsanitized input, `logging.info()`/`logger.warning()` with unsanitized input, raw text written to a `socket` for any line-oriented protocol
+`smtplib.SMTP.sendmail()` fed a raw formatted message string, header assignment on a `compat32` message (`MIMEText`, `Message`), `email.utils.parseaddr()` used as a validator, `response.headers[...] =`, `logging.info()`/`logger.warning()` with unsanitized input, raw text written to a `socket`
 
 ## Remediation Steps
 
 - Identify the sink category - determine whether untrusted data reaches a mail header, an HTTP response header, a log statement, or a raw line-oriented protocol write (see Taint Sinks above)
-- For mail headers - replace raw string-formatted message construction with `email.message.EmailMessage`, setting headers via item assignment, and send it via `smtplib.send_message()` rather than a hand-built string
+- For mail headers - replace raw string-formatted message construction with `email.message.EmailMessage`, set headers via item assignment, and send with `SMTP.send_message()`
+- Confirm the policy in play, since it is what performs the check, and the interpreter version against the floors above
+- Validate addresses at your own boundary - reject CR and LF explicitly rather than inferring validity from `parseaddr()` returning something
 - For HTTP response headers - see CWE-113's Python guidance for the framework-specific safe pattern
 - For log statements - use structured (JSON) logging, or strip/encode `\r`/`\n` before writing to a plain-text log; see CWE-117's guidance for depth
 - For any other line-oriented protocol - never hand-roll protocol commands by string concatenation with untrusted data; use a library that constructs and validates the protocol message, or strip/encode CRLF before writing to the socket
-- Strip `\r` and `\n` from untrusted input as defense in depth, regardless of sink category
-- Test with a payload containing `\r\nBcc: attacker@evil.com` (mail) or `\r\nX-Injected: true` (other sinks) and confirm no extra header or line is added
+- Test - submit `\r\nBcc: attacker@evil.com` in a subject and in an address, and assert the request is rejected at your validation boundary; also assert the resolved recipient list, since a value that survives parsing can change who receives the message without adding a visible header

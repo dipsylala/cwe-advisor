@@ -2,28 +2,28 @@
 
 ## LLM Guidance
 
-HTTP Response Splitting in Node.js occurs when user-supplied values are passed to `res.setHeader()`, `res.redirect()`, or `res.cookie()` without stripping CRLF characters (`\r\n`). An attacker who can inject a newline into a `Location` or `Set-Cookie` header can append a complete second HTTP response, enabling cache poisoning, XSS, and session hijacking. Since the CVE-2016-2216 fix (Node 4.4.4/6.2.1), the `http` module rejects a raw CR or LF in a header value, which blocks the classic literal-newline attack in `res.setHeader()`/`res.writeHead()`; Express delegates to it. The specific `ERR_INVALID_CHAR` error code is a later addition (Node's error-code codification around v9-v10) but the underlying rejection is not. This does not cover percent-encoded variants (`%0d`, `%0a`) reaching headers after URL-decoding, Unicode line separators, or values injected through libraries with their own header/cookie serialization. Sanitize all user input before it reaches any header-setting call, or use framework redirect helpers that encode values automatically.
+HTTP Response Splitting in Node.js occurs when user-supplied values are passed to `res.setHeader()`, `res.redirect()`, or `res.cookie()` without validation. Node's `http` module has rejected CR and LF in header values since long before the CVE-2016-2216 hardening (that release fixed a Unicode-decomposition *bypass* of the existing check, and shipped in 0.10.42, 0.12.10, 4.3.0 and 5.6.0), so the classic literal-newline attack on `res.setHeader()`/`res.writeHead()` is closed and Express delegates to it. What remains open is the redirect *target*, and any value that reaches a header after a decode Node never sees.
 
 ## Key Principles
 
-- Strip or reject `\r` (U+000D), `\n` (U+000A), and their percent-encoded forms (`%0d`, `%0a`) from any user input placed in headers
-- Also strip Unicode line terminators: U+0085 (NEL), U+2028 (LINE SEPARATOR), U+2029 (PARAGRAPH SEPARATOR)
-- Use `res.redirect()` with a validated, allowlisted URL rather than `res.setHeader('Location', userInput)`
-- Validate redirect targets against an allowlist of known-safe paths or origins before redirecting
-- Avoid manually constructing `Set-Cookie` header values - use `res.cookie()` with `httpOnly` and `sameSite` options
-- Node rejects a bad header *name* with `ERR_INVALID_HTTP_TOKEN` and a bad value with `ERR_INVALID_CHAR`, so both surface as a 500 rather than a split response - fix the validation instead of relying on the throw, and note neither applies to bytes written directly to the socket
-- Use the framework's cookie API rather than composing a `Set-Cookie` string: a hand-built one silently loses `Secure`, `HttpOnly` and `SameSite` along with the escaping
-- `res.setHeader('Location', url)` takes a destination value - validate it against an allowlist, since rejecting control characters says nothing about where the redirect points
+- Node rejects a bad header *name* with `ERR_INVALID_HTTP_TOKEN` and a bad *value* with `ERR_INVALID_CHAR`, so both surface as a 500 rather than a split response - fix the validation instead of relying on the throw, and note neither applies to bytes written directly to the socket
+- The rejected set is "outside latin1", so U+2028 and U+2029 are rejected while **U+0085 is not** - it is latin1 `0x85` and passes through. It is also not a line terminator to an HTTP parser, so this is a reason not to treat the three as one group rather than a gap to plug
+- **`res.redirect()` does not throw and does not validate.** Express routes it through `res.location()`, which percent-encodes via `encodeurl` - so CR/LF become `%0D%0A` and Node's check is never reached. Express documents this outright: the URL is passed to the browser "without any validation". `//evil.example/x`, `https://evil.example` and `javascript:alert(1)` all pass straight through
+- So validate the destination separately. Express's own recommendation is to parse it - `new URL(input)` and compare `host` against an allowlist - not to match a character class. If you do write a path pattern, **anchor it**: `RegExp.test()` searches anywhere in the string, so an unanchored pattern accepts every payload above by matching a substring of it
+- Use the framework's cookie API rather than composing a `Set-Cookie` string. `res.cookie()` encodes the value with `encodeURIComponent` by default and throws `TypeError` for an invalid cookie *name*; a hand-built header silently loses `Secure`, `HttpOnly` and `SameSite` along with the escaping
+- Percent-encoded `%0d`/`%0a` are not decoded anywhere in Node or Express, so a header value containing them cannot split a response and filtering them out only corrupts legitimate values. They matter only where the application decodes again after validating
+- `encodeURIComponent()` alone does not produce a valid RFC 5987 `filename*` value: it leaves `'`, `(`, `)` and `*` unescaped, and `'` is the ext-value delimiter itself. Escape those four as well, or use a library that emits the parameter
+- Keep the dependencies current: CVE-2024-29041 was an open redirect in `res.location()` reached through `res.redirect()` (floor **Express 4.19.2** / 5.0.0-beta.3), and CVE-2024-47764 let a cookie *name* inject further attributes (floor **cookie 0.7.0**). `res.redirect('back')` is deprecated in Express 4 and removed in 5 - it is a referrer-driven open redirect
 
 ## Taint Sinks
 
-`res.setHeader()`, `res.writeHead()`, `res.redirect()`, `res.cookie()`
+`res.setHeader()`, `res.writeHead()`, `res.location()`, `res.redirect()`, `res.cookie()`, `res.append()`, `res.appendHeader()`, `res.addTrailers()`
 
 ## Remediation Steps
 
-- Replace manual `res.setHeader('Location', userInput)` with `res.redirect()` after URL validation
-- Validate redirect URLs against an allowlist or confirm they are local paths matching `/(?!/)[a-zA-Z0-9/_-]+`
-- Strip CRLF and Unicode line terminators from any string before passing it to `res.setHeader()` or `res.cookie()`; also strip percent-encoded variants `%0d` and `%0a`
-- For `Content-Disposition` (file downloads), use a fixed filename or encode it with `encodeURIComponent()` rather than interpolating user input directly
-- Use `res.cookie('name', value, { httpOnly: true, sameSite: 'strict' })` instead of setting `Set-Cookie` manually
-- Test by submitting `%0d%0aInjected-Header: evil` in redirect/cookie parameters and confirm the injected header does not appear
+- Replace manual `res.setHeader('Location', userInput)` with `res.redirect()` after validating the destination
+- Validate redirect URLs by parsing them and checking the host against an allowlist, or - for a local path - with a whole-string anchored pattern such as `/^\/(?!\/)[a-zA-Z0-9/_-]*$/`, which rejects `//evil.example` and `/\evil.example` where an unanchored one accepts both
+- Validate any other header value against the characters that header's grammar permits, and reject rather than edit
+- For `Content-Disposition`, emit `filename*=UTF-8''` with `encodeURIComponent` plus an escape for `!'()*`, keeping a plain ASCII `filename` as the fallback
+- Use `res.cookie('name', value, { httpOnly: true, secure: true, sameSite: 'strict' })` instead of setting `Set-Cookie` manually
+- Test by submitting `%0d%0aInjected-Header: evil` and a literal `\r\n` in redirect and cookie parameters, and separately submit `//evil.example` to confirm the open redirect is closed too - the CRLF test passes without it
