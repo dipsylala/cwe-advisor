@@ -7,11 +7,12 @@ In .NET, CWE-77 commonly appears where an application talks to a non-OS command 
 ## Key Principles
 
 - **Primary defence:** use StackExchange.Redis's typed methods (`IDatabase.StringSet`, `HashSet`, etc.) or `IDatabase.Execute(command, args)` with arguments passed as separate array elements, never concatenated into one string
-- Never hand-build a raw Redis command string (inline-protocol style, e.g. `"SET " + key + " " + value + "\r\n"`) over a raw `Socket`/`NetworkStream`; the plain-text inline protocol treats an embedded CRLF as the end of one command and the start of another
+- Never hand-build a raw Redis command string (inline-protocol style, e.g. `"SET " + key + " " + value + "\r\n"`) over a raw `Socket`/`NetworkStream`; the plain-text inline protocol treats an embedded newline as the end of one command and the start of another
 - RESP, the protocol StackExchange.Redis uses, encodes each argument with an explicit length prefix, so a value containing CRLF or spaces cannot split into an extra command when passed through the client's parameterized API
-- Apply the same rule to other protocol clients (Memcached, mail/FTP libraries): prefer the maintained client library's structured API over building commands from string concatenation
+- Keep the untrusted value in `args`; the `command` argument is not a safe position. StackExchange.Redis rejects only a *space* in a command name (`RedisCommandException`, from 3.0.17) - CRLF and tab pass through, are sent as one unknown token, and the server answers `-ERR unknown command`
+- Memcached is not the same shape, so the reasoning does not carry across: only its data block is length-delimited, while the key sits on a space-delimited, CRLF-terminated command line. Safety there comes from the client rejecting the byte, not from framing - EnyimMemcachedCore's default `DefaultKeyTransformer` throws `ArgumentException` for 0x00-0x20 and space, and is replaceable via `options.KeyTransformer`
 - Validate and bound the size/character set of values used as keys or command arguments as defence-in-depth, even though the client library already prevents delimiter injection
-- Connect with least-privilege data-store credentials (read-only where possible) so an injected command has limited effect if this control is ever bypassed
+- Redis ACL users need Redis 6.0; read-only key permissions (`%R~`) need 7.0. Note the bound an ACL does not give you: key patterns restrict only commands that name keys, so a user scoped to `~app:*` can still run `FLUSHALL`. Excluding those takes an explicit `-flushall -flushdb -swapdb`
 
 ## Taint Sinks
 
@@ -24,5 +25,5 @@ In .NET, CWE-77 commonly appears where an application talks to a non-OS command 
 - Replace with the safe pattern - swap the raw socket/string-building code for StackExchange.Redis (or the equivalent maintained client) and its typed or `Execute(command, args)` API
 - Bind arguments - pass each untrusted value as its own element in the `args` array rather than folding it into a pre-built string
 - Add validation - constrain key/value length and character set as defence-in-depth
-- Harden configuration - use a dedicated, least-privilege Redis user/ACL for the application connection where the deployment supports it
-- Test - send values containing `\r\n`, spaces, and Redis command names (for example `\r\nFLUSHALL\r\n`) and confirm they are stored as literal data rather than executed as separate commands
+- Harden configuration - use a dedicated Redis ACL user for the application connection, excluding the keyspace-wide commands by name rather than relying on the key pattern to cover them
+- Test - send values containing `\r\n`, spaces, and Redis command names (for example `\r\nFLUSHALL\r\n`) and confirm they are stored as literal data rather than executed as separate commands. Test the *argument* position: the same payload in the command-name position is not stored at all, so a test there passes without exercising the fix
