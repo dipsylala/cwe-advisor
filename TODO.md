@@ -360,13 +360,21 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 7 - CWE-93, CWE-113 (9 entries, plus the CWE-113 root). All 9 defective.
 - Batch 8 - CWE-80 (6 entries). All 6 defective.
 - Batch 9 - CWE-862, CWE-863 (12 entries, plus both roots). All 12 defective.
-- Batch 10 - CWE-287, CWE-306 (12 entries). All 12 defective. **Evidence complete; patches pending.**
+- Batch 10 - CWE-287 (6 entries). All 6 defective. Evidence re-gathered from scratch and applied.
 
-**Running count: 110 of 287 language files reviewed, 110 carried at least one defect.**
+**Running count: 104 of 287 language files reviewed, 104 carried at least one defect.**
 
-The rate has not moved across nine batches, the whole injection family, and now the first
-authz pair. Treat every
+The rate has not moved across ten batches, the whole injection family, and now the first
+authz pair and CWE-287. Treat every
 unreviewed language entry as suspect rather than sampling further to confirm it.
+
+**Batch 10 was re-run rather than trusted.** Its first pass gathered evidence for CWE-287 and
+CWE-306 but committed none of it, leaving the findings only in a session transcript that was gone by
+the next session - so this file's own instruction applied and the batch was re-gathered from a cold
+start. Only CWE-287 was re-run; CWE-306 is unstarted and becomes batch 11. The re-run reproduced
+every defect the summary described and added several the summary did not carry, which is the
+argument for the rule: a summary of evidence is not evidence. **Commit each batch's patches with the
+batch.**
 
 **Two roots turned out to be in scope after all.** The sweep excluded root files on the strength of
 `cwe/676` carrying nothing falsifiable. That does not generalise: `cwe/88/INDEX.md` and
@@ -403,12 +411,20 @@ skip it only when it is genuinely vendor-neutral prose.
   concrete form of the root files' "reject rather than strip" principle.
 - *A named library that has stopped.* `bleach` ended maintenance in June 2026 with an open advisory
   that can never be fixed. "Use a sanitization library" needs the library checked, not just named.
+- *An offered fix that is a no-op.* CWE-287/go told the model to take the session with
+  `gorilla/sessions` `store.New` rather than `store.Get` so a planted cookie is "discarded instead of
+  promoted". `New` decodes the request cookie and sets `IsNew = false` exactly as `Get` does; the doc
+  comment gives the only difference as decoding twice versus reusing the decoded session. The
+  remediation would be applied, reviewed, and change nothing. Distinct from a stale claim - this one
+  was never true - and from a wrong reason, because here the reason is the mechanism.
 
 ### Batch 10's defect families - the entry frozen at a prior release
 
 CWE-287 and CWE-306 were the strongest entries the sweep has read: several traps came back clean and
 306/csharp had six of eight confirmed outright. They still hit 12 of 12, but the defects were almost
-all *time* rather than error. Three sub-shapes, worth briefing every future batch on:
+all *time* rather than error. **The CWE-287 half of this section has since been re-verified against
+source and applied; the CWE-306 examples below survive only as this summary and must be re-derived
+in batch 11.** Three sub-shapes, worth briefing every future batch on:
 
 - **The library absorbed the fix.** `gorilla/sessions` `store.New` (which does not discard a planted
   cookie - `CookieStore.New` decodes it and sets `IsNew = false`); Laravel's `Timebox`, which pads
@@ -490,17 +506,30 @@ Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then re
 (fc9bce0) and restoration (d97d283). Batches 5-8 completed the injection family (705c76a, 19089d8,
 f4cfab2, 4ed535e); batch 9 did CWE-862/863 and the authn/authz doctrine (7c73974).
 
-**Batch 10's evidence is complete and unapplied.** All twelve CWE-287 and CWE-306 findings are
-recorded in the session transcript, not in this file. If that context is gone, re-run the batch
-rather than trusting a summary. After it: CWE-522 and CWE-798, then a full evidence pass over
-CWE-285 and CWE-566, which batch 9 touched only for the three cross-cutting items below.
+**CWE-287 is done and committed.** Next is **batch 11: CWE-306**, the half of batch 10 that was
+never applied and whose evidence is gone - start it cold rather than from the defect-families
+section above. After it: CWE-522 and CWE-798, then a full evidence pass over CWE-285 and CWE-566,
+which batch 9 touched only for the three cross-cutting items below.
 
-**Word budget is the live constraint from batch 10 on.** The CWE-287 files sit at 613-744 words
-against CLAUDE.md's ~800 guideline, and batch 10's findings are mostly version floors and advisory
-text, which is verbose. Batch 9 grew each file it touched by 150-250 words. Something has to come
-out to make room; the identified candidate is the unsourced timing figures ("0.003 ms against
-63 ms" and its five siblings), which every batch-10 agent independently returned NO PRIMARY SOURCE
-FOUND for, and which will drift as iteration counts rise.
+**What the CWE-287 re-run found**, beyond confirming the summary: `golang-jwt` has no floor anywhere
+in the go entry (v5.2.2 / v4.5.2); the csharp entry names only the legacy
+`System.IdentityModel.Tokens.Jwt` and never `Microsoft.IdentityModel.JsonWebTokens`, the default
+since .NET 8, whose `TokenValidatedContext.SecurityToken` no longer casts to `JwtSecurityToken`;
+jjwt rejects `alg: none` by default from 0.12 unless `JwtParserBuilder.unsecured()` opts in, so the
+entry's "never use `parse()`/`parseClaimsJwt()`, which accept `alg: none`" was a version-blind
+absolute; the php-jwt array-of-algorithms form is *removed* (6.0.0 repurposed the third parameter to
+`?stdClass &$headers`, so it is a `TypeError`), not deprecated as the entry said; and
+`PASSWORD_HASHERS` "strongest first" would have flagged Django's shipped default, which lists
+PBKDF2 first and Argon2 third - the sixth instance of the vendor's own recommended configuration
+being written up as a defect.
+
+**Word budget is the live constraint from batch 10 on**, and the identified candidate has now been
+spent. All six unsourced timing figures ("0.003 ms against 63 ms" and its five siblings) are gone -
+six independent agents each returned NO PRIMARY SOURCE FOUND for the one they were given, and the
+quantities were replaced with what the source actually shows, that the miss branch never reaches the
+hasher at all. That paid for the version floors: the CWE-287 files went from 613-744 words to
+723-827 against CLAUDE.md's ~800 guideline. **There is no comparable slack left**, so batch 11 needs
+something to come out of CWE-306 before its floors go in.
 
 ### Batch 9 - what it changed about the method
 

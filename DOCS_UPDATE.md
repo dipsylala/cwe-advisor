@@ -103,7 +103,8 @@ Two conditions the sentence also omits: the `matches()` runs only on `UsernameNo
 Source: `core/src/main/java/org/springframework/security/authentication/dao/DaoAuthenticationProvider.java`
 (private methods, so not in the published Javadoc; the vendor's own traceability anchor is SEC-2056).
 
-This repo carried the same wording and has the same correction pending.
+This repo carried the same wording; corrected here in the CWE-287 sweep, along with the two
+conditions on the decoy `matches()` and the 7.0 constructor removal.
 
 ### 4. `docs/CWE-287/php/index.md:134,141,212` - `session_regenerate_id(true)` is prescribed against the manual's own guidance
 
@@ -131,7 +132,8 @@ Source: <https://www.php.net/manual/en/function.session-regenerate-id.php>
 Not a claim that `true` is wrong - the manual documents a real trade-off and the page's stated
 reason for it is accurate. But the manual's recommended shape is regenerate-without-delete plus a
 destroy timestamp, and the pitfall as written tells a reader the opposite is simply an error. Worth
-at least acknowledging the trade-off. This repo carried the same unconditional instruction.
+at least acknowledging the trade-off. This repo carried the same unconditional instruction and now
+carries the trade-off instead.
 
 ### 5. `docs/CWE-287/python/index.md:104` - `User()` should be the configured user model
 
@@ -148,7 +150,10 @@ against the wrong model, and the surrounding code will already be using `get_use
 
 The rest of that paragraph is more careful than this repo's counterpart: it scopes the measurement
 to Django 6.1, which is the release where `check_password_with_timing_attack_mitigation()` exists at
-all. This repo's version cited the function without the version and has the correction pending.
+all. Confirmed since: the function is present in `stable/6.1.x` and absent from `stable/6.0.x`, and
+earlier releases equalise the branches inline instead, so an entry naming the function without the
+version describes a mechanism most projects do not have. This repo's version cited it without the
+version; both that and the `User()` model are now corrected here.
 
 ---
 
