@@ -10,6 +10,11 @@ its `docs/` parent. The comparison runs both ways and most of what it surfaces i
 CWE-88, CWE-113 and CWE-91 findings raised in batches 5-8 have all been actioned and taken
 out.
 
+**Findings 6-8 come from re-running batch 10 against CWE-287.** All three are defects both
+corpora carried, found by tracing to source rather than by comparing the two, and all three
+are now fixed on this side. They are the reason the reconciliation runs both ways: a shared
+defect is invisible to a comparison.
+
 **Before acting on any of it, re-verify.** Floors move, APIs change, and some items are
 older than the pass that recorded them; provenance caveats are noted in place.
 
@@ -154,6 +159,160 @@ all. Confirmed since: the function is present in `stable/6.1.x` and absent from 
 earlier releases equalise the branches inline instead, so an entry naming the function without the
 version describes a mechanism most projects do not have. This repo's version cited it without the
 version; both that and the `User()` model are now corrected here.
+
+One more line on that page, unrelated to the model: at 104, "`django.contrib.auth.backends.ModelBackend`
+already does this through `check_password_with_timing_attack_mitigation()`" is unscoped, while the
+*measurement* two sentences earlier is scoped to 6.1. The function is 6.1+ only - present in
+`stable/6.1.x`, absent from `stable/6.0.x` - and earlier releases equalise the branches inline in
+`ModelBackend.authenticate` instead. The conclusion (stock backend, false positive) holds on every
+release; only the named mechanism does not.
+
+### 6. `docs/CWE-287/go/index.md:215,229` - `store.New` does not discard a planted session cookie
+
+The strongest item in this batch, because it is a worked example with a comment telling the reader
+what it does. At 215-216:
+
+> ```go
+> // Start a brand-new session rather than reusing any pre-login session cookie
+> session, _ := store.New(r, "session")
+> ```
+
+and the prose at 229:
+
+> `store.New` (rather than `store.Get`) issues a fresh session rather than reusing whatever session
+> cookie the request already carried, which is the defense against session fixation: an attacker who
+> set a known session ID on the victim's browser before login gets a discarded session, not an
+> authenticated one.
+
+`gorilla/sessions` does not do this. `CookieStore.New` reads the request cookie, decodes it into
+`session.Values` and sets `IsNew = false` when the decode succeeds - the same as `Get`. Its own doc
+comment gives the only difference:
+
+> "The difference between New() and Get() is that calling New() twice will decode the session data
+> twice, while Get() registers and reuses the same decoded session after the first call."
+
+Source: https://raw.githubusercontent.com/gorilla/sessions/main/store.go (`CookieStore.New`,
+`FilesystemStore.New`, `CookieStore.Get`)
+
+`FilesystemStore.New` behaves the same way, additionally calling `s.load(session)` off the decoded
+ID. So the example promotes the planted session rather than discarding it, and the reader has a
+comment telling them the fixation defense is in place.
+
+What the library actually supports: `FilesystemStore.Save` mints a new random ID only when
+`session.ID == ""`, and erases the stored record when `Options.MaxAge <= 0` - so rotation is erase
+the old record, then save a session whose `ID` is empty. With `CookieStore` there is no server-side
+identifier at all, so the equivalent is replacing `session.Values` wholesale rather than adding the
+authenticated user to values decoded from the planted cookie. Worth stating that this is application
+code that will not arrive upstream: `gorilla/sessions` last released v1.4.0 in August 2024, and
+issue #235, which asked for identifier regeneration, was closed unfixed.
+
+This repo carried the same claim and it is now corrected here.
+
+### 7. `docs/CWE-287/php/index.md:175` - Laravel closes the login timing channel itself
+
+Claim, verbatim:
+
+> `Auth::attempt()` does not close the enumeration timing channel, and it is worth knowing that
+> before treating it as the whole fix. `SessionGuard::hasValidCredentials()` is
+> `! is_null($user) && $this->provider->validateCredentials($user, $credentials)`, so when the user
+> provider finds no matching record the hasher is never reached and the request is answered without
+> paying for a verification
+
+The quoted line of `hasValidCredentials()` is exact and the short-circuit is real. What the
+paragraph misses is that the short-circuit happens *inside* a timebox. `SessionGuard::attempt()` is:
+
+> ```php
+> return $this->timebox->call(function ($timebox) use ($credentials, $remember) {
+>     ...
+>     if ($this->hasValidCredentials($user, $credentials)) { ... $timebox->returnEarly(); return true; }
+>     $this->fireFailedEvent($user, $credentials);
+>     return false;
+> }, $this->timeboxDuration);
+> ```
+
+with `int $timeboxDuration = 200000` on the constructor. `Timebox::call` sleeps the remainder unless
+`returnEarly()` was called, and `returnEarly()` is on the success path only - so every failing path,
+no-such-user included, is padded to 200 ms.
+
+Source: https://raw.githubusercontent.com/laravel/framework/master/src/Illuminate/Auth/SessionGuard.php
+
+History, because the page's advice was right once: the Timebox was added around
+`hasValidCredentials()` in **9.32.0** for CVE-2022-40482, and moved out to wrap `attempt()` entirely
+- covering the `retrieveByCredentials()` lookup too - in **12.14.0** (2025-05-13, PR #55701) and
+**11.45.0** (backported, PR #55705). Below 9.32.0 the paragraph is correct as written.
+
+The actionable consequence is the sentence after it: the page tells the reader to add
+`Hash::check($password, DUMMY_HASH)` on the `getLastAttempted() === null` branch. On any supported
+Laravel that is a second verification inside an already-padded call - it does not reopen the channel,
+but it is work added to close something already closed, and it leaves the reader believing the
+framework is weaker than it is. This repo carried the same instruction and it is now corrected here.
+
+### 8. `docs/CWE-287/javascript/index.md:129,146` - the manual `regenerate()` wrapper, and its stated reason
+
+The secure example wraps `req.login()` in `req.session.regenerate()`:
+
+> ```javascript
+> // SECURE - session.regenerate() issues a new session ID before storing the login
+> req.session.regenerate((err) => {
+>   if (err) return next(err);
+>   req.login(user, (err) => { ... });
+> });
+> ```
+
+and explains at 146:
+
+> Calling `regenerate()` before `req.login()` ensures the new session, not the old one, is the one
+> Passport actually populates.
+
+Passport has done this itself since **0.6.0** (2022-05-20), which fixed CVE-2022-25896 /
+GHSA-v923-w3x8-wh69. `SessionManager.logIn` calls `req.session.regenerate()` and serializes the user
+inside that callback:
+
+> ```javascript
+> // regenerate the session, which is good practice to help
+> // guard against forms of session fixation
+> req.session.regenerate(function(err) {
+>   ...
+>   self._serializeUser(user, req, function(err, obj) {
+>     if (options.keepSessionInfo) { merge(req.session, prevSession); }
+>     ...
+> ```
+
+Source: https://raw.githubusercontent.com/jaredhanson/passport/master/lib/sessionmanager.js
+
+So on 0.6.0+ the example regenerates twice, and the stated reason is no longer why it works -
+Passport populates the session it regenerated itself, whether or not the caller regenerated first.
+Passport's own login example is a bare `req.login(...)`.
+
+Two things the page could carry instead of the wrapper, both of which bite in real code:
+
+- `{ keepSessionInfo: true }`, added in the same release. Regeneration drops everything already in
+  the session, so a flash message, a CSRF token or a `returnTo` path written before login is lost
+  unless this is passed. A reader following the current example loses that state with no indication
+  why.
+- The session store must implement `regenerate`. `cookie-session` does not, which surfaces as
+  `req.session.regenerate is not a function` (passport issues #907, #939, #965).
+
+The wrapper is still required on 0.5.x and earlier, so this wants a version qualifier rather than
+deletion. This repo carried the same instruction and it is now corrected here.
+
+### 9. Two version qualifiers, offered rather than reported
+
+Neither is a defect; both are cases where a correct sentence has stopped naming the thing a reader
+should search for.
+
+- `docs/CWE-287/java/index.md:63` describes the unsigned `parse()`/`parseClaimsJwt()` methods
+  accurately. From jjwt **0.12** those paths reject an `alg: none` token by default -
+  `DefaultJwtParser` carries "Unsecured JWSs (those with an alg header value of 'none') are
+  disallowed by default as mandated by RFC 7518 3.6. If you wish to allow them to be parsed, call
+  the JwtParserBuilder.unsecured() method" - so on a current version the finding to look for is that
+  opt-in, not the method choice. Both methods are deprecated since 0.12, not removed.
+- `docs/CWE-287/csharp/index.md` names `TokenValidationParameters` throughout but never the handler
+  split. From .NET 8 the bearer handler validates with `JsonWebTokenHandler` from
+  `Microsoft.IdentityModel.JsonWebTokens`, selected through `JwtBearerOptions.TokenHandlers`, and
+  `TokenValidatedContext.SecurityToken` is a `JsonWebToken` - so code casting it to
+  `JwtSecurityToken` compiles and fails at run time. Advisory floor for those packages:
+  CVE-2024-21319, fixed in 7.1.2 / 6.34.0 / 5.7.0.
 
 ---
 

@@ -480,7 +480,14 @@ reconciliation: half of batch 10 had nothing to reconcile against.
   traced to a primary source.
 - On *operational detail* - what a fix fails to cover, what a test actually proves, which precondition
   a defence needs - `docs/` is usually ahead, because compression dropped it. This is where the
-  restoration pass in commit d97d283 came from.
+  restoration pass in commit d97d283 came from. Confirmed again in the CWE-287 re-run:
+  `docs/CWE-287/python:220` states the `PASSWORD_HASHERS` rule correctly - "Django hashes with the
+  first entry and can verify against the rest, so a legacy hasher left at the top keeps producing
+  weak hashes for every new password" - where this repo had compressed it to "strongest hasher
+  first", which would flag Django's shipped default. The right version was in the parent all along.
+- A third case the split does not cover: a defect **both** corpora carry, which no comparison can
+  find. The CWE-287 re-run produced three (`store.New`, Laravel's Timebox, the Passport wrapper),
+  all traced to source. Reconciliation catches divergence; only the vendor pass catches agreement.
 
 **What the reconciliation caught that the vendor pass missed** (all fixed, commit fc9bce0):
 
