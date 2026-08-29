@@ -44,7 +44,7 @@ Remaining, in rank order:
 | 19 | CWE-918 SSRF | yes | 6 | **Reviewed.** Stronger than the note implied. One gap: `python` - see below |
 | 20 | CWE-119 Buffer bounds | yes | 0 | **Reviewed.** Read/write split to 125/787 is complete; now also names 121 for a stack buffer |
 | 21 | CWE-476 NULL Pointer Dereference | yes | 3 | **Done.** Root reviewed; `c`, `cpp` and `java` entries authored |
-| 22 | CWE-798 Hard-coded Credentials | yes | 6 | **Reviewed.** Root and five language entries condensed - see below |
+| 22 | CWE-798 Hard-coded Credentials | yes | 6 | **Superseded by batch 12.** This pass condensed the entries; the evidence pass found all six defective and the root missing half the CWE. Third time a plausibility read passed a family the evidence pass then failed, after ranks 18 and 25 |
 | 23 | CWE-190 Integer Overflow | yes | 5 | **Done.** Root and `java` reviewed; `csharp` and `go` entries authored |
 | 24 | CWE-400 Uncontrolled Resource Consumption | yes | 0 | **Done.** Root authored; routes to CWE-1333 and CWE-674 where the finding names a mechanism |
 | 25 | CWE-306 Missing Authentication | yes | 6 | **Superseded by batch 11.** This pass read the root as strong and left the language entries alone. The evidence pass found all six defective. Same lesson as CWE-863 at rank 18 |
@@ -362,12 +362,13 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 9 - CWE-862, CWE-863 (12 entries, plus both roots). All 12 defective.
 - Batch 10 - CWE-287 (6 entries). All 6 defective. Evidence re-gathered from scratch and applied.
 - Batch 11 - CWE-306 (6 entries). All 6 defective. Started cold, as the lost batch-10 evidence required.
+- Batch 12 - CWE-798 (6 entries) and CWE-522 (5 entries), plus both roots. All 11 defective.
 
-**Running count: 110 of 287 language files reviewed, 110 carried at least one defect.**
+**Running count: 126 of 287 language files reviewed, 126 carried at least one defect.**
 
-The rate has not moved across eleven batches, the whole injection family, and now the authz pair,
-CWE-287 and CWE-306. Treat every unreviewed language entry as suspect rather than sampling further
-to confirm it.
+The rate has not moved across twelve batches, the whole injection family, the authz pair, CWE-287,
+CWE-306 and now the credential pair. Treat every unreviewed language entry as suspect rather than
+sampling further to confirm it.
 
 **Batch 10 was re-run rather than trusted.** Its first pass gathered evidence for CWE-287 and
 CWE-306 but committed none of it, leaving the findings only in a session transcript that was gone by
@@ -412,6 +413,17 @@ skip it only when it is genuinely vendor-neutral prose.
   concrete form of the root files' "reject rather than strip" principle.
 - *A named library that has stopped.* `bleach` ended maintenance in June 2026 with an open advisory
   that can never be fixed. "Use a sanitization library" needs the library checked, not just named.
+- *An offered fix that breaks the application.* Worse than a no-op and new in batch 12. `cwe/522/php`
+  said to add `Deny from all` to `.htaccess` for `.env`. That is Apache 2.2 syntax, provided in 2.4
+  only by `mod_access_compat` (Status: Deprecated, and documented as taking precedence over the
+  modern directives when mixed), and `Deny` has no filename scoping of its own - written bare in an
+  `.htaccess` it denies the whole directory. Ask not only whether the prescribed edit works, but what
+  it does when applied literally to a real tree.
+- *A shared constant whose handling differs per ecosystem.* bcrypt's 72-byte ceiling is one fact with
+  five behaviours: PHP truncates silently and documents it; Spring throws on encode and skips the
+  check on match; Python's `bcrypt` 5.0 turned truncation into a `ValueError`; `bcryptjs` does not
+  check but ships `truncates()`; `BCrypt.Net-Next` neither enforces nor documents it. A single
+  sentence written once and copied across a family will be wrong in most of them.
 - *An offered fix that is a no-op.* CWE-287/go told the model to take the session with
   `gorilla/sessions` `store.New` rather than `store.Get` so a planted cookie is "discarded instead of
   promoted". `New` decodes the request cookie and sets `IsNew = false` exactly as `Get` does; the doc
@@ -525,9 +537,25 @@ Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then re
 (fc9bce0) and restoration (d97d283). Batches 5-8 completed the injection family (705c76a, 19089d8,
 f4cfab2, 4ed535e); batch 9 did CWE-862/863 and the authn/authz doctrine (7c73974).
 
-**CWE-287 and CWE-306 are done and committed** (batch 10; batch 11 as 79ee709, cf6140d, 083bb0c).
-Next is **batch 12: CWE-522 and CWE-798**, then a full evidence pass over CWE-285 and CWE-566, which
-batch 9 touched only for the three cross-cutting items below.
+**CWE-287, CWE-306, CWE-798 and CWE-522 are done and committed** (batch 10; batch 11 as 79ee709,
+cf6140d, 083bb0c; batch 12 as 48e46cc, bcb5cef, aaae74a, 709109c). Next is **batch 13: a full
+evidence pass over CWE-285 and CWE-566**, which batch 9 touched only for the three cross-cutting
+items below.
+
+**What batch 12 changed about the method.** The credential pair were the thinnest entries the sweep
+has read - 246 to 472 words against a ~800 guideline - and the finding rate held at 11 of 11 anyway.
+Thin entries fail differently: almost every defect was an *absence* (no version floor, no named
+package, no framework-native mechanism) rather than a false statement, so the rewrites were near
+total rather than surgical. Brief a thin family by asking what the entry does not say.
+
+Two further notes. First, **the docs/ yield varies by CWE in a way worth checking before planning
+step 5**: `docs/CWE-798/*` carry Common Pitfalls sections and produced six findings including the
+one that reshaped the root, while `docs/CWE-522/*` are worked-example pages with no Common Pitfalls
+at all and produced almost nothing at the language tier - the value was entirely in its root. Look
+at the section headings before budgeting time for the comparison. Second, batch 12 produced **no
+`DOCS_UPDATE.md` entries**: every divergence ran the other way. One candidate was checked and
+dropped rather than filed, since its enclosing sentence was accurate; that file's own ratio of two
+withdrawn false positives to three confirmed defects is the reason not to file a weak one.
 
 **Batch 11 landed in three commits rather than one**, because the session limit killed two of the
 six evidence agents mid-run. The four that returned were judged, patched and committed before the
@@ -568,6 +596,12 @@ hasher at all. That paid for the version floors: the CWE-287 files went from 613
 at 496-618 words, so each had 180-300 words of headroom and nothing had to come out; they landed at
 716-789. The constraint is per-CWE, not a property of the sweep - measure the entries before
 planning a trade. It will bind again wherever a family already sits near 800.
+
+**Batch 12 confirmed both halves of that.** CWE-798 and CWE-522 started at 246-472 words, the widest
+headroom yet, and all eleven landed between 692 and 798. But `cwe/522/javascript` reached 823 with
+the step-5 additions and had to be trimmed back, so the ceiling is real and does bind once a family
+is rich in named APIs, floors and per-ecosystem divergences. Measure after step 5, not just after
+the vendor pass - reconciliation adds words too.
 
 ### Batch 9 - what it changed about the method
 
@@ -732,6 +766,13 @@ Top 25 and none previously recorded:
   legacy password registration would now refuse. And PHP's `session.use_strict_mode` is **off by
   default**, so until it is set PHP adopts any session id the client presents, meaning an attacker can
   fix the session a validated value is then written into.
+
+- **CWE-522 covers no JWT secret strength or token lifetime.** Surfaced by batch 12's step-5
+  reconciliation: `docs/CWE-522` carries "Weak JWT Secrets and Long-Lived Tokens" in its root and an
+  "Insecure JWT Implementation" section in its java, javascript and python pages, where none of our
+  five CWE-522 entries mentions either. A brute-forceable signing secret is squarely an
+  insufficiently protected credential. Whether it belongs in 522 or routes to CWE-326/CWE-330 is the
+  first question to settle, since 522 already routes password hashing elsewhere.
 
 None is a defect in existing guidance; they are absences. Recorded here rather than fixed, since
 adding entries is authoring work and a separate decision.
