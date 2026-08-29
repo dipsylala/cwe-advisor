@@ -360,8 +360,9 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 7 - CWE-93, CWE-113 (9 entries, plus the CWE-113 root). All 9 defective.
 - Batch 8 - CWE-80 (6 entries). All 6 defective.
 - Batch 9 - CWE-862, CWE-863 (12 entries, plus both roots). All 12 defective.
+- Batch 10 - CWE-287, CWE-306 (12 entries). All 12 defective. **Evidence complete; patches pending.**
 
-**Running count: 98 of 287 language files reviewed, 98 carried at least one defect.**
+**Running count: 110 of 287 language files reviewed, 110 carried at least one defect.**
 
 The rate has not moved across nine batches, the whole injection family, and now the first
 authz pair. Treat every
@@ -403,6 +404,37 @@ skip it only when it is genuinely vendor-neutral prose.
 - *A named library that has stopped.* `bleach` ended maintenance in June 2026 with an open advisory
   that can never be fixed. "Use a sanitization library" needs the library checked, not just named.
 
+### Batch 10's defect families - the entry frozen at a prior release
+
+CWE-287 and CWE-306 were the strongest entries the sweep has read: several traps came back clean and
+306/csharp had six of eight confirmed outright. They still hit 12 of 12, but the defects were almost
+all *time* rather than error. Three sub-shapes, worth briefing every future batch on:
+
+- **The library absorbed the fix.** `gorilla/sessions` `store.New` (which does not discard a planted
+  cookie - `CookieStore.New` decodes it and sets `IsNew = false`); Laravel's `Timebox`, which pads
+  every failed `Auth::attempt()` to 200 ms so the timing channel the entry describes is already
+  closed; Passport 0.6.0, whose `req.login()` regenerates the session internally, making the entry's
+  hand-rolled wrapper a double regeneration.
+- **The API moved.** Swashbuckle's `UseSwagger()` dropped from the .NET 9 template in favour of
+  `MapOpenApi()`; Laravel 11's skeleton; `middleware.ts` renamed `proxy` in Next.js 16.
+- **A behaviour flipped under a correct sentence.** Spring Security 6.0 changed an unmatched
+  `authorizeHttpRequests` rule from abstain to `DENY`, so "a request matching no rule is public" was
+  true when written and is now false. Spring Boot 3.5 made `heapdump` restricted by default, so
+  `include=*` no longer publishes it. Werkzeug 3.0 changed `generate_password_hash` to scrypt,
+  creating by default the hash mismatch that entry warns about. This one is the hardest to catch:
+  the advice stays right while its justification stops being true, so a reread passes it.
+
+**A fourth pattern, now at five instances: the entry lists the vendor's own recommended API as a
+taint sink.** `user.IsInRole()` (in Microsoft's own handler sample), `@login_not_required` (required
+by Django on the login view), `__return_true` (what WordPress core's `_doing_it_wrong` string tells
+you to use for public routes), `PASSWORD_HASHERS` "strongest first" (which would flag Django's
+shipped default), and `@PreAuthorize` on a Jersey resource. All five point the model at correct code.
+
+**Briefing note for the authz batches still ahead:** `docs/CWE-566/java` is where that family's
+operational detail lives - it carries the `@PostAuthorize` write-ordering caveat completely,
+including the transaction-rollback condition, which three sibling pages do not. Check it before
+writing up an authz finding.
+
 ### The docs/ reconciliation step - now mandatory per batch
 
 After batch 4 the swept CWEs were compared against `docs/`, the human-readable parent corpus this
@@ -412,9 +444,13 @@ batch.
 
 `docs/` mirrors the tree as `docs/CWE-{ID}/{language}/index.md`, is gitignored (so it is not versioned
 here and can change underneath us), and is maintained elsewhere by actor/critic review across two model
-families. Language coverage is 1:1 with `cwe/`. Two exceptions: `cwe/400` and `cwe/643` have no `docs/`
-parent at all, because they were authored fresh in this session - they have vendor tracing but never
-went through the two-model review.
+families. **Language coverage is not 1:1, and an earlier version of this note said it was.** Checked
+across all 333 language directories, 28 have no `docs/` counterpart: all six of `cwe/306`, `cwe/328`
+and `cwe/501`; `cwe/476/{c,cpp,java}`; `cwe/643/{csharp,java,python}`; `cwe/190/{csharp,go}`;
+`cwe/382/java`; `cwe/926/android`. The rule is not "two exceptions" but "anything authored here has no
+parent" - each of those was written in this repository rather than derived from `docs/`, so it has
+vendor tracing but never went through the two-model review. Establish coverage before planning a
+reconciliation: half of batch 10 had nothing to reconcile against.
 
 **How to read a disagreement.** Neither corpus wins automatically:
 
@@ -452,11 +488,19 @@ A per-bullet patch is how a corpus starts contradicting itself, and lint cannot 
 
 Batches 1-4 are done and committed (bc14c8d, f4e270a, 39d0b0f, 4118475), then reconciliation
 (fc9bce0) and restoration (d97d283). Batches 5-8 completed the injection family (705c76a, 19089d8,
-f4cfab2, 4ed535e). 86 of 287 language files reviewed; every one carried a defect.
+f4cfab2, 4ed535e); batch 9 did CWE-862/863 and the authn/authz doctrine (7c73974).
 
-**The injection family is done, and CWE-862/863 with it.** Next in authn/authz: CWE-287,
-CWE-306, CWE-522, CWE-798 - and a full evidence pass over CWE-285 and CWE-566, which
-batch 9 touched only for the three cross-cutting items below.
+**Batch 10's evidence is complete and unapplied.** All twelve CWE-287 and CWE-306 findings are
+recorded in the session transcript, not in this file. If that context is gone, re-run the batch
+rather than trusting a summary. After it: CWE-522 and CWE-798, then a full evidence pass over
+CWE-285 and CWE-566, which batch 9 touched only for the three cross-cutting items below.
+
+**Word budget is the live constraint from batch 10 on.** The CWE-287 files sit at 613-744 words
+against CLAUDE.md's ~800 guideline, and batch 10's findings are mostly version floors and advisory
+text, which is verbose. Batch 9 grew each file it touched by 150-250 words. Something has to come
+out to make room; the identified candidate is the unsourced timing figures ("0.003 ms against
+63 ms" and its five siblings), which every batch-10 agent independently returned NO PRIMARY SOURCE
+FOUND for, and which will drift as iteration counts rise.
 
 ### Batch 9 - what it changed about the method
 
@@ -670,8 +714,13 @@ version-claim sweep covered all of them for that one error class only.
   it blocks external entity loading). Eleven checked out: Python 3.14 `\z`, Java 18
   `Runtime.exec(String)`, Go 1.24 `crypto/rand` panic, PHP 8.4 `LIBXML_NO_XXE`, `tarfile` filter
   default from 3.14, `closefrom` in glibc 2.34, XStream 1.4.7/1.4.18, AWS SDK for Java v1 end of
-  support, Node CVE-2016-2216, PHP 5.1.2 `header()`, and the Spring Security `sessionFixation()`
-  default. The `88/java` error was shared with `docs/`, which has since been corrected there.
+  support, Node CVE-2016-2216, and PHP 5.1.2 `header()`. The `88/java` error was shared with `docs/`,
+  which has since been corrected there. **One of the eleven has since failed on re-check:** the Spring
+  Security `sessionFixation()` default was recorded as verified, but the entry attributed
+  `changeSessionId` on Servlet 3.1+ to Spring Security 4. The 3.2.9.RELEASE reference already carries
+  the four-option list with that default; 3.1.7.RELEASE has three options and `migrateSession`. The
+  *behaviour* checked out and the *version* did not - which is the failure mode a claim-by-claim sweep
+  is least likely to catch, since the sentence reads correct.
 - `SKILL.md` hardened on two evidenced defects: Step 5 no longer licenses supplying a library
   version from model recall (the failure mode behind three wrong version claims found this
   session), and Step 4 now treats a non-exploitable trace as a valid outcome in *both* modes -
