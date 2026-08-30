@@ -438,7 +438,34 @@ modern `HttpClient` traffic again - the opposite of what the page currently says
 
 Sources: https://learn.microsoft.com/en-us/dotnet/api/system.net.servicepointmanager.servercertificatevalidationcallback?view=net-10.0
 
-### 14. `docs/CWE-316/csharp/index.md` - `Array.Clear()` prescribed throughout in place of `CryptographicOperations.ZeroMemory()`
+### 15. `docs/CWE-125/cpp/index.md:106` and `docs/CWE-787/cpp/index.md:101` - libc++ hardening mode overstated as `EXTENSIVE` where `fast` already covers the check
+
+Both pages' Testing sections carry the identical sentence:
+
+> Build and test with the standard library's hardened mode, which adds bounds checks to
+> `operator[]` and the other normally-unchecked operations: `-D_GLIBCXX_ASSERTIONS` on
+> libstdc++, `-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE` on libc++ [...]
+
+libc++'s own hardening-modes documentation categorizes the relevant check under `fast`, not
+`extensive`:
+
+> Fast mode] contains a set of security-critical checks that can be done with relatively
+> little overhead in constant time and are intended to be used in production.
+
+with `valid-element-access` - "checks that any attempts to access a container element,
+whether through the container object or through an iterator, are valid and do not attempt
+to go out of bounds" - listed under the `fast` category. Extensive mode's own description
+states it adds "additional checks for undefined behavior that incur relatively little
+overhead but aren't security-critical" on top of fast, not further element-access coverage.
+
+Source: https://libcxx.llvm.org/Hardening.html
+
+**This repo carried the same claim in one of its two files and not the other**, which is how
+the reconciliation caught it: `cwe/125/cpp` already said `fast` (with the reasoning above,
+traced independently), while `cwe/787/cpp` still said `extensive`, matching `docs/`. Fixed
+here to `fast` in both language files during the CWE-125/787/121 sweep batch.
+
+### 16. `docs/CWE-316/csharp/index.md` - `Array.Clear()` prescribed throughout in place of `CryptographicOperations.ZeroMemory()`
 
 The page's Primary Defence line and roughly fifteen worked examples (SecureKeyManager,
 SecretEncryption, ProtectedSecret, SecureCredentialManager, SecureJWTHandler, a BCrypt handler,

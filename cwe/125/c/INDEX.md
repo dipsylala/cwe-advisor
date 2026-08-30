@@ -13,7 +13,7 @@ In C, out-of-bounds reads arise from raw pointer arithmetic and array indexing t
 - Check every array index against the array's known bound (`0 <= index < length`) immediately before the dereference, not in a distant caller
 - Never pass an attacker-supplied or miscalculated size directly to `memcpy()` or `memmove()`; clamp it against both the source's actual available bytes and the destination's capacity first
 - An `sscanf()` field width cannot be clamped at run time: C has no dynamic field width, and `%*s` means suppress assignment rather than take the width from an argument. Write a literal width one smaller than the destination (`%99s` for a `char[100]`), and confirm the source is NUL-terminated inside its own allocation before scanning it
-- Compile with `-fsanitize=address,undefined` in testing and `-D_FORTIFY_SOURCE=3` (with `-O1` or higher) in production builds as defence-in-depth - level 3 adds checks for sizes only known at run time, where level 2 covers only what the compiler can size statically; it needs GCC 12+ or Clang 15+, so fall back to `=2` on older toolchains
+- Compile with `-fsanitize=address,undefined` in testing and `-D_FORTIFY_SOURCE=3` (with `-O1` or higher) in production builds as defence-in-depth - level 3 adds checks for sizes only known at run time, where level 2 covers only what the compiler can size statically; it needs GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+, so fall back to `=2` on older toolchains
 - Guard the size arithmetic itself: `if (count > SIZE_MAX / sizeof(T))` before multiplying, since a wrapped product produces a bound that is smaller than the data it is meant to describe
 
 ## Taint Sinks

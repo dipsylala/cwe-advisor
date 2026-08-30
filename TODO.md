@@ -751,9 +751,32 @@ matching the batch 16a/16b precedent.
 
 **The web hygiene group is complete**: CWE-352, 601, 614, 434, 942, 209, 201 (batches 17a-17c).
 
-Next: the memory/native and resource entries - CWE-125, 787, 121, 415, 416, 823, 824, 401, 362, 367,
-377. Least likely of the remaining groups to be handed to this skill by a web-application scanner,
-per the original batch-9 ordering rationale.
+**Batch 18 opens the memory/native and resource group**, split by user sizing choice rather than run
+as one 36-entry pass: CWE-125, 787, 121, 415, 416, 823, 824 (c/cpp, 14 entries) and CWE-401, 362, 367,
+377 (six languages each, 22 entries). Least likely of the remaining groups to be handed to this skill
+by a web-application scanner, per the original batch-9 ordering rationale.
+
+- Batch 18a - CWE-125, 787, 121 (c and cpp, 6 entries). 4 of 6 defective; `125/cpp` and `121/cpp` were
+  clean. The shared defect: `cwe/125/c` and `cwe/787/c` both said `_FORTIFY_SOURCE=3` needs "Clang
+  15+" - every source found (glibc's own `features.h` gate, the OpenSSF hardening guide, MaskRay's
+  writeup) says Clang 9+, and `docs/CWE-121/c` independently supplied the glibc floor these files
+  omitted entirely (2.35+ with GCC, 2.33+ with Clang), now added to all three. A second instance of
+  batch 9's "seam between two entries" shape, this time inside one language pair rather than one CWE
+  family: `cwe/787/cpp` recommended libc++'s `EXTENSIVE` hardening mode where `cwe/125/cpp` (reviewed
+  in the same batch) already had it right at `FAST`, sourced directly from libc++'s own docs showing
+  `valid-element-access` - the check `operator[]` needs - is a `fast`-category check, and `extensive`
+  adds nothing for it. `docs/CWE-125/cpp` and `docs/CWE-787/cpp` carry the same `EXTENSIVE` defect
+  `cwe/787/cpp` did, filed as `DOCS_UPDATE.md` finding 15. `cwe/121/c`'s `fgets` truncation check
+  ("no trailing newline means over-long, reject") had a real false-positive: a line landing exactly
+  on the buffer's capacity, with only the terminating newline unread, looks identical to the
+  genuinely truncated case. `docs/CWE-121/c` already carries the correct fix - peek the next
+  character with `getchar()` and check for `EOF`/`'\n'` rather than checking `feof()` - which this
+  repo's file didn't have and now does, found only because the reconciliation step compared the two
+  patterns rather than treating "not wrong" as "not improvable." `cwe/121/c` also capped
+  `_FORTIFY_SOURCE` at `=2` with a rationale (`_FORTIFY_SOURCE` "only helps where the size is
+  statically known") that argues for `=2` being sufficient, not for `=3` being wrong to also use -
+  `=3` is a strict superset, so the file's own sibling-inconsistent choice had no technical basis;
+  brought in line with `125/c`/`787/c` at `=3` with `=2` as the toolchain-floor fallback.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
