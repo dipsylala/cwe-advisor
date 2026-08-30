@@ -365,12 +365,13 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 12 - CWE-798 (6 entries) and CWE-522 (5 entries), plus both roots. All 11 defective.
 - Batch 13 - CWE-285 and CWE-566 (8 entries, plus both roots). All 8 defective. Completes the authn/authz group.
 - Batch 14 - CWE-326 (5 entries) and CWE-330 (6 entries), plus both roots. All 11 defective. Opens the crypto and randomness group.
+- Batch 15 - CWE-331 (5 entries) and CWE-338 (6 entries), plus the CWE-331 root (5515d7f). All 11 defective. Most consequential: `cwe/331/java` and `cwe/338/java` both recommended `SecureRandom.getInstanceStrong()` for startup-time key/token generation, which JDK-8240296 already showed hangs when combined with `nextInt()` - this batch found two further production hangs (Apache RANGER-2700, OrientDB #9603) from `nextBytes()` alone, no `nextInt()` involved. The `cwe/331/INDEX.md` root carried the same "use the platform's blocking or entropy-aware source" instinct batch 14 already found wrong for CWE-330, into a second CWE untouched.
 
-**Running count: 145 of 287 language files reviewed, 145 carried at least one defect.**
+**Running count: 156 of 287 language files reviewed, 156 carried at least one defect.**
 
-The rate has not moved across fourteen batches, the whole injection family, the authz pair, CWE-287,
-CWE-306, the credential pair, CWE-285/CWE-566 and now the first of the crypto group. Treat every
-unreviewed language entry as suspect rather than sampling further to confirm it.
+The rate has not moved across fifteen batches, the whole injection family, the authz pair, CWE-287,
+CWE-306, the credential pair, CWE-285/CWE-566 and now the first two CWEs of the crypto group. Treat
+every unreviewed language entry as suspect rather than sampling further to confirm it.
 
 **The `Safe Pattern` retirement is finished.** Six root files still routed the model to a section
 retired across all 307 language files; five were fixed in 2dc5a63 and `cwe/330`'s went with its
@@ -623,26 +624,28 @@ all done and committed (batch 10; batch 11 as 79ee709, cf6140d, 083bb0c; batch 1
 bcb5cef, aaae74a, 709109c; batch 13 as c2630cc, 6e69b63).
 
 **Batch 14 opened the crypto and randomness group** with CWE-326 and CWE-330 (a8d4630, dda4f12,
-90a32f8, 3dd0dbd). Next is **batch 15: CWE-331 and CWE-338**, which must be swept together with
-CWE-330 in view rather than file by file. The three overlap almost completely - 330 is the parent,
-331 is insufficient entropy, 338 is a weak PRNG - and batch 9's lesson was that a defect can live
-in the seam between two entries that are each internally consistent. Three specific obligations
-carry into that batch:
+90a32f8, 3dd0dbd). **Batch 15 covered CWE-331 and CWE-338** (5515d7f), swept together with CWE-330
+in view as planned. All three of the carried-in obligations resolved:
 
-- `cwe/331/java` was corrected by the sampling pass (setSeed "supplements, rather than replaces")
-  while `cwe/330/INDEX.md` went on asserting the opposite for four more batches. Check that 331 and
-  338 now agree with the rewritten 330 root on seeding, on the 128-bit floor, and on what a test
-  can prove.
-- `cwe/331/INDEX.md` and `cwe/338/INDEX.md` both still say to "replace with a properly-seeded
-  CSPRNG" and to use "the platform's blocking or entropy-aware random API where early-boot or
-  low-entropy environments are a concern". Batch 14 established that this is the wrong instinct:
-  `getInstanceStrong()` is what hung in JDK-8240296 and what commons-lang3 reverted in 3.17.0, and
-  since Linux 5.6 drawing bytes depletes nothing. Both roots need that checked.
-- `cwe/331/javascript` and `cwe/338/javascript` cover the same generator ground as the rewritten
-  `cwe/330/javascript`; read all three together before editing either.
+- `cwe/331/java`'s setSeed() framing already matched the corrected `cwe/330/java` (both state the
+  Javadoc's actual hazard: no self-seeding if `setSeed` precedes the first `nextBytes`). `cwe/338/java`
+  needed the same correction, since its Remediation Steps still said to remove seeding blanket-wide.
+- Only `cwe/331/INDEX.md` carried the "platform's blocking or entropy-aware API" instinct -
+  `cwe/338/INDEX.md` did not repeat it, so that obligation was narrower than expected. `cwe/331/INDEX.md`
+  is now corrected in both directions batch 14 established: Linux 5.6 removed the reason to reach for
+  a blocking variant by default, and `cwe/331/java`/`cwe/338/java` both replaced their
+  `getInstanceStrong()`-for-startup advice, backed by two further production hangs found this batch
+  (Apache RANGER-2700, OrientDB #9603) beyond JDK-8240296.
+- `cwe/331/javascript` and `cwe/338/javascript` were read together with the rewritten
+  `cwe/330/javascript`; the async-vs-sync entropy claim in 331 turned out to be a fabricated Node
+  documentation citation, and 338 had a separate, unrelated defect (a self-contradicted entropy
+  floor - 256 bits asserted twice, then "16 bytes" two bullets later).
 
-After 331 and 338: 347, 295, 780, 316. Nothing in the group has been read since the version-claim
-sweep, which covered one error class only.
+Next: **batch 16, CWE-347, 295, 780, 316**. Nothing in that group has been read since the
+version-claim sweep, which covered one error class only. Sweep it with the same family-in-view
+method - 347 (improper signature verification), 295 (certificate validation) and 780 (RSA without
+OAEP) share enough surface (TLS/certificate/signature libraries) that a doctrine seam is plausible
+the way it was for 330/331/338.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
