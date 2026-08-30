@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Open Redirect vulnerabilities occur when an application redirects users to URLs controlled by attackers, enabling phishing attacks and credential theft. Use `Url.IsLocalUrl()` (ASP.NET Core) or `Request.IsUrlLocalToHost()` (ASP.NET MVC 5) to validate that redirect URLs are local before redirecting. These framework methods reject external URLs, protocol-relative URLs, and JavaScript URLs.
+Open Redirect vulnerabilities occur when an application redirects users to URLs controlled by attackers, enabling phishing attacks and credential theft. Use `Url.IsLocalUrl()` (ASP.NET Core) or `Request.IsUrlLocalToHost()` (ASP.NET MVC 5) to validate that redirect URLs are local before redirecting. Both are pure shape checks - a value must start with `/` (not `//` or `/\`) or `~/` - rather than scheme detection, so external URLs, protocol-relative URLs, and backslash-led values all fail the same way a scheme like `javascript:` does: none of them start with an allowed prefix.
 
 ## Key Principles
 
@@ -21,6 +21,6 @@ Open Redirect vulnerabilities occur when an application redirects users to URLs 
 - Identify all redirect operations using `Response.Redirect()`, `RedirectToAction()`, or similar methods
 - Check if redirect URLs come from user input (query parameters, form data, headers)
 - Replace direct redirects with validation using `Url.IsLocalUrl()` or allowlist checks
-- Add null/empty checks before validation to prevent exceptions
+- No null/empty guard is needed around the call - both methods return `false` on a null or empty value rather than throwing
 - Implement fallback redirects to safe defaults (e.g., home page) when validation fails
-- Test with malicious URLs like `//evil.com`, `javascript:alert(1)`, and `http://attacker.com`
+- Test with malicious URLs like `//evil.com`, `/\evil.com`, `javascript:alert(1)`, and `http://attacker.com`

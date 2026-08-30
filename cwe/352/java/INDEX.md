@@ -11,7 +11,7 @@ CSRF vulnerabilities in Java web applications occur when state-changing endpoint
 - Use SameSite cookie attributes to provide defence-in-depth
 - Validate CSRF tokens on the server side for all non-safe HTTP methods
 - Never disable CSRF protection globally without explicit security review
-- Generate the token with `SecureRandom` and compare it with `MessageDigest.isEqual()`, which is constant-time - Spring Security's `CsrfFilter` does both, so the finding is usually a filter that was disabled or a path excluded from it
+- Generation and comparison are different classes: `HttpSessionCsrfTokenRepository` (the default token store) mints each token with `UUID.randomUUID()`, and `CsrfFilter` compares the submitted value against it with `MessageDigest.isEqual()`, which is constant-time - so the finding is usually a filter that was disabled or a path excluded from it, not a weak generator
 - Bind the token to the `HttpSession` and re-issue it when the session is regenerated at login, so a pre-authentication token cannot be replayed
 
 ## Taint Sinks
@@ -22,6 +22,7 @@ CSRF vulnerabilities in Java web applications occur when state-changing endpoint
 
 - Add Spring Security dependency and enable CSRF protection in configuration
 - Include a hidden field named `${_csrf.parameterName}` with value `${_csrf.token}` in all HTML forms; for AJAX send the token in the `X-CSRF-TOKEN` header, or in `X-XSRF-TOKEN` when the app uses `CookieCsrfTokenRepository.withHttpOnlyFalse()`, the repository that lets JavaScript read the cookie in the first place
+- `withHttpOnlyFalse()` alone is not enough for a JavaScript client: the default `XorCsrfTokenRequestAttributeHandler` (Spring Security 6.0+) BREACH-encodes the token server-side, so the plain value JavaScript reads from the cookie will not match it. Pair the cookie repository with `SpaCsrfTokenRequestHandler` (or the `csrf.spa()` shortcut on newer versions) so the value handed to JavaScript and the value validated are the same encoding
 - Configure SameSite=Strict or Lax on session cookies
 - Use POST/PUT/DELETE for state-changing operations (never GET)
 - Ensure Spring Security's CSRF filter is active in the filter chain

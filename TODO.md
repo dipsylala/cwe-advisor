@@ -663,8 +663,40 @@ above for the per-file findings.
 
 **The crypto and randomness group is complete**: CWE-326, 330, 331, 338, 347, 295, 780, 316.
 
-Next: **batch 17, the web hygiene group - CWE-352, 601, 614, 434, 942, 209, 201**. Nothing in that
-group has been read since the version-claim sweep, which covered one error class only.
+**Batch 17 opened the web hygiene group.** 32 language entries across CWE-352, 601, 614, 434, 942,
+209, 201 - split into sub-batches at the established ~9-12 entry size rather than run in one pass,
+matching the batch 16a/16b precedent.
+
+- Batch 17a - CWE-352 (5 entries) and CWE-601 (6 entries), plus the CWE-601 root. 8 of 11 defective;
+  `352/python`, `601/go` and `601/root` were clean - the second and third clean language entries the
+  sweep has found, after `347/csharp` in batch 16a. Most consequential: `601/java`'s own prescribed
+  check was internally broken, not just imprecise - `isAbsolute()`/`getHost()` bucketed a
+  scheme-relative value (`//evil.example`, non-absolute yet has a host) and an opaque URI
+  (`javascript:alert(1)`, absolute yet null host) into the wrong branch each, the exact trap
+  `docs/CWE-601/java`'s Common Pitfalls had already named from the other direction (dropping half
+  the check misclassifies the opaque case as safe) - two independent authoring passes reached the
+  same broken two-variable check from different starting bugs. `601/javascript`'s prescribed fix
+  didn't work at all: `new URL(target)` throws a `TypeError` on any relative input without a `base`
+  argument, which is the common case for a `next=`/`redirect=` parameter - an "edit that breaks the
+  application" in CLAUDE.md's terms. `352/csharp` had `AntiforgeryOptions.HeaderName`'s default
+  backwards (claimed `null`, confirmed `"RequestVerificationToken"` from the aspnetcore source
+  directly, current and back to 2.1) and misattributed the framework's constant-time comparison to
+  `CryptographicOperations.FixedTimeEquals` alone when that call only covers the per-user claim
+  check. `352/java` misattributed token *generation* to `CsrfFilter`/`SecureRandom` when generation
+  is `HttpSessionCsrfTokenRepository.createNewToken()` via `UUID.randomUUID()` - `CsrfFilter` only
+  compares - and was missing `SpaCsrfTokenRequestHandler`, needed alongside
+  `CookieCsrfTokenRepository.withHttpOnlyFalse()` because the default `XorCsrfTokenRequestAttributeHandler`
+  (6.0+) BREACH-encodes the token server-side so it no longer matches the plain cookie value a JS
+  client reads. `601/php` prescribed two "correct API, wrong problem" fixes: `parse_url()` for
+  allowlist validation, against the PHP manual's own caution naming that exact use case as a source
+  of vulnerabilities, and Laravel's `'url'` validation rule, which checks well-formedness and scheme
+  only and passes `https://evil.com` as readily as a same-site link. `docs/` reconciliation (step 5)
+  added two operational-detail items neither corpus had wrong but only `docs/` had at all: PHP's
+  browser-side tab/CR/LF-stripping bypass of a `//`-only check (verified on PHP 8.5.8), and
+  JavaScript's warning against building the trusted redirect origin from `req.headers.host` behind a
+  proxy. No `DOCS_UPDATE.md` finding filed - the `docs/` entries for both CWEs already carried the
+  correct, vetted versions of what this pass fixed rather than sharing the defects.
+- Remaining: CWE-614, 434, 942, 209, 201 (18 entries).
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but

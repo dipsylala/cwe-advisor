@@ -13,9 +13,9 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify requests o
 - Ensure tokens are included in forms via `@Html.AntiForgeryToken()` or auto-generated
 - Validate SameSite cookie attributes are set to `Strict` or `Lax`
 - Never disable CSRF protection for authenticated endpoints
-- Use the framework's `IAntiforgery` service rather than a hand-rolled token: it generates with `RandomNumberGenerator`, compares with `CryptographicOperations.FixedTimeEquals`, and binds the `__RequestVerificationToken` to the authenticated user
-- API endpoints that accept JSON still need the check - a token in a header is the usual form, since a cookie alone is not proof of intent. `AntiforgeryOptions.HeaderName` is `null` by default, so header-based validation rejects every correctly written client until it is set (conventionally to `X-CSRF-TOKEN`) in `AddAntiforgery`
-- `AutoValidateAntiforgeryTokenAttribute` and `[ValidateAntiForgeryToken]` are MVC filters and never run for a minimal API endpoint. Minimal APIs are covered instead by `app.UseAntiforgery()` in the middleware pipeline, placed after authentication and before the endpoints - so an application that moved controller actions to minimal APIs loses its CSRF protection silently unless that call was added
+- Use the framework's `IAntiforgery` service rather than a hand-rolled token: it generates with `RandomNumberGenerator` and binds the `__RequestVerificationToken` to the authenticated user; the per-user claim check compares in constant time with `CryptographicOperations.FixedTimeEquals`, while the primary cookie-vs-request token match uses a separate hand-rolled constant-time comparison internal to the framework
+- API endpoints that accept JSON still need the check - a token in a header is the usual form, since a cookie alone is not proof of intent. `AntiforgeryOptions.HeaderName` already defaults to `RequestVerificationToken` (no leading `X-`), so a client sending that exact header name works with no configuration change; a client sending a different name such as `X-CSRF-TOKEN` fails validation until `HeaderName` is set to match it in `AddAntiforgery`
+- `AutoValidateAntiforgeryTokenAttribute` and `[ValidateAntiForgeryToken]` are MVC filters and never run for a minimal API endpoint. Minimal APIs are covered instead by `app.UseAntiforgery()` in the middleware pipeline, placed after authentication and authorization and before the endpoints - so an application that moved controller actions to minimal APIs loses its CSRF protection silently unless that call was added
 
 ## Taint Sinks
 
@@ -27,5 +27,5 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify requests o
 - Enable automatic validation for MVC with `options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute())`, and add `app.UseAntiforgery()` for any minimal API endpoints, which the filter does not reach
 - Add `@Html.AntiForgeryToken()` to all forms or use Tag Helpers with `method="post"`
 - Apply `[ValidateAntiForgeryToken]` to individual controllers/actions if not using global filters
-- Configure SameSite cookies - `options.Cookie.SameSite = SameSiteMode.Strict`
+- Confirm SameSite on the antiforgery cookie - `CookieBuilder.SameSite` already defaults to `SameSiteMode.Strict`; only relax it to `Lax` if an inbound link, SSO redirect, or OAuth callback needs the cookie present
 - Test protected endpoints reject requests without valid tokens

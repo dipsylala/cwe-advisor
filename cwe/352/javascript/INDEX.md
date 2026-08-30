@@ -26,3 +26,4 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 - Configure client to send token in `x-csrf-token` header (AJAX/fetch) or `_csrf` body field (forms)
 - Set cookie SameSite attribute to `Strict` or `Lax` and verify implementation with security tests
 - Handle CSRF errors gracefully - catch `invalidCsrfTokenError` and return 403
+- For Fastify, the steps above are Express/`csrf-csrf`-specific; register `@fastify/csrf-protection` instead and use its own token-generation and verification hooks per its README - the field/header names differ from `csrf-csrf`'s
