@@ -12,7 +12,8 @@ A pointer with automatic storage that is never explicitly assigned holds an *ind
 - A blanket `= NULL` habit costs something: it silences the compiler's uninitialized-use warning, so a genuinely missing assignment stops being reported and becomes a null-pointer crash at runtime instead of a diagnostic at build time
 - An unchecked `fopen`/`malloc` return is a *different* weakness - the pointer there is initialized, just to NULL; that is a missing return-value check, not this
 - Give struct pointer fields a defined value at allocation (`calloc`, or an explicit initializer) so a partially built object cannot be freed through a garbage field
-- Build with `-Wall -Wextra -Wmaybe-uninitialized` (and `-Werror` in new code) and test under `-fsanitize=memory` or Valgrind, which report the use of the uninitialized value itself rather than only its consequences
+- In a `goto cleanup` epilogue, the guard each variable needs depends on what releases it: `free(NULL)` is defined to do nothing, so `free(buffer)` needs no guard, but `fclose(NULL)` is undefined behaviour, so `fp` still needs `if (fp) fclose(fp);` - treating every cleanup call as free()-safe is the trap
+- Build with `-Wall -Wextra -Wmaybe-uninitialized` (and `-Werror` in new code) at `-O1` or higher - GCC's uninitialized-value analysis runs on the optimizer's dataflow tracking, so at `-O0` it reports almost nothing and a clean `-O0` build says nothing about the code. Test under `-fsanitize=memory` or `valgrind --track-origins=yes`, which report the use of the uninitialized value itself rather than only its consequences; plain Valgrind (without `--track-origins`) stays silent while the value is merely copied around and only flags the eventual use, not where it was created. MemorySanitizer needs every linked library, including libc, built with it too, or an uninstrumented call can hide the read it would otherwise have caught
 
 ## Taint Sinks
 

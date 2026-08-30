@@ -6,14 +6,14 @@ A raw pointer member has the same uninitialized-by-default behaviour as in C: a 
 
 ## Key Principles
 
-- Give every pointer and scalar member a default member initializer (`= nullptr`, or a smart pointer that defaults to null), so `T x;`, `T x{}`, `new T` and `new T()` all produce the same fully-initialized object
+- Give every pointer and scalar member a default member initializer (`= nullptr`, or a smart pointer that defaults to null), so `T x;`, `T x{}`, `new T` and `new T()` all produce the same fully-initialized object. Without one, the equivalence is fragile: adding an empty `Header() {}` to a class that previously had none is the most harmless-looking edit in C++, and it silently turns every `new Header()` at every call site from zero-initializing to leaving the members indeterminate, with no diagnostic anywhere
 - Prefer `std::unique_ptr`/`std::shared_ptr` to a raw owning pointer: a member some future constructor forgets to mention is then null rather than garbage, and the implicit destructor releasing it is a no-op instead of a `delete` of a random address
 - Assign in the member initializer list rather than the constructor body - members are initialized in declaration order before the body runs, so they hold their final values from the first statement, and the class keeps working when a member is `const`, a reference, or has no default constructor
 - Exception safety comes from the member *type*, not from where you assign: with `unique_ptr` members, a throw during the second initialization destroys the first correctly whether you used the list or the body
 - The case where it is not cosmetic is a raw owning pointer: `new` for two raw members leaks the first if the second throws, whether written in the body or the list. The fix there is the member type
 - Beware the window at the top of a constructor body where members are null but `this` is already a valid object that could be handed to a helper
 - Do not add a two-phase `init()` that leaves the object usable before it is complete; construct fully or throw
-- Build with `-Wall -Wextra -Wuninitialized` and test under `-fsanitize=memory` or Valgrind
+- Build with `-Wall -Wextra -Wuninitialized` at `-O1` or higher - this analysis runs on the optimizer's dataflow tracking, so at `-O0` it reports almost nothing - and test under `-fsanitize=memory` or `valgrind --track-origins=yes`, which reports where the value was created rather than only where it was used; plain Valgrind stays silent while it is merely copied around
 
 ## Taint Sinks
 

@@ -7,7 +7,7 @@ Use of out-of-range pointer offset occurs when pointer arithmetic uses an offset
 ## Key Principles
 
 - Validate an offset against the buffer's real size before forming the pointer, not after it has been dereferenced
-- Check both the offset and, where arithmetic could wrap, the resulting pointer value against the buffer's valid range
+- Check the offset arithmetic itself for wraparound before forming the pointer, not the resulting pointer value: once formed, a pointer more than one element past the buffer's end is already undefined behaviour in C and C++, so a comparison written against that pointer can legally be optimised away
 - Prefer bounds-checked containers, spans, or accessor functions that reject an out-of-range offset over raw pointer arithmetic
 - Use strict less-than comparisons against the element count in loop bounds, and consistent unsigned index types checked for wraparound before use
 - Never trust an offset or index taken from user input, file data, or network data without validating it against the actual buffer size

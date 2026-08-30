@@ -10,6 +10,8 @@ Double free is `free()` running twice on the same pointer with no intervening al
 - A `T *` parameter is a copy - nulling it is invisible the moment the function returns, so a release function taking `T *` cannot protect its caller
 - `free(NULL)` is defined as doing nothing (C11 7.22.3.3p2), so a `if (p != NULL)` guard before `free(p)` is noise that implies a check is required when it is not
 - Nulling protects only the variable whose address was passed: a copy stored in a struct field, a callback context, or a second local is still dangling, which is why ownership is the fix and nulling is the mitigation
+- Nulling before free is not a concurrency fix: the load of the pointer and the store of NULL are two separate, non-atomic operations, so another thread or signal handler can still observe the old value between them. Making that safe needs a lock held across the whole teardown, or an atomic exchange to claim the pointer first
+- Where a structure is genuinely reachable from more than one owner, nulling one handle is not enough at all - it needs a reference count, decremented by each release and freed only at zero, or a design where exactly one component holds the data and the others ask it for access
 - A `SAFE_FREE(p)` macro must expand its argument only where a plain lvalue is passed - it evaluates the argument twice, so never call it on an expression with side effects
 - Set the pointer to NULL immediately after the release, in the same statement sequence, not at the end of the function where an early `return` skips it
 - On an error path, release once and jump to a single cleanup label rather than freeing in each branch

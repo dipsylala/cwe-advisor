@@ -13,7 +13,7 @@ Use-after-free is dereferencing a pointer after `free()` has run on it. C tracks
 - A NULL dereference faults at a known address with a stack trace pointing at the use; a use-after-free typically shows no symptom until an unrelated structure misbehaves, so failing fast is a real improvement even though both are bugs
 - After `realloc()`, the old pointer is invalid whether or not the block moved - assign the result to a temporary and overwrite the original only once it is non-NULL. Written as `p = realloc(p, n)` a failed call returns NULL, overwrites the only reference to the still-allocated block, and leaks it
 - Watch for the pointer being freed inside a callee while the caller keeps using it, which is the same defect with the ownership boundary crossed
-- Build tests with `-fsanitize=address`, which reports the use, the free, and the allocation stacks; Valgrind is a useful independent check
+- Build tests with `-fsanitize=address`, which reports the use, the free, and the allocation stacks - but a clean run is not conclusive if the block has already cycled out of ASan's quarantine before the reuse happens; raise `ASAN_OPTIONS=quarantine_size_mb=512` when a suspected bug will not reproduce. Valgrind is a useful independent check
 
 ## Taint Sinks
 

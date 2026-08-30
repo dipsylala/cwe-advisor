@@ -778,6 +778,46 @@ by a web-application scanner, per the original batch-9 ordering rationale.
   `=3` is a strict superset, so the file's own sibling-inconsistent choice had no technical basis;
   brought in line with `125/c`/`787/c` at `=3` with `=2` as the toolchain-floor fallback.
 
+- Batch 18b - CWE-415, 416, 823, 824 (c and cpp, 8 entries), completing the c/cpp memory-native
+  subgroup. Lower defect rate than any prior batch - 2 of 8 clear vendor-fact defects, plus small,
+  cheap corrections and several worthwhile `docs/` operational-detail additions across all eight -
+  consistent with this being the most standard-precise, lowest-API-surface family swept so far
+  (mostly ISO C/C++ clauses and sanitizer flags, not framework defaults). The two defects: a third
+  instance of the `EXTENSIVE`-vs-`fast` libc++ hardening mistake found in batch 18a, this time in
+  `cwe/823/cpp` (confirmed against the same vendor page, `libcxx.llvm.org/Hardening.html`); and
+  `cwe/824/c` recommending `-Wmaybe-uninitialized` with no optimization-level requirement, when
+  GCC's own manual states the analysis needs `-O1`+ to report anything - a build following the
+  bullet as written gets a clean `-O0` run that proves nothing, the same "prescribed check passes
+  against unfixed code" shape CLAUDE.md already tracks. The reconciliation step found something more
+  consequential than either: **the root file `cwe/823/INDEX.md` contradicted its own child file.**
+  Its Key Principles told the model to "check both the offset and... the resulting pointer value
+  against the buffer's valid range" - exactly the anti-pattern `cwe/823/c` and `docs/CWE-823` both
+  warn against, since a pointer more than one element past the end is already undefined behaviour by
+  the time such a comparison runs and the compiler is entitled to delete it. A root file arguing with
+  its own children is the same defect class batch 9 found between sibling *entries*; this is the
+  first instance found between a root and its own child rather than between two files at the same
+  level - worth watching for in future root-inclusive batches. Also fixed on the strength of the
+  reconciliation, all confirmed against a live vendor fetch or the C/C++ standard text directly
+  rather than taken from `docs/` alone: `cwe/824/c` and `cwe/824/cpp` gained `-O1`+/`--track-origins`
+  testing detail and (c only) the `free(NULL)`-safe/`fclose(NULL)`-unsafe asymmetry in a
+  `goto cleanup` epilogue; `cwe/824/cpp` gained the "adding an empty `Header() {}` later silently
+  breaks a previously-zeroing `new T()`" trap; `cwe/415/c` gained that nulling-before-free is not a
+  concurrency fix and that a genuinely multi-owner structure needs reference counting, not nulling;
+  `cwe/415/cpp` gained that a constructor throwing mid-construction leaks (CWE-401) rather than
+  double-frees, and that owning members extend past `new`/`delete` to `FILE*`/custom deleters;
+  `cwe/823/c` gained a `-O2`-not-`-O0` retest note for the pointer-arithmetic guard itself, the
+  `offset == size && length == 0` accept case, and a `_FORTIFY_SOURCE=3` mention it had lacked
+  entirely; `cwe/823/cpp` gained the inverse of the `.at()`/`span` mixup (a redundant guard ahead of
+  `.at()` is dead code) and why ASan alone often misses a `std::vector` off-by-one where the hardened
+  mode catches it (the index still lands inside reserved capacity). No `DOCS_UPDATE.md` findings this
+  batch - every divergence ran in this repo's favor or added detail rather than surfacing a `docs/`
+  defect.
+
+**The c/cpp memory-native subgroup is complete**: CWE-125, 787, 121, 415, 416, 823, 824.
+
+Next: the resource entries - CWE-401, 362, 367, 377 (six languages each, 22 entries) - closing out the
+memory/native and resource group.
+
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
 a hard failure: `.Where()` chained onto a `ValueTask`, a Django sink given a SQLAlchemy expression,

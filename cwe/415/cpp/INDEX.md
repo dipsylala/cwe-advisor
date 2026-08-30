@@ -11,6 +11,8 @@ Double free in C++ is `delete`/`delete[]` (or a `free()` reached from C++ code) 
 - `unique_ptr`'s deleted copy constructor propagates: a class with a `unique_ptr` member is non-copyable by default and its move operations are implicitly generated, which is what makes "released exactly once" structural rather than a convention
 - Do not wrap an already-owning object in another `make_unique` - the allocation that needs managing is already managed, and the extra indirection buys nothing
 - Delete on an error path and again in a destructor is the same defect: give the resource one owner and let the destructor be the only release
+- A constructor that throws part-way through does not produce a double free: only the subobjects already fully constructed are destroyed, and the class's own destructor never runs. A raw `new`-ed member assigned earlier in the same constructor is leaked (CWE-401), not deleted twice - the fix there is closing the leak, not chasing a double free that never happens
+- Owning members are not limited to `new`/`delete`: a `FILE*` closed with `fclose`, or a buffer from a C API released with a custom deleter, has the same single-owner requirement and the same double-release risk if closed on an error path and again in a destructor or `unique_ptr<T, Deleter>`
 - `delete` on a null pointer is defined as a no-op, so nulling after release makes a repeat call harmless, but it protects only the pointer you assign to
 - Build tests with `-fsanitize=address`, which names both release stacks, and prefer `std::make_unique`/`std::make_shared` over bare `new`
 

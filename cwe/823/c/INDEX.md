@@ -12,7 +12,7 @@ This appears as pointer arithmetic (`ptr + offset`, `ptr++`) or array indexing (
 - Keep the size with the pointer: pass `(buffer, size)` together and validate inside the callee rather than trusting a length the caller supplied separately
 - Validate `offset <= size` first and then `length <= size - offset`, in that order, so the subtraction cannot underflow
 - Loop with `for (size_t i = 0; i < count; i++)` - `<=` writes one element past the end of every buffer the function touches
-- Build tests with `-fsanitize=address,undefined`, which reports the out-of-bounds access and the pointer-overflow separately
+- Build tests with `-fsanitize=address,undefined`, which reports the out-of-bounds access and the pointer-overflow separately; also compile and run the check itself at `-O2`, not only `-O0` - a guard written against an already-out-of-range pointer can pass at `-O0` and disappear once the compiler is allowed to exploit the undefined behaviour it depends on
 
 ## Taint Sinks
 
@@ -25,5 +25,5 @@ This appears as pointer arithmetic (`ptr + offset`, `ptr++`) or array indexing (
 - Identify the unsafe pattern - a pointer formed before the offset is checked, a check written on the formed pointer, or a loop bounded with `<=`
 - Replace with the safe pattern - validate the integer offset against the size, then form the pointer, then use it
 - Bind, encode, validate, or authorize - clamp or reject an offset that exceeds the buffer, and pass the size alongside the pointer through every layer
-- Harden configuration - build with `-Wall -Wextra` and test under `-fsanitize=address,undefined`
-- Test - pass offsets of `-1`, `0`, `size - 1`, `size`, and a very large value, and confirm the out-of-range ones are refused rather than clamped silently
+- Harden configuration - build with `-Wall -Wextra -D_FORTIFY_SOURCE=3` at `-O1` or higher (needs GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; fall back to `=2` on older toolchains) and test under `-fsanitize=address,undefined`
+- Test - pass offsets of `-1`, `0`, `size - 1`, `size`, and a very large value, and confirm the out-of-range ones are refused rather than clamped silently; also confirm `offset == size` with a zero length is accepted - that is a legitimate empty read, not a boundary to reject
