@@ -13,7 +13,7 @@ Insecure temporary file creation in Node.js occurs when applications create file
 - Validate and sanitize any user input used in temporary file operations
 - `fs.mkdtemp()` creates a private *directory* atomically, which is the stronger primitive: files created inside it inherit its protection, so a per-run directory removes the per-file race entirely
 - Do not build a name from `Math.random()` or a timestamp - it is guessable, and the guarantee that matters is that the name is generated and the file claimed in one operation
-- Cleanup registered on `process.on('exit')` does not run on `SIGKILL` or `SIGSTOP`, and only runs on `SIGTERM`/`SIGINT` if you install a handler that exits; the `tmp` package's `removeCallback()`/`cleanupSync()` have the same limits, so treat cleanup as best-effort and keep the contents non-sensitive or encrypted
+- Cleanup registered on `process.on('exit')` does not run on `SIGKILL` or `SIGSTOP`, and only runs on `SIGTERM`/`SIGINT` if you install a handler that exits; the `tmp` package's own cleanup is registered on that same `'exit'` event internally, so its `removeCallback()` (returned by `tmp.fileSync()`/`tmp.dirSync()`) and the async form's `cleanupCallback` have the same limits - treat cleanup as best-effort and keep the contents non-sensitive or encrypted; only synchronous work completes inside an `'exit'` handler, so a callback-based `fs.unlink()` never gets its callback there - use `fs.unlinkSync()` if cleanup must run from this event
 - Pass the mode at creation (`0o600`) rather than calling `fs.chmod()` afterwards, which leaves a window at the umask default
 
 ## Taint Sinks

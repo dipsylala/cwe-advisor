@@ -8,7 +8,7 @@ In a Java web application the two ends of this weakness are usually an authoriza
 
 - Perform the check and the action in one transaction, and read the state that the check depends on *inside* that transaction rather than from a cache or session attribute
 - Hold the row: a `@Lock(LockModeType.PESSIMISTIC_WRITE)` repository method (`SELECT ... FOR UPDATE`) makes a concurrent revocation either land before the read or wait until after the commit
-- Where pessimistic locking is too coarse, use optimistic locking with `@Version` and treat `OptimisticLockingFailureException` as a retry, not as a 500
+- Where pessimistic locking is too coarse, use optimistic locking with `@Version`: Spring Data does not surface the raw `jakarta.persistence.OptimisticLockException` from a version conflict - it translates it into `org.springframework.dao.OptimisticLockingFailureException` (typically the subclass `ObjectOptimisticLockingFailureException`) before your code sees it, and the check only runs if the write actually happens inside the transaction, so call `saveAndFlush`, not `save`
 - Prefer a conditional update whose row count reports the outcome (`UPDATE ... WHERE version = :v`) over a read, a decision, and a separate write
 - A `synchronized` block or a `ReentrantLock` guards one JVM only - useless across instances behind a load balancer, and misleading in a test that runs one node
 - For filesystem work, resolve once: use `Files.newByteChannel` with `StandardOpenOption.CREATE_NEW` (which fails if the file exists) and `LinkOption.NOFOLLOW_LINKS` rather than checking `Files.exists()` first

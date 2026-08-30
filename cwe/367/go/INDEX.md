@@ -6,7 +6,7 @@ Go makes concurrency cheap, so shared state is reached from many goroutines by d
 
 ## Key Principles
 
-- Use `atomic.CompareAndSwap*` in a retry loop when the invariant covers a single word: the write lands only if the value is still what the check saw, and a losing goroutine re-reads rather than applying a stale decision. `atomic.Int64` (Go 1.19+) gives the same behaviour without raw pointer arguments
+- Use `atomic.CompareAndSwap*` in a retry loop when the invariant covers a single word: the write lands only if the value is still what the check saw, and a losing goroutine re-reads rather than applying a stale decision. `atomic.Int64` (Go 1.19+) gives the same behaviour without raw pointer arguments; bound the retry loop with a max attempt count or context deadline under heavy contention, since an unbounded CAS retry can starve a goroutine indefinitely
 - Use a `sync.Mutex` when the critical section covers more than one variable - two coordinated CAS operations are not atomic together
 - `sync.Map`'s `LoadOrStore` and `CompareAndSwap` exist precisely so a check and a store are one call; a `Load` followed by a `Store` is not
 - Across processes or instances, neither a mutex nor an atomic helps: push the invariant into the database as a conditional `UPDATE ... WHERE` and use the affected-row count as the result

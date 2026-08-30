@@ -12,8 +12,8 @@ Insecure temporary file creation occurs when applications create files with pred
 - Implement deterministic disposal patterns using `using` statements
 - Validate temporary directory paths before creating files
 - Prefer `Directory.CreateTempSubdirectory()` (.NET 7+), which creates a private directory atomically - on Unix it is created with `0700`, so files placed inside inherit that protection
-- Avoid `Path.GetTempFileName()`: it wraps `GetTempFileNameW`, whose name space is only 65535 values per directory, so it can fail or collide under load and the file is created before you can set an ACL on it
-- Pass the mode at creation with `UnixCreateMode` (.NET 8+) on Unix and an ACL at construction on Windows, rather than calling `SetAccessControl()` after the file exists
+- Avoid `Path.GetTempFileName()`: through .NET 7 (and always on .NET Framework), it can fail with `IOException` after 65535 temp files accumulate in the directory - Microsoft states this cap is gone on every OS from .NET 8 onward - but the file is created before you can set an ACL on it regardless of version
+- Pass the mode at creation with `FileStreamOptions.UnixCreateMode` (.NET 7+) on Unix and an ACL at construction on Windows, rather than calling `SetAccessControl()` after the file exists - without it, `Path.GetRandomFileName()` plus `FileMode.CreateNew` requests the default 0666 on Unix, which umask typically reduces to 0644 (world-readable), weaker than the `GetTempFileName()` pattern being replaced, which goes through `mkstemps` and lands on 0600
 - `File.WriteAllText()` on a temp path creates or truncates whatever is already there - use `FileMode.CreateNew` so a planted file is refused instead
 - Do not derive the name from `new Random()`, which is not a CSPRNG
 
@@ -27,5 +27,5 @@ Insecure temporary file creation occurs when applications create files with pred
 - Add `FileOptions.DeleteOnClose` flag to `FileStream` constructor for automatic deletion
 - Configure `FileSecurity` with ACLs restricting access to current user
 - Wrap file operations in `using` statements to ensure cleanup on exceptions
-- Use `FileOptions.Encrypted` when handling sensitive data in temporary files
+- `FileOptions.Encrypted` is Windows/NTFS-only defense-in-depth: it throws `UnauthorizedAccessException` on any filesystem that doesn't support it, including every non-Windows platform, so guard its use or encrypt the contents at the application level instead
 - Validate `Path.GetTempPath()` output points to expected secure location

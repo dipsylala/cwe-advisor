@@ -864,8 +864,72 @@ by a web-application scanner, per the original batch-9 ordering rationale.
   which per the reconciliation split this repo's vendor-traced evidence wins on, so this repo's
   `401/csharp` was corrected to say both need enabling rather than merely escalating.
 
-Next: the resource entries - CWE-367, 377 (five languages each, 10 entries) - closing out the
-memory/native and resource group.
+- Batch 18d - CWE-367 (c, go, java, javascript, python) and CWE-377 (csharp, go, java, javascript,
+  python), 10 entries, closing out the memory/native and resource group. Both root files
+  (`cwe/367/INDEX.md`, `cwe/377/INDEX.md`) are vendor-neutral prose naming no specific APIs, so they
+  were excluded from the sweep per the established rule. 5 of 10 language entries carried a defect
+  worth a vendor-traced correction; the other 5 (`367/go`, `367/java`, `367/javascript`,
+  `367/python`, `377/java`) held up against direct fact-checking. Most consequential:
+  `cwe/367/c` bundled three `*at()`-family functions under one flag name that only one of them
+  takes - `AT_SYMLINK_NOFOLLOW` is documented for `fstatat` alone; `openat` rejects a symlink via
+  `O_NOFOLLOW` in its ordinary `open()`-style flags argument, and `unlinkat`'s only documented flag
+  is `AT_REMOVEDIR` (unlink already doesn't follow the final symlink, so no flag is needed there) -
+  an instance of the "API named that does not exist for this call" shape, one level more subtle
+  since the flag is real, just not accepted by two of the three functions cited. The same file's
+  `O_NONBLOCK` bullet overstated protection to "a FIFO or device node," where open(2) explicitly
+  states the flag has no effect on block devices or regular files. `cwe/377/javascript` named a
+  `cleanupSync()` method on the `tmp` package that does not exist in the current source or README
+  (confirmed against `raszi/node-tmp` on GitHub and the unpacked `tmp@0.2.3` source) - the real API
+  is `removeCallback()` (returned by the sync `tmp.fileSync()`/`tmp.dirSync()` calls) and the async
+  form's `cleanupCallback`, both of which piggyback on the same `process.on('exit')` event whose
+  limits the same bullet was already describing. `cwe/377/csharp` had two version floors wrong in
+  the same direction - `UnixCreateMode` cited as ".NET 8+" when Microsoft's own API page moniker
+  range starts at net-7.0, and the `GetTempFileNameW` 65535-file cap stated as an unqualified fact
+  when Microsoft's own page says "Starting in .NET 8, the limitation does not exist on any
+  operating system," so the reason given to avoid the API is gone for the versions likeliest to be
+  in use - and gained the `FileOptions.Encrypted` caveat it lacked entirely: the .NET runtime docs
+  confirm it throws `UnauthorizedAccessException` on any filesystem without NTFS-EFS support,
+  which is every non-Windows platform. `cwe/377/go`'s "respects TMPDIR/TEMP/TMP" line flattened
+  `os.TempDir()`'s actual per-OS variable set (Unix: `$TMPDIR` only; Windows: `%TMP%`, `%TEMP%`,
+  `%USERPROFILE%` in that order) into one undifferentiated list that also reversed the Windows
+  TMP/TEMP precedence.
+
+  The `docs/` reconciliation step (step 5) surfaced a cross-language doctrine gap matching CLAUDE.md's
+  "sweep the family, not the file" pattern: `docs/CWE-377` warns in its root, Go, and Java pages that
+  a "create-if-missing" directory call (`os.MkdirAll`, `Files.createDirectories()`) succeeds silently
+  against an attacker-planted existing directory and sets no permissions on it - `cwe/377/python`
+  already carried this warning but `cwe/377/go` and `cwe/377/java` did not, despite `docs/` covering
+  all three identically. Added to both, plus their Taint Sinks lists. Also added from reconciliation:
+  Java's `MultipartFile.transferTo()` deleting-then-recreating its destination (discarding any
+  permissions already set on a securely-created temp file); C#'s Unix permission reversal (without
+  `UnixCreateMode`, the "more secure" `GetRandomFileName()`+`CreateNew` pattern lands on 0666 reduced
+  by umask to 0644, weaker than the `GetTempFileName()` pattern it replaces, which goes through
+  `mkstemps` and lands on 0600); JavaScript's sync-only-completes-in-an-exit-handler limit (a
+  callback-based `fs.unlink()` never gets its callback there); Python's Windows `PermissionError` on
+  `os.unlink()` against an open handle; a `RESOLVE_BENEATH`/`openat2()` (Linux 5.6+) addition to C's
+  `*at()` bullet, closing the case the family alone leaves open when an intermediate component is a
+  symlink; a CAS-loop starvation bound for Go; the Spring Data exception-translation gap for Java
+  (`@Version` conflicts surface as `org.springframework.dao.OptimisticLockingFailureException`, not
+  the raw JPA `OptimisticLockException` the entry named, and the check only runs on `saveAndFlush`,
+  not `save`); a stale-reference half-fix warning for JavaScript; and an `asyncio.Lock`-vs-
+  `threading.Lock` caveat for Python's async path. No factual contradictions between the two corpora
+  were found in either CWE - every divergence ran in `docs/`'s favor (operational detail this repo
+  had compressed away), consistent with the doctrine. No `DOCS_UPDATE.md` findings filed.
+
+**The memory/native and resource group is complete**: CWE-125, 787, 121, 415, 416, 823, 824, 401, 362,
+367, 377. That closes out all four groups named in "the intended order" (authn/authz, crypto/
+randomness, web hygiene, memory/native and resource).
+
+**It does not exhaust the full 287-file scope.** Summing the language-entry count recorded in every
+batch line from 1 through 18d (12+11+10+10+11+9+9+6+12+6+6+11+8+11+11+11+9+11+12+9+6+8+12+10) gives
+**231 of the original 287** in scope when the triage sweep began. **56 language files remain
+unreviewed** against that original count. The "intended order" list (authn/authz, crypto/randomness,
+web hygiene, memory/native and resource) is now fully worked, so the 56 remaining are files that were
+never named in that list at all - the original "79 CWEs" scoping was never fully enumerated in this
+file, only discovered batch by batch. Before picking up further batches, identify the 56 by diffing
+every language directory under `cwe/` against the CWE numbers this file records as swept (batches 1-18d
+plus the pre-sweep Top-25 and coverage-gap authoring), rather than assuming the next unswept family is
+obvious.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but

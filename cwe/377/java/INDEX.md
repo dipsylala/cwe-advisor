@@ -14,10 +14,12 @@ Insecure temporary file creation occurs when applications create files with pred
 - Pass the permissions as a `FileAttribute` at creation - `Files.setPosixFilePermissions()` afterwards leaves a window at the umask default, and it throws `UnsupportedOperationException` on Windows, so guard it by filesystem rather than assuming POSIX
 - `deleteOnExit()` registers cleanup for normal JVM shutdown only and leaks the registration for a long-lived process; prefer a try-with-resources wrapper or an `AutoCloseable` holder that deletes deterministically
 - OpenJDK's temp names come from `SecureRandom`, but the javadoc does not promise it - treat the name as hard to guess rather than as a secret
+- `Files.createDirectories()` on a path meant to be exclusive succeeds silently if the directory already exists (possibly attacker-planted) and sets no permissions on it; use `Files.createDirectory()` (which throws `FileAlreadyExistsException`) or `Files.createTempDirectory()` instead
+- Spring's `MultipartFile.transferTo(File)` deletes the destination file before writing to it, discarding any permissions already applied to a securely-created temp file - open an `OutputStream` on the existing path instead of handing `transferTo()` a pre-created one
 
 ## Taint Sinks
 
-`new File(predictablePath)`, `File.createTempFile()` without POSIX permissions set, `FileWriter` writing to a fixed `/tmp` path
+`new File(predictablePath)`, `File.createTempFile()` without POSIX permissions set, `FileWriter` writing to a fixed `/tmp` path, `Files.createDirectories()` on a path meant to be exclusive
 
 ## Remediation Steps
 

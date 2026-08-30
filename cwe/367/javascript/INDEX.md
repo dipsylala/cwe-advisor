@@ -6,7 +6,7 @@ A single-threaded event loop rules out two lines of synchronous code interleavin
 
 ## Key Principles
 
-- Re-validate immediately before the privileged step rather than reusing a value read before an `await`; the earlier read is a snapshot, not a fact
+- Re-validate immediately before the privileged step rather than reusing a value read before an `await`; the earlier read is a snapshot, not a fact - and act on the freshly re-validated result, not the stale pre-`await` object, since re-validating and then using the old reference anyway is a common half-fix that reads as correct
 - Better still, remove the gap: make the check part of the write with a conditional update (`UPDATE ... WHERE balance >= $1`) or a transaction, and use the affected-row count as the decision
 - Node's `worker_threads` and multi-process deployments (`cluster`, PM2, containers) mean an in-process guard protects nothing; a promise-based mutex helps within one process only
 - Pass an idempotency key to operations that must not repeat, so a retry after a lost race cannot double-apply

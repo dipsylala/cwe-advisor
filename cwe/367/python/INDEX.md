@@ -13,7 +13,7 @@ The GIL protects the interpreter's own structures, not your read-modify-write se
 - Create exclusively with `open(path, 'x')` or `os.open(path, os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)`, and use `tempfile.NamedTemporaryFile`/`mkstemp` rather than composing a name yourself
 - Prefer `try`/`except` over a pre-check (`try: open(...) except FileNotFoundError:`) - the exception reports the state at the moment of the operation, which a prior check cannot
 - `itertools.count()`, `dict.setdefault()` and similar are not a substitute for a transaction; atomicity of a single bytecode does not extend to a sequence
-- Where async code is involved, `await` is a yield point: state read before an `await` may be stale after it, so re-read inside the same transaction
+- Where async code is involved, `await` is a yield point: state read before an `await` may be stale after it, so re-read inside the same transaction; a `threading.Lock` does not protect a coroutine and blocks the entire event loop if contended, so async code needs `asyncio.Lock` or a database-level lock instead
 
 ## Taint Sinks
 

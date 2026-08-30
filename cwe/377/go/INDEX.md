@@ -8,14 +8,15 @@ Insecure temporary files in Go usually come from manually building paths with `f
 
 - Use `os.CreateTemp(dir, pattern)` or `os.MkdirTemp(dir, pattern)` for all temp file/directory creation; never construct temp paths with `fmt.Sprintf` plus `os.Create` or `os.OpenFile`
 - Do not set permissions in a follow-up `os.Chmod` call; `os.CreateTemp` applies 0600 atomically at creation, avoiding the window where a manually created file sits at a broader default mode
-- Pass an empty string as the `dir` argument to use the OS-appropriate temp directory (respects `TMPDIR`/`TEMP`/`TMP`), or an application-owned subdirectory created with `os.MkdirAll(path, 0700)`
+- Pass an empty string as the `dir` argument to use the directory `os.TempDir()` returns - `$TMPDIR` on Unix, falling back to `/tmp`, or `%TMP%`/`%TEMP%`/`%USERPROFILE%` in that order on Windows - or an application-owned subdirectory created with `os.MkdirAll(path, 0700)`
 - Guarantee cleanup with `defer os.Remove(f.Name())` (or `defer os.RemoveAll(dir)` for directories) immediately after the creation check, including in tests via `t.Cleanup`
 - Never derive a second temp file's path by string-manipulating a securely created file's name (e.g., swapping the extension); create each temp file independently through `os.CreateTemp`
 - For highly sensitive contents, encrypt data before writing it to the temp file as defense-in-depth beyond permission restrictions
+- `os.MkdirAll` on a path meant to be private succeeds silently if the directory already exists (possibly attacker-planted), skipping the permission you asked for; use `os.Mkdir` (which fails on an existing path) followed by an `os.Lstat` ownership/mode check, or `os.MkdirTemp` when the name doesn't need to be reused
 
 ## Taint Sinks
 
-`os.Create()`/`os.OpenFile()` with `fmt.Sprintf("/tmp/...")`, manual `filepath.Join(os.TempDir(), ...)`, `os.Chmod()` after creation
+`os.Create()`/`os.OpenFile()` with `fmt.Sprintf("/tmp/...")`, manual `filepath.Join(os.TempDir(), ...)`, `os.Chmod()` after creation, `os.MkdirAll` on a path meant to be exclusive
 
 ## Remediation Steps
 

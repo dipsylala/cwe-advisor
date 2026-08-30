@@ -15,6 +15,7 @@ Insecure temporary file creation occurs when applications create files with pred
 - Where a raw descriptor is needed, `os.open(path, os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)` is the safe primitive: `O_EXCL` refuses an existing name, `O_NOFOLLOW` refuses a planted symlink, and the mode is applied at creation
 - `os.path.exists()` followed by `open()` is the race this weakness is about; `os.makedirs(..., exist_ok=True)` on a shared path has the same problem, since the directory may already exist and belong to someone else
 - `tempfile` names come from `random.Random`, not from a CSPRNG - they are hard to guess and are not a secret
+- On Windows, `os.unlink()` on a path with an open file handle raises `PermissionError: [WinError 32]`; close the handle before removing the path in a `finally` block, or use `delete=True`/a context manager instead
 
 ## Taint Sinks
 

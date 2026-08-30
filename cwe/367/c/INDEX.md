@@ -8,10 +8,11 @@ A filesystem call takes a path, and the kernel resolves that path again on every
 
 - Resolve the path once: `open()` first, then `fstat()`/`fchown()`/`fchmod()` on the descriptor, so every later check refers to the file you actually opened
 - Never use `access()` to decide whether to open something - it checks the real UID's permissions at that instant against a name, which is both the wrong question and a separate lookup
-- Pass `O_NOFOLLOW` so the final component cannot be a symlink, and `O_NONBLOCK` so a FIFO or device node cannot make `open()` itself hang
+- Pass `O_NOFOLLOW` so the final component cannot be a symlink, and `O_NONBLOCK` so a FIFO cannot make `open()` itself hang - the flag has no effect on block devices or regular files, per open(2), so it does not protect those
 - Use `O_CREAT | O_EXCL` with mode `0600` when creating a file, so an attacker-planted name is refused rather than followed or truncated
-- For a path with untrusted directory components, hold a descriptor for the base directory and use the `*at()` family (`openat`, `fstatat`, `unlinkat`) with `AT_SYMLINK_NOFOLLOW`, which resolves relative to that descriptor instead of re-walking the whole path
+- For a path with untrusted directory components, hold a descriptor for the base directory and use the `*at()` family (`openat`, `fstatat`, `unlinkat`), which resolves relative to that descriptor instead of re-walking the whole path: `openat` takes `O_NOFOLLOW` in its flags argument exactly as `open()` does, `fstatat` takes `AT_SYMLINK_NOFOLLOW` to report on the link rather than its target, and `unlinkat` already operates on the link itself with no flag needed for that
 - Check `S_ISREG(st.st_mode)` on the descriptor before reading, so a device node or directory is refused
+- Where the kernel supports it (Linux 5.6+), `openat2()` with `RESOLVE_BENEATH` rejects any path component that would escape the held directory, closing the case the `*at()` family alone leaves open when an intermediate component is itself a symlink
 - Temporary files go through `mkstemp()`/`mkdtemp()`, never `tmpnam()`/`mktemp()`, which return a name that anything can claim before you open it
 - Where the check is about ownership, compare `st.st_uid` from `fstat()` on the open descriptor, not from a `stat()` on the path
 
