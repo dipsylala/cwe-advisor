@@ -10,6 +10,7 @@ Go's `net/http.Cookie` struct sets no security attributes by default, so `http.S
 - Set `HttpOnly: true` alongside `Secure` to block JavaScript access via `document.cookie` (XSS mitigation)
 - Set `SameSite` explicitly (`http.SameSiteStrictMode` or `http.SameSiteLaxMode`) - do not leave it unset and rely on browser defaults
 - Each `http.Cookie` and each session-library `Options` struct is independent - a library like `gorilla/sessions` has its own `Options` that must be configured separately from any handler-level `http.SetCookie` calls
+- `gorilla/sessions`' own `NewCookieStore` default sets `SameSite: http.SameSiteNoneMode` while leaving `Secure` at its zero value `false` - `SameSite=None` without `Secure` is rejected outright by current Chrome and Firefox, so an app that only overrides `Secure` and trusts the rest of the default `Options` gets a cookie the browser silently drops
 - Do not derive `Secure` from `r.TLS != nil` when the app sits behind a reverse proxy - `r.TLS` reflects the proxy-to-app hop, which is often plaintext even when the client used HTTPS
 - Keep `MaxAge` short for session cookies; use a separate, rotated token for "remember me" functionality
 - Leave `Domain` unset unless a subdomain genuinely needs the cookie: setting it widens the cookie to every host under that domain, including one an attacker may control

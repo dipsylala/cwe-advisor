@@ -696,7 +696,31 @@ matching the batch 16a/16b precedent.
   JavaScript's warning against building the trusted redirect origin from `req.headers.host` behind a
   proxy. No `DOCS_UPDATE.md` finding filed - the `docs/` entries for both CWEs already carried the
   correct, vetted versions of what this pass fixed rather than sharing the defects.
-- Remaining: CWE-614, 434, 942, 209, 201 (18 entries).
+- Batch 17b - CWE-614 (6 entries, plus root) and CWE-434 (6 entries, plus root). 8 of 14 defective;
+  `614/root`, `434/root`, `434/go`, `434/javascript` and `434/python` were clean - the largest clean
+  count in one batch so far, and both root files confirmed genuinely vendor-neutral. Most
+  consequential: `434/java` had three separate gaps in the same bullet - `MimeTypes.forName()` throws
+  a checked `MimeTypeException` the one-line call chain didn't account for, `getExtension()` returns
+  an empty string rather than throwing for a type with no known extension (an unguarded caller
+  produces a bare-dot filename), and `Files.probeContentType()`'s "reads the file name, not the
+  bytes" framing is a JDK 9+ fact, not a constant - JDK 8's Linux default chain included a
+  libmagic-backed content detector that JDK-8162624 removed. `614/csharp` had `CookieSecurePolicy.None`
+  backwards - it isn't a forced clear, it's a no-op that leaves an already-`Secure` cookie secure,
+  confirmed against `ResponseCookiesWrapper.ApplyPolicy` source directly - and was missing that
+  `UseCookiePolicy()` must be registered before `UseAuthentication()`/session middleware for the
+  global policy to reach those cookies at all. `614/java`'s "the Servlet `Cookie` class has no
+  SameSite setter" was true once and dated: Jakarta Servlet 6.0 (2022) added
+  `Cookie.setAttribute("SameSite", "Strict")`, and JAX-RS 3.1 added `NewCookie.Builder.sameSite(...)`
+  - both landed the same Jakarta EE 10 wave the entry never mentioned. `614/php` line 9 wrote
+  `secure: true` (JS-style colon) where PHP's `setcookie()` options array requires `'secure' => true`
+  - confirmed against the same file's own line 24, which had it right. `614/python`'s Taint Sinks
+  listed `session.cookie_secure` (lowercase-dotted) as a Django setting; no such setting exists -
+  the real one, `SESSION_COOKIE_SECURE`, was already listed separately in the same line. `docs/`
+  reconciliation independently confirmed every fix rather than surfacing new ones - `docs/CWE-614/java`
+  already documents `setAttribute` and `NewCookie.Builder` at the same version floors, `docs/CWE-614/go`
+  already states the `SameSite=None` without `Secure` rejection, and `docs/CWE-614/php` already uses
+  `'secure' => true` - no `DOCS_UPDATE.md` finding filed.
+- Remaining: CWE-942, 209, 201 (9 entries).
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but

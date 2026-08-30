@@ -13,7 +13,6 @@ PHP uploads arrive via the `$_FILES` superglobal and are typically persisted wit
 - Store uploads outside the document root (`DOCUMENT_ROOT`) whenever possible; serve them back through a script that streams the file, not by direct URL
 - Generate the stored filename server-side, for example with `bin2hex(random_bytes(16))`; never build the storage path from `$_FILES['x']['name']`
 - Enforce `upload_max_filesize`/`post_max_size` in `php.ini` and re-check size in code, since `$_FILES['x']['size']` alone is not sufficient validation
-- `$_FILES['file']['type']` is the client's claim and `$_FILES['file']['name']` is the client's filename - use neither to decide anything; detect the type from the bytes with `finfo`
 - A double extension (`invoice.pdf.php`) is executed by a server configured to run the last one, so validate the *final* extension against an allowlist and store under a server-generated name outside the document root
 
 ## Taint Sinks

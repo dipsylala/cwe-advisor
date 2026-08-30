@@ -17,7 +17,7 @@ Sensitive Cookie Without 'Secure' Flag occurs when cookies containing authentica
 
 ## Taint Sinks
 
-`response.set_cookie()` without `secure=True`, `SESSION_COOKIE_SECURE` left unset/false, `session.cookie_secure` unset in Django settings
+`response.set_cookie()` without `secure=True`, `SESSION_COOKIE_SECURE` and `CSRF_COOKIE_SECURE` left unset/false in Django settings
 
 ## Remediation Steps
 

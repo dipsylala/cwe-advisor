@@ -6,7 +6,7 @@ In PHP, cookies set with `setcookie()` or `session_start()` without the `secure`
 
 ## Key Principles
 
-- Pass `secure: true` in the options array to `setcookie()` (PHP 7.3+ syntax)
+- Pass `'secure' => true` in the options array to `setcookie()` (PHP 7.3+ syntax)
 - Set `session.cookie_secure = 1` in `php.ini` or call `ini_set('session.cookie_secure', '1')` before `session_start()`
 - Combine with `httponly: true` and `samesite: 'Strict'` on every sensitive cookie
 - Never send sensitive cookies (session ID, authentication tokens) over HTTP
@@ -21,7 +21,7 @@ In PHP, cookies set with `setcookie()` or `session_start()` without the `secure`
 ## Remediation Steps
 
 - Find all `setcookie()` calls for session tokens, authentication cookies, and other sensitive values
-- Replace legacy five-parameter form with options array and add `'secure' => true, 'httponly' => true, 'samesite' => 'Strict'`
+- Replace a positional call that omits `secure`/`httponly` with the options-array form and add `'secure' => true, 'httponly' => true, 'samesite' => 'Strict'` - the positional form has always accepted up to seven arguments including `secure` and `httponly`, so a vulnerable call site is one that leaves them out, not one using an inherently older signature
 - Add or update `php.ini`: `session.cookie_secure = 1`, `session.cookie_httponly = 1`, `session.cookie_samesite = Strict`
 - Alternatively, call `ini_set()` and `session_set_cookie_params()` before `session_start()` if `php.ini` is not configurable
 - Verify HTTPS is enforced at the web server level (redirect HTTP → HTTPS)
