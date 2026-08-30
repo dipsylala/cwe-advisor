@@ -368,12 +368,16 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 15 - CWE-331 (5 entries) and CWE-338 (6 entries), plus the CWE-331 root (5515d7f). All 11 defective. Most consequential: `cwe/331/java` and `cwe/338/java` both recommended `SecureRandom.getInstanceStrong()` for startup-time key/token generation, which JDK-8240296 already showed hangs when combined with `nextInt()` - this batch found two further production hangs (Apache RANGER-2700, OrientDB #9603) from `nextBytes()` alone, no `nextInt()` involved. The `cwe/331/INDEX.md` root carried the same "use the platform's blocking or entropy-aware source" instinct batch 14 already found wrong for CWE-330, into a second CWE untouched.
 - Batch 16a - CWE-347 (6 entries) and CWE-295 (5 entries). **10 of 11 defective; `cwe/347/csharp` was clean** - the first language entry in sixteen batches with no defect found, breaking the streak the running count below used to justify treating every unreviewed entry as suspect by default. Most consequential: `cwe/347/javascript` had the crux of its own LLM Guidance backwards - it named 4.2.2 (CVE-2015-9235) as the version where `jsonwebtoken` started auto-inferring `algorithms` from key type, but that fix only added an opt-in option; the auto-inference is GHSA-hjrf-2m68-5959, fixed in 9.0.0, so the entry's own worked example understated which versions are still exploitable by omission alone. `cwe/347/java`'s jjwt `verifyWith()` guidance pinned the key but not the algorithm, reproducing the exact `docs/CWE-347/java` "RS512 verifies against an RS256-only handler" gap this repo's own parent corpus had already closed. `cwe/347/php` recommended "upgrade to v6+" as if it were a dependency bump; the pre-6.0 three-argument `decode()` call is a compile-time-silent, run-time `Error` on 6.0+ because the third parameter was repurposed to an output reference - an "edit that breaks the application" in CLAUDE.md's terms, not a no-op. `cwe/295/javascript` carried an HSTS remediation step that has no relationship to certificate validation (RFC 6797 governs browser upgrade behavior, not server-cert trust) and named no HTTP-client-specific sinks beyond the raw `https` module. `cwe/295/go` conflated "a weak `VerifyPeerCertificate` callback" with "validation is disabled," when Go only skips its own verification when `InsecureSkipVerify` is also set. `cwe/295/python` had the `server_hostname`/`check_hostname` failure direction backwards - omitting `server_hostname` with `check_hostname=True` raises `ValueError` (fails closed), while the true quiet bypass is `check_hostname=False` regardless of `server_hostname`. Also found and fixed one defect in `cwe/295/INDEX.md` (root): `PYTHONHTTPSVERIFY=0` was listed as a live bypass, but it is a Python-2.7-only relic (PEP 493) with no effect on Python 3's `ssl` module. One `docs/` defect filed (`DOCS_UPDATE.md` #13): `docs/CWE-295/csharp` claims `ServicePointManager` is inert against `HttpClient` "confirmed on .NET 10," contradicted by Microsoft's own page stating the .NET 9 remap onto `SocketsHttpHandler.SslOptions`.
 
-**Running count: 167 of 287 language files reviewed, 166 carried at least one defect.**
+- Batch 16b - CWE-780 (5 entries) and CWE-316 (4 entries), plus the CWE-780 root. All 10 defective. **Completes the crypto and randomness group** (326, 330, 331, 338, 347, 295, 780, 316). Two shapes recurred from earlier batches rather than new ones: a version floor absent everywhere (root and all five CWE-780 language files said "minimum 2048-bit RSA" with no date - `docs/` reconciliation supplied NIST SP 800-57 Part 1's 2030 cutoff for 2048-bit/112-bit strength, fixed uniformly), and the framework's-own-recommended-API-as-taint-sink pattern (`cwe/780/go` listed `rsa.SignPKCS1v15`/`VerifyPKCS1v15` as sinks, but CWE-780 is encryption-specific by MITRE's own definition and Go does not deprecate PKCS1v15 *signing* - it is the undeprecated, standard scheme most X.509/TLS uses). New shape: `cwe/780/javascript` had the "state the default" defect backwards from usual - it told the model to add `RSA_PKCS1_OAEP_PADDING` as if fixing an insecure default, when Node's `publicEncrypt`/`privateDecrypt` already default to it; the live default worth fixing is the OAEP hash (`oaepHash` defaults to `'sha1'`). `cwe/316/javascript` asserted "JavaScript strings are immutable in V8, making them persist in memory" with no supporting V8 documentation found, and separately claimed `libsodium-wrappers` provides "automatic memory protection" when it requires an explicit `sodium.memzero()` call and its WASM sandbox has no OS-level `mlock` access. `cwe/316/java` softened a real fact into a hedge - `BCryptPasswordEncoder.matches()` calls `.toString()` on its `CharSequence` argument internally (confirmed from Spring Security's own source), so the entry's "does not guarantee no copy" should have been "does copy." One `docs/` defect filed (`DOCS_UPDATE.md` #14): `docs/CWE-316/csharp` prescribes `Array.Clear()` throughout - including a "why this works" bullet crediting it - where Microsoft documents `CryptographicOperations.ZeroMemory()` as the one built specifically to resist dead-store elimination.
+
+**Running count: 176 of 287 language files reviewed, 176 carried at least one defect.**
 
 The rate held at 100% for fifteen batches (the whole injection family, the authz pair, CWE-287,
-CWE-306, the credential pair, CWE-285/CWE-566, and the first two CWEs of the crypto group) before
-batch 16a's one clean entry. Treat every unreviewed language entry as suspect by default, but
-"every entry in a swept family is defective" is no longer a safe assumption to state as fact.
+CWE-306, the credential pair, CWE-285/CWE-566, and the first two CWEs of the crypto group), broke
+once at batch 16a's `cwe/347/csharp`, then returned to 100% for batch 16b. Treat every unreviewed
+language entry as suspect by default, but "every entry in a swept family is defective" is no
+longer a safe assumption to state as fact - one clean entry in twenty is enough to disprove it as
+a certainty, even though it remains the way to bet.
 
 **The `Safe Pattern` retirement is finished.** Six root files still routed the model to a section
 retired across all 307 language files; five were fixed in 2dc5a63 and `cwe/330`'s went with its
@@ -643,18 +647,24 @@ in view as planned. All three of the carried-in obligations resolved:
   documentation citation, and 338 had a separate, unrelated defect (a self-contradicted entropy
   floor - 256 bits asserted twice, then "16 bytes" two bullets later).
 
-**Batch 16a covered CWE-347 and CWE-295** (11 entries; commit pending). Split from the originally
-planned batch 16 by user sizing choice, to match the ~9-12 entry size of every prior batch rather
-than running all 20 CWE-347/295/780/316 entries in one pass. See the batch 16a entry above for
-findings; no cross-CWE doctrine seam was found between 347 and 295 specifically (the 330/331/338
-seam predicted for the wider group didn't have a 347/295-specific instance - re-check once 780
-and 316 are in view, since RSA-without-OAEP and cert/signature validation share TLS surface).
+**Batch 16a covered CWE-347 and CWE-295** (11 entries; 6c1f1d9, a77b31f, c885971, a745c03). Split
+from the originally planned batch 16 by user sizing choice, to match the ~9-12 entry size of every
+prior batch rather than running all 20 CWE-347/295/780/316 entries in one pass. See the batch 16a
+entry above for findings; no cross-CWE doctrine seam was found between 347 and 295 specifically
+(the 330/331/338 seam predicted for the wider group didn't have a 347/295-specific instance).
 
-Next: **batch 16b, CWE-780, 316**. Nothing in that group has been read since the version-claim
-sweep, which covered one error class only. Sweep it with the same family-in-view method - 780
-(RSA without OAEP) and 316 (cleartext storage in memory) share less surface with 347/295 than
-expected going in, so re-evaluate whether a doctrine seam exists once both are read rather than
-assuming one from the original plan.
+**Batch 16b covered CWE-780 and CWE-316** (10 entries, plus the CWE-780 root; 255b37b, 1dc23f0,
+3d2e9ac), completing the crypto and randomness group. No 780/316-specific doctrine seam materialized
+either - the shared surface the original plan predicted (RSA-without-OAEP and cert/signature
+validation sharing TLS/crypto-library surface) didn't produce a cross-CWE contradiction the way
+330/331/338 did; the recurring shapes instead traced back to the two general defect shapes already
+in CLAUDE.md (absent version floor, framework's-own-API-as-taint-sink). See the batch 16b entry
+above for the per-file findings.
+
+**The crypto and randomness group is complete**: CWE-326, 330, 331, 338, 347, 295, 780, 316.
+
+Next: **batch 17, the web hygiene group - CWE-352, 601, 614, 434, 942, 209, 201**. Nothing in that
+group has been read since the version-claim sweep, which covered one error class only.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
