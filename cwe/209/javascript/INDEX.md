@@ -14,7 +14,7 @@ Error Message Information Leak occurs when JavaScript applications expose sensit
 - Sanitize database errors to remove query details, table names, and schema information
 - Disable debug mode and verbose logging in production deployments
 - `express-validator`'s `errors.array()` includes the submitted `value` for each failed field, so returning it echoes a rejected password back to the caller and into every access log on the way - build the response from field names and your own messages
-- Winston and Pino serialize an `Error`'s `message` and `stack` when it is passed as the log object; decide which transport carries that, and return only a correlation id to the client
+- Pino serializes an `Error`'s `message` and `stack` by default when it is passed as the log object. Winston does not do this automatically - it requires `winston.format.errors({ stack: true })` composed into the format chain (from the separate `logform` package), or a bare `logger.error(err)` logs an empty object. Either way, decide which transport carries the detail, and return only a correlation id to the client
 
 ## Taint Sinks
 
@@ -23,7 +23,7 @@ Error Message Information Leak occurs when JavaScript applications expose sensit
 ## Remediation Steps
 
 - Fix the reported route first - replace its direct error response with a generic message, or forward to the centralized handler via `next(error)`. Centralized middleware only runs for errors that reach it, so a route answering from its own `catch` bypasses it however well it is configured
-- Add environment-based error middleware that checks `NODE_ENV === 'production'` as the systemic control, then check no other route still responds from its own `catch"
+- Add environment-based error middleware that checks `NODE_ENV === 'production'` as the systemic control, then check no other route still responds from its own `catch`
 - Configure logging to capture full errors server-side (Winston, Pino, Bunyan)
 - Remove or disable client-side `console.error()` calls exposing sensitive data
 - Set `NODE_ENV=production` in deployment environments

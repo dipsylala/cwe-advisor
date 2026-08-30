@@ -720,7 +720,40 @@ matching the batch 16a/16b precedent.
   already documents `setAttribute` and `NewCookie.Builder` at the same version floors, `docs/CWE-614/go`
   already states the `SameSite=None` without `Secure` rejection, and `docs/CWE-614/php` already uses
   `'secure' => true` - no `DOCS_UPDATE.md` finding filed.
-- Remaining: CWE-942, 209, 201 (9 entries).
+- Batch 17c - CWE-942 (2 entries, plus root), CWE-209 (4 entries, plus root), CWE-201 (3 entries, plus
+  root). 8 of 9 language entries defective; `201/python` and all three roots were clean. Most
+  consequential: `209/python` had the FastAPI half of a Flask/FastAPI claim backwards - source-traced
+  through `applications.py`/`ExceptionMiddleware` to show FastAPI's default `Exception` handler
+  cannot see a routing-raised `HTTPException` at all (opposite of the file's claim that it does),
+  though `docs/CWE-209/python` (see below) supplied a real, different FastAPI trap in the same
+  area to replace it with - registering the handler on `fastapi.HTTPException` rather than
+  `starlette.exceptions.HTTPException` misses routing errors, since the router raises the parent
+  class. `942/python` had a "check the library version, older releases default to permissive"
+  framing that inverted the actual fact: `flask-cors`'s permissive default is version-independent
+  (present in v1.1 and today alike), while `django-cors-headers`/FastAPI's `CORSMiddleware` have
+  always defaulted restrictive - no version explains either behavior. `209/java` and `201/java`
+  share three defects: both name `server.error.*` properties Spring Boot 4.0 renamed to
+  `spring.web.error.*`; both conflate `BasicErrorController` (handles all `/error` responses,
+  JSON included) with "the whitelabel page" (a separate HTML-only fallback view gated by its own
+  `whitelabel.enabled` property); and both prescribe `include-stacktrace=never`/`include-message=never`
+  as if unconfigured, when both have defaulted to `never` since Spring Boot 2.3. `209/java` additionally
+  named a `web.xml`/`/WEB-INF/error-pages/` pattern absent from any current Spring Boot doc, replaced
+  with the vendor-documented `/error`-resource-directory mechanism. `209/javascript` claimed Winston
+  and Pino both serialize an `Error`'s `message`/`stack` by default; only Pino does - Winston requires
+  explicitly composing `winston.format.errors({ stack: true })` from the separate `logform` package,
+  or `logger.error(err)` logs an empty object. `201/javascript`'s Mongoose `.lean()` bullet conflated
+  "returns a plain object" with "returns every field" - `.lean()` only changes the return type, field
+  selection is entirely the query's own projection. `docs/` reconciliation (step 5) supplied the
+  FastAPI `HTTPException` subclass trap above (measured on FastAPI 0.141.1) and confirmed Actuator's
+  `/env`/`/configprops` masking is key-name-pattern-based, not blanket - a credential under an
+  unexpected key name is returned in full. No `DOCS_UPDATE.md` finding filed; every divergence found
+  ran in this repo's favor or added detail rather than surfacing a `docs/` defect.
+
+**The web hygiene group is complete**: CWE-352, 601, 614, 434, 942, 209, 201 (batches 17a-17c).
+
+Next: the memory/native and resource entries - CWE-125, 787, 121, 415, 416, 823, 824, 401, 362, 367,
+377. Least likely of the remaining groups to be handed to this skill by a web-application scanner,
+per the original batch-9 ordering rationale.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but

@@ -11,7 +11,7 @@ In Flask, Django, and FastAPI, this weakness usually appears as a CORS extension
 - Never manually copy `request.headers.get("Origin")` into `Access-Control-Allow-Origin` without checking it against an allowlist first
 - With `django-cors-headers`, prefer `CORS_ALLOWED_ORIGINS` (exact list) over `CORS_ALLOWED_ORIGIN_REGEXES`; if a regex is required, anchor it and avoid a bare `.*` for the subdomain portion, which also matches path separators and other URL-special characters
 - Restrict allowed methods and headers (`allow_methods`, `allow_headers`, `CORS_ALLOW_METHODS`) to what each API route needs
-- Verify the CORS library version in the project manifest (`requirements.txt`/`pyproject.toml`) supports allowlist-based configuration, since older releases of these packages default to permissive behavior
+- `flask-cors`'s bare `CORS(app)` allows every origin on every route by default, at any version - this is not a legacy behavior a version bump changes, so a Flask app needs an explicit `origins`/`resources` argument regardless of how recent the dependency is. `django-cors-headers` and FastAPI's `CORSMiddleware` are the opposite: both default to allowing nothing (`CORS_ALLOWED_ORIGINS`/`allow_origins` default to an empty list), so a permissive finding there means something was explicitly configured, not a version or default problem
 
 ## Taint Sinks
 

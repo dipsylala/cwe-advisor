@@ -10,10 +10,10 @@ Error Message Information Leak occurs when Java applications expose exception st
 
 - Centralize exception handling with `@ControllerAdvice` or JAX-RS `@Provider` mappers to ensure consistent, generic error responses
 - Return generic messages to clients while logging full exception details server-side with unique error IDs for correlation
-- Disable detailed error responses in production Spring Boot configuration (`server.error.include-stacktrace=never`)
+- `server.error.include-stacktrace` and `server.error.include-message` already default to `never` as of Spring Boot 2.3, so a finding here usually means one was explicitly set to `always`, not that the app needs new configuration. Spring Boot 4.0 renamed the whole prefix to `spring.web.error.*` - check the Boot version before naming either form
 - Sanitize validation errors to avoid exposing internal field names, patterns, or business rules
 - Redact sensitive data (passwords, tokens, PII) from logs using custom layouts or filters
-- Disable or replace Spring Boot's `BasicErrorController` (the whitelabel page) for production rather than relying on the application's own handler to catch everything - an exception thrown outside a controller reaches it
+- `BasicErrorController` and "the whitelabel page" are not the same thing: `BasicErrorController` is the bean that handles `/error` for both JSON (API clients) and HTML (browsers), and only falls back to the whitelabel HTML view when no custom `error` view is registered. Disabling `BasicErrorController` removes the whole `/error` mechanism, including the JSON path API clients rely on - to remove only the HTML fallback, set `whitelabel.enabled=false` on the same property prefix instead. Keep a controller-advice handler as well: an exception thrown outside a controller never reaches it and still lands on `BasicErrorController`
 - Keep the stack trace out of the log *pattern* as well as the response: a `PatternLayoutEncoder` with `%ex` writes the full trace, so decide deliberately which appender carries it and who can read that destination
 
 ## Taint Sinks
@@ -26,5 +26,5 @@ Error Message Information Leak occurs when Java applications expose exception st
 - Implement `@RestControllerAdvice` with `@ExceptionHandler` methods that log full details with UUID error IDs but return generic messages
 - Create custom `ErrorResponse` class with generic message, error ID, and timestamp (no stack traces or internal details)
 - Add JAX-RS exception mappers (`ExceptionMapper<T>`) for REST services to handle exceptions consistently
-- Configure custom error pages in `web.xml` pointing to `/WEB-INF/error-pages/` to prevent direct access
+- For a custom HTML error page, add a file under an `/error` resource directory (e.g. `src/main/resources/public/error/404.html`, or a `5xx` template) rather than a `web.xml` `<error-page>` mapping - Spring Boot's default packaging has no `web.xml` at all, since it runs an embedded servlet container; `web.xml` only applies to the legacy WAR-deployment path
 - Implement log redaction using custom Logback layouts with regex patterns for passwords, tokens, and PII

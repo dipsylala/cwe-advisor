@@ -9,8 +9,8 @@ In Node.js/Express APIs, this weakness usually appears as the `cors` npm package
 - Configure the `cors` package with an `origin` allowlist function rather than a literal `*` or `origin: true` (which reflects the request's `Origin` header, the same as a wildcard)
 - Never set `Access-Control-Allow-Credentials: true` alongside `Access-Control-Allow-Origin: *`; only pair credentials with a specific, validated origin
 - Restrict `methods` and `allowedHeaders` in the `cors` config to what each route actually needs
-- If matching subdomains with a RegExp, anchor the pattern with an escaped literal dot (`/\.example\.com$/`), not an unanchored suffix match that also matches `evilexample.com`
-- Send `Vary: Origin` when setting `Access-Control-Allow-Origin` dynamically, so shared caches do not serve one origin's response to another
+- If matching subdomains with a RegExp, require the escaped literal dot before the domain (`/\.example\.com$/`) - a pattern missing it, or using an unescaped `.` as a wildcard, also matches `evilexample.com`
+- When setting `Access-Control-Allow-Origin` dynamically from hand-written middleware, also send `Vary: Origin` so shared caches do not serve one origin's response to another - the `cors` package already does this automatically for every non-wildcard `origin` configuration, so this only needs manual attention outside it
 - Audit every route for a leftover default `app.use(cors())` alongside a route-specific, correctly configured instance - the default still applies to any route the newer configuration does not cover
 - The preflight `OPTIONS` response is not an authorization decision: a simple request never triggers one, so an endpoint reachable without a preflight has no CORS-based protection at all
 

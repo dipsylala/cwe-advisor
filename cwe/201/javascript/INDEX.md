@@ -11,8 +11,8 @@ CWE-201 occurs when JavaScript/Node.js applications expose sensitive data (passw
 - Implement centralized error handling middleware that returns generic error messages to clients
 - Apply response filtering to remove sensitive fields like passwords, tokens, and internal IDs before sending
 - Log detailed errors server-side only; send sanitized messages to clients
-- An environment variable prefixed `NEXT_PUBLIC_` (Next.js) or `REACT_APP_` (Create React App) is inlined into the client bundle at build time, so a secret named that way is published to every visitor - the prefix is the disclosure, not the deployment
-- Return a mapped view rather than a database document: Mongoose's `.lean()` gives a plain object with every field the schema holds, and `class-transformer` only omits what is not `@Expose()`d when `excludeExtraneousValues` is set
+- An environment variable prefixed `NEXT_PUBLIC_` (Next.js) or `REACT_APP_` (Create React App - now deprecated and unmaintained, but still common in existing codebases) is inlined into the client bundle at build time, so a secret named that way is published to every visitor - the prefix is the disclosure, not the deployment
+- Return a mapped view rather than a database document: Mongoose's `.lean()` only changes the returned value from a Document to a plain object - it does not filter fields itself, so the object still carries whatever the query's own projection included, which by default is every schema field. `class-transformer` only omits what is not `@Expose()`d when `excludeExtraneousValues` is set
 
 ## Taint Sinks
 

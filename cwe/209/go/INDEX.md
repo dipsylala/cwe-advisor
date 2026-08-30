@@ -8,11 +8,11 @@ Go error handling by convention returns `error` values that callers often serial
 
 - Never call `http.Error(w, err.Error(), ...)` or encode a raw `error` into a JSON response; return a fixed generic message instead
 - Log detailed errors server-side with `log/slog` (or an equivalent structured logger) including request context, never the raw error text sent to clients
-- Recover from panics in HTTP handlers with middleware using `defer`/`recover()` so an unhandled panic never reaches the client as a stack trace
+- The stock `net/http` server already recovers from a handler panic itself, closing the connection and logging the stack trace server-side rather than sending it to the client - a panic only reaches the client if custom recovery middleware writes the recovered value into the response, or if it occurs in a goroutine the handler spawned, which `net/http`'s own recovery does not catch and which crashes the whole process instead
 - `fmt.Errorf("...: %w", err)` preserves `errors.Is`/`errors.As` chains but does not sanitize the message - the wrapped error still carries the original text
 - Use custom error types (or error codes) carrying both a safe public message and an internal detail field, so handlers only ever surface the safe field
 - Gate verbose error output behind an explicit development-only flag that defaults to off, never one inferred from an ambient value
-- A `defer`/`recover()` that writes the recovered value into the response publishes the panic message and, with it, internal detail - recover, log with a correlation id, and return a fixed body
+- Custom recovery middleware must not write the recovered value into the response - recover, log with a correlation id, and return a fixed body instead
 - Return an application error code (`NOT_FOUND`) rather than a subsystem one (`DB_ERROR`): the second names your architecture without naming the product, which is still more than the caller needs
 
 ## Taint Sinks
