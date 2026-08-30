@@ -7,7 +7,8 @@ External control of file names or paths occurs when user-supplied input construc
 ## Key Principles
 
 - Always validate user-supplied file paths against an allowed base directory
-- Canonicalize paths using `Path.GetFullPath()` to resolve traversal sequences (`../`, `..\\`)
+- Canonicalize paths using `Path.GetFullPath()` to resolve traversal sequences (`../`, `..\\`) - `GetFullPath()` alone does not confine anything: `Path.GetFullPath(@"C:\Windows\win.ini")` returns that exact path, since a rooted/absolute input needs no traversal sequence at all. Pair it with a containment check against the base directory, never treat canonicalization as sufficient on its own
+- Open an upload with `FileMode.CreateNew`, not `FileMode.Create` - `Create` silently truncates an existing file, so a user-influenced name that collides with `web.config` or another real file overwrites it even after path validation passes
 - Decode and Unicode-normalise input before filtering: use `Uri.UnescapeDataString()` and `string.Normalize(NormalizationForm.FormC)` - overlong UTF-8 or full-width Unicode separators bypass checks on raw strings
 - Use allowlists for file extensions and names when possible
 - Never trust `IFormFile.FileName` or any user-controlled path input directly - store an upload under a server-generated name (`Path.GetRandomFileName()`) and keep the submitted name only as metadata

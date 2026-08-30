@@ -12,7 +12,7 @@ External control of file names or paths occurs when user-supplied input construc
 - Use allowlists for permitted filenames/extensions, never blocklists for dangerous patterns
 - Use framework-provided safe functions like Flask's `send_from_directory()` with `safe_join()`
 - Never directly concatenate user input into file paths without validation - and note that joining is not safer: `os.path.join('/app/data', '/etc/passwd')` and `Path('/app/data') / '/etc/passwd'` both discard the base and return `/etc/passwd`, so an absolute payload needs no traversal sequence at all
-- `secure_filename()` and `Path(name).name` reduce input to a filename, which is one step of an upload path, not a containment check - on POSIX `Path('..').name` returns `'..'`
+- `secure_filename()` and `Path(name).name` reduce input to a filename, which is one step of an upload path, not a containment check - on POSIX `Path('..').name` returns `'..'`, and backslash is not a separator there either, so `Path('..\\..\\etc\\passwd').name` returns the whole string unchanged; reject `\` explicitly alongside `/` rather than relying on `.name` to strip it
 - Prefer `is_relative_to()` (3.9+) or `relative_to()` over `str(path).startswith(str(base_dir))`, which accepts the sibling `/app/uploads2`
 - Containment is not authorization: check that this user may access the selected file before opening it
 

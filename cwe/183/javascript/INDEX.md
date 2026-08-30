@@ -7,11 +7,12 @@ CWE-183 occurs when input validation uses overly permissive patterns that fail t
 ## Key Principles
 
 - Always anchor regex patterns with `^` and `$` to match entire input
-- Prefer native APIs (URL, path) over regex for structured data validation
+- Prefer native APIs (URL, path) over regex for structured data validation, but don't treat a successful `new URL()` parse as proof the input was well-formed: the WHATWG URL parser silently strips leading/trailing whitespace and embedded tab/newline characters and resolves `\` the same as `/`, so `new URL("https://good.com\@evil.com/").href` yields host `evil.com` with `good.com` demoted to userinfo - re-check the parsed `.hostname` against the allowlist, never the original string
 - Use Set-based lookups for discrete allowlists instead of pattern matching
+- `express.static()` and similar file servers derive `Content-Type` from the stored file's final extension, not from any upload-time check - a file that passed extension validation but is stored with a `.html` name still renders as same-origin HTML/script; serve untrusted uploads with a forced `Content-Disposition: attachment` or from a separate origin
 - Enforce strict length limits before validation
 - Validate normalized/canonical forms to prevent bypass techniques
-- Compare with `path.relative()` rather than `BASE_DIR + path.sep` string prefixing, and check the *final* extension rather than whether an allowed one appears anywhere - `evil.php.jpg` and `evil.jpg.php` both contain `.jpg`
+- Compare with `path.relative()` rather than `BASE_DIR + path.sep` string prefixing - but on Windows a target on a different drive is returned unchanged rather than prefixed with `..`, so also reject a result that is itself absolute (`path.isAbsolute()`), not just one starting with `..`. Check the *final* extension rather than whether an allowed one appears anywhere - `evil.jpg.php` still contains `.jpg` but its final extension is `.php`. A final-extension check alone does not close `evil.php.jpg` if the server itself is misconfigured to execute any filename containing `.php` (e.g. an Apache `AddHandler` matching on substring) - that is a server-configuration fix, not an application-validation one
 
 ## Taint Sinks
 

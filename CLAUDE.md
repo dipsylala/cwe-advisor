@@ -173,6 +173,18 @@ defect. Each rule below is a shape that recurred, stated as the check that would
   overhead - when a file recommends a weaker level of a tiered hardening flag, check whether the
   stronger level is a strict superset before treating the weaker one as sufficient, and sweep
   every sibling file for the same flag rather than fixing it once.
+- **A property or env var can be real, security-relevant, and still dead for the scenario the
+  entry describes.** Recurred three times: `94/csharp`'s `CSharpCodeProvider.CompileAssemblyFromSource()`
+  throws unconditionally on .NET Core/5+; `15/java` named `jdk.serialFilter` as a
+  `System.setProperty()` sink when Oracle's own Javadoc for `ObjectInputFilter.Config` states
+  "setting the jdk.serialFilter with System.setProperty does not set the filter" - it is cached at
+  class-init, full stop; `15/javascript` named `NODE_OPTIONS` and `NODE_EXTRA_CA_CERTS` as sinks a
+  request handler could flip at runtime, but Node's own docs state a runtime write to either "has
+  no effect on the current process" - both are parsed once at startup, live only for a child
+  process spawned afterward. A name being real and a mechanism being real does not make a *write
+  from the scenario under discussion* live - check whether the value is read once (into a cached
+  static field, at class-init or process start) or read fresh on every use, and check that against
+  when the attacker-controlled write can actually happen, before naming something a taint sink.
 
 ## Maintenance Workflow
 

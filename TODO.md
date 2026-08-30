@@ -19,7 +19,7 @@ authored directly in this repo (rather than derived from `docs/`) has none.
 
 ## Sweep status
 
-**264 of 301 language files reviewed. 37 remain.** (The population was originally miscounted as
+**274 of 301 language files reviewed. 27 remain.** (The population was originally miscounted as
 287; a full directory diff against every batch's actual commits, not its self-reported count, found
 14 hidden gaps - see batch 19's commit for how. Root files are out of scope by default: they rarely
 carry falsifiable claims, but check before skipping if a root names specific APIs or versions -
@@ -27,8 +27,6 @@ carry falsifiable claims, but check before skipping if a root names specific API
 
 Remaining, grouped for batching at the ~9-12 entry size used throughout:
 
-- Config/allowlist/path-control injection (10): `15/csharp, 15/java, 15/javascript, 15/python,
-  183/java, 183/javascript, 183/python, 73/csharp, 73/java, 73/python`
 - LLM/AI, timing, cert, multi-byte string (11, loosely themed): `1426/javascript, 1426/python,
   1427/javascript, 1427/python, 208/csharp, 208/java, 208/javascript, 208/python, 299/java,
   135/c, 135/php`
@@ -105,12 +103,14 @@ memory/native-and-resource. Batches 19-20 closed gaps the 287-baseline miscount 
 | 20 | Closeout tail: `190/c`, `190/python`, `94/csharp`, `79/python`, `79/perl`, `601/python`, `943/go` | 7 | 6/7 (`79/perl` clean on vendor facts) |
 | 21 | C/C++ numeric-conversion group: `170/c`, `170/cpp`, `195/c`, `195/cpp`, `196/c`, `196/cpp`, `197/c`, `197/cpp`, `197/java`, `1105/c` | 10 | 6/10 (`170/cpp`, `195/c`, `195/cpp`, `197/java` clean on vendor facts) |
 | 22 | C dangerous/obsolete-function and format-string: `242/c`, `243/c`, `364/c`, `479/c`, `477/c`, `477/python`, `676/c`, `676/python`, `134/c`, `134/java`, `134/python` | 11 | 6/11 (`243/c`, `477/python`, `676/python`, `134/java`, `134/python` clean on vendor facts) |
+| 23 | Config/allowlist/path-control injection: `15/csharp`, `15/java`, `15/javascript`, `15/python`, `183/java`, `183/javascript`, `183/python`, `73/csharp`, `73/java`, `73/python` | 10 | 8/10 (`73/csharp`, `73/python` clean on vendor facts) |
 
 Clean-language-file count so far: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
 `434/python`, `201/python`, `125/cpp`, `121/cpp`, `401/javascript`, `401/python`, `362/java`,
 `367/go`, `367/java`, `367/javascript`, `367/python`, `377/java`, `79/perl`, `170/cpp`, `195/c`,
-`195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python` - 27 of ~271
-reviewed files, still consistent with "treat every unreviewed file as suspect by default."
+`195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python`, `73/csharp`,
+`73/python` - 29 of ~281 reviewed files, still consistent with "treat every unreviewed file as
+suspect by default."
 
 ## Findings not yet promoted to CLAUDE.md
 
@@ -128,11 +128,6 @@ instance.
   `commons-lang3` 3.15.0 moved `RandomStringUtils` onto `getInstanceStrong()`, hit the same hang in
   production (LANG-1748), and reverted it in 3.17.0. Searching an ecosystem's issue tracker for the
   approach an entry recommends is cheap and finds what API docs cannot.
-- **A finding naming a dead taint sink.** New in batch 20: `94/csharp` named
-  `CSharpCodeProvider.CompileAssemblyFromSource()`, which throws `PlatformNotSupportedException`
-  unconditionally on .NET Core/5+ - live only on a .NET Framework target. The mirror image of a
-  prescribed *fix* that doesn't run: here the *finding itself* can't execute on the platform most
-  code now targets. Worth checking on any legacy-Framework-era API before treating it as a live sink.
 - **A cast that unifies operand types silences the diagnostic without validating anything.**
   Four instances in one batch (21): casting both sides of a comparison to `int` in C makes a
   mixed-signedness warning disappear while validating neither operand; a `static_cast<int>` fix

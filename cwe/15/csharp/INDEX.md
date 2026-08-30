@@ -7,16 +7,17 @@ In .NET applications this occurs when request data (query strings, form fields, 
 ## Key Principles
 
 - Bind settings at startup with `IOptions<T>` (or `IOptionsSnapshot<T>`/`IOptionsMonitor<T>` for reload-from-file scenarios) rather than reading request data into configuration objects
-- Never cast `IConfiguration` to `IConfigurationRoot` to write values, and never call `Environment.SetEnvironmentVariable()` or `ConfigurationManager.AppSettings.Set()` with request-derived keys or values
+- The settable indexer (`config["key"] = value`) already lives on plain `IConfiguration` - `IConfigurationRoot` adds only `Providers`/`Reload()`, not the write path, so scanning for a cast to `IConfigurationRoot` misses the sink. Flag any `IConfiguration`/`IConfigurationRoot` indexer write, and never call `Environment.SetEnvironmentVariable()` or `ConfigurationManager.AppSettings.Set()` with request-derived keys or values
 - Validate bound settings with DataAnnotations (`[Required]`, `[Range]`, `[RegularExpression]`) plus `ValidateOnStart()` so invalid configuration fails at boot, not silently at runtime
 - Use Serilog's `LoggingLevelSwitch` for any legitimate runtime log-level control instead of rebuilding the logger from a request value
 - Any admin endpoint that changes a setting must authorize with `[Authorize(Roles = "Admin")]` and check the requested key and value against a `HashSet<string>` allowlist before applying it
 - Never let a request parameter select a database catalog (`SqlConnection.ChangeDatabase()`), a config file path, or a remote config URL without allowlist validation
-- Do not derive resource limits from request data - `HttpClient.Timeout` accepts up to ~25 days and throws `ArgumentOutOfRangeException` outside its range, so a request-controlled timeout is both a connection-exhaustion and an unhandled-exception vector; hardcode it or configure it centrally via `IHttpClientFactory`
+- Do not derive resource limits from request data - `HttpClient.Timeout` accepts up to `Int32.MaxValue` milliseconds (~25 days) and throws `ArgumentOutOfRangeException` outside that range, and throws `InvalidOperationException` if set after the instance has already sent a request, so a request-controlled timeout is both a connection-exhaustion and an unhandled-exception vector; hardcode it or configure it centrally via `IHttpClientFactory`
+- The two-argument `Environment.SetEnvironmentVariable(name, value)` overload only affects the current process (and any child process it later starts) - the three-argument overload with `EnvironmentVariableTarget.User`/`.Machine` writes to the Windows registry and persists across reboots, a materially wider blast radius from the same call shape
 
 ## Taint Sinks
 
-`Environment.SetEnvironmentVariable()`, `ConfigurationManager.AppSettings.Set()`, `IConfigurationRoot` indexer set, `SqlConnection.ChangeDatabase()`, `HttpClient.Timeout` setter
+`Environment.SetEnvironmentVariable()`, `ConfigurationManager.AppSettings.Set()`, `IConfiguration`/`IConfigurationRoot` indexer set, `SqlConnection.ChangeDatabase()`, `HttpClient.Timeout` setter
 
 ## Remediation Steps
 
