@@ -2,10 +2,11 @@
 
 ## LLM Guidance
 
-PyJWT requires an explicit `algorithms` list on every `jwt.decode()` call; omitting it raises an error, but passing a list that mixes algorithm families (for example `["RS256", "HS256"]`) while reusing the same key variable reopens algorithm confusion, since an attacker can switch a token to HS256 and sign it with the server's RSA public key treated as an HMAC secret. Always pin `algorithms` to the single expected algorithm and never derive it from the token's own header. For non-JWT signatures such as webhook payloads, compare the computed HMAC with `hmac.compare_digest()`, never `==`.
+PyJWT (2.0.0+) requires an explicit `algorithms` list on every `jwt.decode()` call and raises if it's omitted, and its `HMACAlgorithm.prepare_key()` blocklists PEM- and SSH-formatted key material from being used as an HMAC secret specifically to stop algorithm confusion. That blocklist has had at least one documented gap: CVE-2022-29217 (GHSA-ffqj-6fqr-9h24), fixed in **2.4.0**, where SSH-formatted Ed25519 public keys weren't recognized, letting an attacker sign a token HS256 using the server's Ed25519 public key as the HMAC secret. Require PyJWT 2.4.0+, always pin `algorithms` to the single expected algorithm, and never derive it from the token's own header. For non-JWT signatures such as webhook payloads, compare the computed HMAC with `hmac.compare_digest()`, never `==`.
 
 ## Key Principles
 
+- Confirm PyJWT is at least 2.4.0 (CVE-2022-29217) - the key-format blocklist that stops an asymmetric key from being reused as an HMAC secret has had gaps for specific key formats, so the version matters as much as the calling convention
 - Always pass `algorithms=["RS256"]` (or the specific expected algorithm) to `jwt.decode()` - never pass `None`, an empty list, or a list mixing symmetric and asymmetric algorithms for the same key
 - Never call `jwt.decode(token, options={"verify_signature": False})` or use `jwt.get_unverified_header()`/`jwt.get_unverified_claims()` results to make authorization decisions
 - Never choose the verification key based on `jwt.get_unverified_header(token)["alg"]` - resolve keys by `kid` from a trusted, server-side keystore or JWKS, keeping the algorithm expectation fixed
