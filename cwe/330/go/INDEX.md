@@ -2,28 +2,27 @@
 
 ## LLM Guidance
 
-Go exposes two distinct random-number APIs: `math/rand` (and `math/rand/v2`), a fast non-cryptographic PRNG intended for simulations and test data, and `crypto/rand`, a CSPRNG backed by the OS entropy source. Insufficient randomness in Go usually means a security-relevant value - session token, password reset code, API key, nonce - was generated with `math/rand`, a predictable seed, or too few bytes of entropy. The fix is `crypto/rand.Reader` for every security-sensitive value, sized to resist brute force.
+Go separates `math/rand` (and `math/rand/v2`), non-cryptographic generators for simulation and test data, from `crypto/rand`, a CSPRNG backed by the OS. A CWE-330 finding here means a token, reset code, API key or nonce came from the former. What has changed is how the finding presents: since Go 1.20 the global `math/rand` source is randomly seeded, since 1.22 it is ChaCha8-backed, and since 1.24 the top-level `Seed` call does nothing at all. Read `go.mod` before triaging, because the same source file means different things across those releases.
 
 ## Key Principles
 
-- Use `crypto/rand.Reader` with `io.ReadFull` (or `rand.Read`) for all tokens, keys, nonces, salts, and reset codes - never `math/rand` or `math/rand/v2`
-- Generate at least 16 bytes (128 bits) for tokens and 32 bytes (256 bits) for encryption keys; encode with `encoding/base64.URLEncoding` or `encoding/hex`
-- Never seed a non-cryptographic generator with a crypto-random value and keep drawing from it - `math/rand` fed a random seed is still a deterministic algorithm once the seed is fixed
-- Avoid predictable inputs mixed into token construction, such as concatenating a user ID or timestamp instead of relying solely on the random bytes
-- For random integers in a bounded range (OTPs, random selection), use `crypto/rand.Int(rand.Reader, big.NewInt(n))`, which performs rejection sampling and avoids modulo bias
-- `math/rand`/`math/rand/v2` remain acceptable for tests, simulations, and non-security shuffling - keep those usages clearly separated from security code paths
-- `math/rand` is not a CSPRNG whatever it is seeded with: `rand.New(rand.NewSource(x))` produces a reproducible stream, and `math/rand/v2` is a newer API for the same non-cryptographic generator
-- `crypto/rand` is the security source, and its `Read` returns an error that must be checked - Go 1.24 makes it panic rather than fail silently, but earlier versions do not
+- Draw every security-relevant value from `crypto/rand`. From Go 1.24, `rand.Text()` is the purpose-built API - "Text returns a cryptographically random string using the standard RFC 4648 base32 alphabet for use when a secret string, token, password, or other text is needed", giving 26 characters with at least 128 bits of randomness and needing no separate encoding step
+- `crypto/rand.Read` "never returns an error, and always fills b entirely" from Go 1.24: it calls `io.ReadFull` on `Reader` internally and crashes the program irrecoverably via a runtime fatal error, which `recover` cannot catch. Earlier releases returned a real error rather than failing silently. Keep the `err` check for older toolchains, but the branch has nothing useful to do - a fallback to `math/rand` there is itself the finding
+- `math/rand.Seed` has been deprecated since Go 1.20 and a **no-op since Go 1.24** (restore with `GODEBUG=randseednop=0`). Between 1.20 and 1.23 an explicit `rand.Seed(time.Now().UnixNano())` was worse than useless: it forced the package off the ChaCha8 source onto the older generator. So a seeding line is not evidence of anything - triage the draw, not the line above it
+- `math/rand/v2` is not the same generator with a new API. Go 1.22 replaced the Mitchell & Reeds LFSR source with `ChaCha8` and `PCG`, and the package documents `ChaCha8` as "a general-purpose source resistant to prediction" while `PCG` is "unfit for security-relevant purposes". The package-level warning still governs both: "This package's outputs might be easily predictable regardless of how it's seeded"
+- `crypto/rand.Int(rand.Reader, max)` returns "a uniform random value in [0, max)" - exclusive of `max`, so pass `n` to get `0..n-1`. It masks and retries internally rather than taking a modulo, and it **panics** if `max <= 0` rather than returning an error
+- `base64.URLEncoding` pads: 16 bytes encodes to 24 characters ending `==`, and 32 bytes to 44 ending `=`. Use `base64.RawURLEncoding` for a token that goes in a URL, since `=` is a reserved character
+- Seeding a non-cryptographic generator from `crypto/rand` does not help - `rand.New(rand.NewSource(x))` is a deterministic stream once the seed is fixed, and it is separately documented as "not safe for concurrent use by multiple goroutines"
 
 ## Taint Sinks
 
-`math/rand.Intn()`, `math/rand.Int63()`, `math/rand.Seed()`, `math/rand/v2` used for tokens/keys/nonces
+`math/rand.Intn(`, `math/rand.Int63(`, `math/rand.Int31(`, `rand.New(rand.NewSource(`, `math/rand/v2` used for tokens, keys or nonces
 
 ## Remediation Steps
 
-- Locate - search for `math/rand`, `rand.Seed`, `rand.Intn`, and `rand.Int63` near token, key, password-reset, or session generation code
-- Trace data flow - confirm the generated value is used for authentication, authorization, or as a cryptographic input, not test data or simulation
-- Replace the unsafe pattern - swap `math/rand` calls for `crypto/rand.Reader` reads into a byte slice, or `crypto/rand.Int` for bounded integers
-- Size the output - use 16+ bytes for tokens and 32 bytes for keys, and encode with base64 or hex before storage or transmission
-- Harden configuration - centralize token and key generation in one reviewed helper so new code cannot accidentally import `math/rand` for a security path
-- Test - verify generated values are non-sequential across repeated calls and that production security paths never depend on a fixed seed
+- Locate the draw rather than the seed - search for `math/rand` imports and for `Intn`, `Int63` and `rand.New` near token, key, password-reset or session code. A `rand.Seed` hit on Go 1.24+ is a dead line whose presence or removal changes no generated value
+- Confirm the value is security-relevant before converting it. `math/rand` remains the correct choice for simulation and test data, and it is meaningfully faster than going to the kernel
+- Replace with `rand.Text()` for tokens, `io.ReadFull(crypto/rand.Reader, b)` for raw keys and nonces, and `crypto/rand.Int` for bounded integers
+- Size the output at 16 bytes or more for tokens and by the cipher for keys, then encode with `base64.RawURLEncoding` or `encoding/hex`
+- Centralize generation in one reviewed helper so a new call site cannot reach for `math/rand` on a security path, and note that `math/rand.Read` was deprecated in Go 1.20 pointing at `crypto/rand.Read`
+- Do not verify by inspecting the values. On Go 1.20+ the global `math/rand` is randomly seeded per process and on 1.22+ is ChaCha8-backed, so unfixed code passes any check for non-sequential output or for the absence of a fixed seed. Assert instead that the security path imports `crypto/rand`, and assert the length of what it returns
