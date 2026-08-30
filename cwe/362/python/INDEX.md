@@ -6,7 +6,7 @@ The GIL prevents two threads from executing Python bytecode simultaneously, but 
 
 ## Key Principles
 
-- Use `threading.Lock`/`with lock:` around the full read-modify-write sequence for state shared between threads; do not assume the GIL makes `+=` or dict/list mutation atomic
+- Use `threading.Lock`/`with lock:` around the full read-modify-write sequence for state shared between threads; do not assume the GIL makes `+=` or dict/list mutation atomic. This matters even more on the free-threaded build (`python3.13t`+, officially supported as of 3.14 per PEP 703/779): with the GIL disabled, CPython's own docs describe built-in container thread-safety there as an implementation detail, not a guarantee - so code that leaned on the GIL for compound operations needs the same explicit locking on both builds
 - Use `asyncio.Lock`/`async with lock:` around any critical section that contains an `await`, since another task can run and mutate shared state during the suspension
 - For multiple processes, use `multiprocessing.Lock`, `multiprocessing.Value`/`Array` with a lock, or a `Manager` proxy; in-process `threading.Lock` does not protect state across process boundaries
 - Replace plain `dict`/`list` shared across threads with `queue.Queue` for producer/consumer patterns, and still guard compound check-then-act sequences explicitly

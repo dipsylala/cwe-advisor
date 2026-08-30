@@ -11,8 +11,8 @@ The garbage collector handles managed memory, so this finding in .NET is about `
 - Implement the dispose pattern properly for a class holding unmanaged resources - a public `Dispose()`, a `protected virtual Dispose(bool)`, and `GC.SuppressFinalize(this)` - and prefer `SafeHandle` over a raw `IntPtr`
 - Unsubscribe from events in the same lifecycle step that subscribed: a publisher holds a strong reference to every subscriber, so a long-lived publisher keeps short-lived subscribers alive
 - Implement `IAsyncDisposable` and `await using` for resources with asynchronous teardown rather than blocking in `Dispose()`
-- `HttpClient` is the classic inversion: dispose it per request and you exhaust sockets in `TIME_WAIT`; use `IHttpClientFactory` (or a single long-lived instance) instead
-- Bound every static or singleton-held collection and cache - a static field is a GC root, so entries live for the process's lifetime unless evicted (`MemoryCache` with a size limit and expiry)
+- `HttpClient` is the classic inversion: dispose it per request and you exhaust sockets in `TIME_WAIT`; use `IHttpClientFactory`, or a single static/long-lived instance with `PooledConnectionLifetime` set on its `SocketsHttpHandler` (a bare long-lived instance never refreshes DNS)
+- Bound every static or singleton-held collection and cache - a static field is a GC root, so entries live for the process's lifetime unless evicted. `MemoryCache`'s `SizeLimit` only bounds anything if every entry is also given a `Size` (via `MemoryCacheEntryOptions.Size` or `ICacheEntry.Size`); an entry with no size set is exempt from the limit, so a bare `SizeLimit` with unsized entries still grows unbounded
 - Dispose `CancellationTokenSource`, and unregister `CancellationToken` callbacks, when the operation ends - a long-lived token accumulates registrations
 - Diagnose with `dotnet-counters`/`dotnet-gcdump` and the pool's own counters rather than by inspection
 
@@ -27,5 +27,5 @@ The garbage collector handles managed memory, so this finding in .NET is about `
 - Identify the unsafe pattern - a missing `Dispose`, an asymmetric `+=`/`-=`, an unbounded static collection, or a per-call `HttpClient`
 - Replace with the safe pattern - `using` declarations, matched unsubscription, `IHttpClientFactory`, and a size-bounded `MemoryCache`
 - Bind, encode, validate, or authorize - bound anything sized by request data so a client cannot drive retention
-- Harden configuration - enable connection-pool diagnostics, set cache size limits in configuration, and treat CA2000/CA1816 analyzer warnings as errors
+- Harden configuration - enable connection-pool diagnostics, set cache size limits in configuration, and enable the CA2000 ("dispose objects before losing scope") and CA1816 ("call GC.SuppressFinalize correctly") analyzer rules as errors - neither is enabled by default (CA2000 is off, CA1816 is a suggestion)
 - Test - run a sustained load through the code path and confirm handle counts, pool usage, and heap size return to baseline afterwards

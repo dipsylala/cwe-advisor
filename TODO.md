@@ -815,7 +815,56 @@ by a web-application scanner, per the original batch-9 ordering rationale.
 
 **The c/cpp memory-native subgroup is complete**: CWE-125, 787, 121, 415, 416, 823, 824.
 
-Next: the resource entries - CWE-401, 362, 367, 377 (six languages each, 22 entries) - closing out the
+- Batch 18c - CWE-401 (cpp, csharp, go, java, javascript, python) and CWE-362 (csharp, go, java,
+  javascript, php, python), 12 entries. 8 of 12 defective; `401/javascript`, `401/python` and
+  `362/java` were clean, and `362/csharp` carried a real gap rather than an error (see below) -
+  the fourth, fifth and sixth clean language entries the sweep has found. Most consequential:
+  `401/java`'s lambda-capture bullet had the mechanism backwards in the shape CLAUDE.md already
+  tracks for `476/java`'s ternary defect - it named "the lambda capturing `this`" as if lambdas
+  unconditionally retain the enclosing instance the way a non-static inner class does, when
+  capture is conditional on the lambda body referencing `this`/an instance member (confirmed
+  against Brian Goetz's canonical lambda-translation design doc); a lambda touching only locals or
+  static members holds no reference to the enclosing instance at all. `362/go`'s `sync.Map`
+  bullet presented it as a co-equal alternative to a mutex-guarded map, where `sync.Map`'s own
+  doc recommends it only for two narrower access patterns and states "most code should use a
+  plain Go map instead" - the family's recurring "framework's own doc doesn't endorse what the
+  entry claims" shape, one level more subtle than a taint-sink instance since the API itself
+  isn't wrong, just not the general-purpose tool the entry presented it as. `362/javascript`'s
+  Redis lock example (`SET key value NX`) omitted the expiry Redis's own SET/distributed-locks
+  docs treat as load-bearing to the pattern - without it a crashed holder locks the resource
+  forever - and separately, `async-mutex` (recommended with no caveat) has had no release in
+  over two years per Snyk, a milder instance of the "named library can stop" shape since it's a
+  small, stable API surface rather than one processing untrusted input. `362/csharp`'s
+  three-things-not-to-lock-on list substituted "a boxed value" for Microsoft's own third listed
+  case (a `Type` instance via `typeof`/reflection) - both are genuine, distinct hazards (a boxed
+  value gives no exclusion at all since each box is a new object; a shared `Type` instance risks
+  an accidental cross-code lock and deadlock), and `docs/CWE-362/csharp` carries the identical
+  substitution independently, making this the sweep's second confirmed instance of a defect both
+  corpora share rather than one reconciliation could catch (the first was the CWE-287 re-run's
+  three agreeing defects in batch 10). Two absence-shaped findings rounded out the batch:
+  `362/python`'s GIL-atomicity framing had no caveat for CPython's free-threaded build
+  (`python3.13t`+, officially supported per PEP 703/779 as of 3.14), whose own docs describe
+  built-in container thread-safety there as an implementation detail rather than a guarantee -
+  strengthening rather than contradicting the entry's existing advice; and `362/php`'s `flock()`
+  bullet lacked the PHP manual's own NFS-unreliability caveat, relevant precisely because CWE-362
+  fixes on this CWE often involve a shared/network mount. `401/cpp` had two minor, non-reversing
+  corrections (the make_unique/make_shared "exception-safe in argument evaluation" justification
+  is explicitly scoped "until C++17" by cppreference's own example; LeakSanitizer has open,
+  maintainer-acknowledged macOS gaps) and one hedge (the `unique_ptr<FILE, decltype(&std::fclose)>`
+  deleter form isn't the one cppreference's own worked example demonstrates, which uses a small
+  wrapper function instead - changed to match the vendor's demonstrated form rather than asserting
+  an unverified one compiles). `401/csharp` had a `MemoryCache` gap (`SizeLimit` does nothing for
+  an entry with no `Size` set, per the vendor's own remarks) and a docs/-vendor disagreement filed
+  below. `401/go` conflated `context.WithCancel` (no timer) and `WithTimeout`/`WithDeadline` (has
+  one) under a single "leaks the timer" bullet naming both functions.
+
+  One `DOCS_UPDATE.md` finding filed: `docs/CWE-401/csharp` claims CA2000 and CA1816 are "both in
+  the default .NET analyzer set," where Microsoft's own rule reference states CA2000 is not
+  enabled by default and CA1816 defaults to suggestion severity - a vendor-fact disagreement,
+  which per the reconciliation split this repo's vendor-traced evidence wins on, so this repo's
+  `401/csharp` was corrected to say both need enabling rather than merely escalating.
+
+Next: the resource entries - CWE-367, 377 (five languages each, 10 entries) - closing out the
 memory/native and resource group.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four

@@ -2,16 +2,16 @@
 
 ## LLM Guidance
 
-JavaScript's single-threaded event loop guarantees that synchronous code runs to completion without interruption, but this does not make `async`/`await` code race-free: any `await` is a suspension point where another callback, timer, or request handler can run and mutate shared state before the current function resumes. The classic pattern is reading a value, awaiting an I/O call (a database query, an API call), and writing an updated value back - two concurrent calls can interleave between the read and the write and both act on stale data. For state confined to a single Node.js process, serialize the critical section with a promise-based mutex such as the `async-mutex` package; for state shared across processes, workers, or server instances, push the atomicity into the datastore (an atomic `UPDATE ... SET balance = balance - $1 WHERE id = $2 AND balance >= $1`, MongoDB `findOneAndUpdate` with `$inc`, or a distributed lock such as Redis `SET key value NX`).
+JavaScript's single-threaded event loop guarantees that synchronous code runs to completion without interruption, but this does not make `async`/`await` code race-free: any `await` is a suspension point where another callback, timer, or request handler can run and mutate shared state before the current function resumes. The classic pattern is reading a value, awaiting an I/O call (a database query, an API call), and writing an updated value back - two concurrent calls can interleave between the read and the write and both act on stale data. For state confined to a single Node.js process, serialize the critical section with a promise-based mutex such as the `async-mutex` package; for state shared across processes, workers, or server instances, push the atomicity into the datastore (an atomic `UPDATE ... SET balance = balance - $1 WHERE id = $2 AND balance >= $1`, MongoDB `findOneAndUpdate` with `$inc`, or a distributed lock such as Redis `SET key value NX PX ttl`).
 
 ## Key Principles
 
 - Treat every `await` between a read and a write of shared state as a potential race window, even though JavaScript is single-threaded
-- Use a promise-based mutex (`async-mutex`'s `Mutex`/`Semaphore`, via `runExclusive()`) to serialize an async critical section within one process
+- Use a promise-based mutex (`async-mutex`'s `Mutex`/`Semaphore`, via `runExclusive()`) to serialize an async critical section within one process; check its maintenance status before adopting it on a new project, since it has had no release in some time
 - Prefer pushing the read-modify-write into a single atomic database operation over an in-process lock whenever the resource is a database row, since a lock only protects one process
 - For state shared across Node.js `worker_threads`, use `Atomics` operations (`Atomics.add`, `Atomics.compareExchange`) on a `SharedArrayBuffer`, not a plain shared object
 - Never assume a `Promise.all` of independent async operations preserves ordering on shared state; each awaited step is an interleaving point
-- For cross-process or multi-instance deployments, use a distributed lock (Redis `SET NX`/`redlock`) or datastore-level atomicity rather than an in-process mutex, which only protects one process
+- For cross-process or multi-instance deployments, use a distributed lock or datastore-level atomicity rather than an in-process mutex, which only protects one process. A Redis lock is `SET key value NX PX ttl`, never bare `NX` - without the expiry a crashed holder locks the resource forever. Prefer a maintained client (`redlock`) over a hand-rolled implementation, and be aware Redis's own docs flag Redlock's multi-node guarantees as contested (Kleppmann's analysis) and recommend a fencing token for any operation the lock protects
 
 ## Taint Sinks
 

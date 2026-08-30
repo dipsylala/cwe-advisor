@@ -6,7 +6,7 @@ Shared mutable state on a singleton service, static field, or in-memory cache is
 
 ## Key Principles
 
-- Use `lock (object)` to protect a synchronous critical section end-to-end; never lock on `this`, a boxed value, or a string literal, since those can be inadvertently shared
+- Use `lock (object)` to protect a synchronous critical section end-to-end; never lock on `this`, a `Type` instance (obtained via `typeof` or reflection - unrelated code can lock the same instance and deadlock), or a string literal (interned strings can be shared across the process). A boxed value type is a distinct hazard in the other direction: each boxing produces a new object, so locking on one gives no exclusion at all rather than an accidental shared one
 - Never use `lock` around code containing `await`; use `new SemaphoreSlim(1, 1)` with `WaitAsync()` in a `try` and `Release()` in a `finally` for async critical sections instead
 - Use `Interlocked.Increment`/`Interlocked.CompareExchange` for simple counters and flags instead of a lock when only one variable changes atomically
 - Replace plain `Dictionary`/`List` shared across requests with `System.Collections.Concurrent` types (`ConcurrentDictionary`, `ConcurrentQueue`), and still guard compound check-then-act sequences explicitly

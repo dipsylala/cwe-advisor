@@ -9,7 +9,7 @@ Go collects unreachable memory, so the finding here is about goroutines that blo
 - `defer resp.Body.Close()` immediately after checking the error from `http.Get`/`Do` - without it the connection is not returned to the pool and the transport opens a new one each time
 - Read the body to completion (or `io.Copy(io.Discard, resp.Body)`) before closing, or the connection cannot be reused even though it was closed
 - Every goroutine needs a guaranteed exit: pass a `context.Context` and select on `ctx.Done()`, or ensure the channel it reads from is closed. A goroutine blocked on a send to a channel nobody receives from never returns
-- Use `context.WithTimeout`/`WithCancel` for any operation that can block, and call the returned `cancel` with `defer` even on the success path - not calling it leaks the timer and the context's goroutine
+- Use `context.WithTimeout`/`WithCancel` for any operation that can block, and call the returned `cancel` with `defer` even on the success path - not calling it leaks the child context (and everything derived from it) until the parent is canceled; for `WithTimeout`/`WithDeadline` specifically, it also leaks the internal timer
 - `defer` runs at function return, not at end of block: a `defer` inside a loop accumulates until the function exits, so wrap the body in a function or close explicitly in the loop
 - Close what you open - files, `sql.Rows`, `net.Conn`, tickers (`ticker.Stop()`) - and check the error from `Close()` on writes, where it reports a failed flush
 - A slice re-sliced from a large backing array keeps the whole array alive; copy the sub-slice when the original is large and short-lived

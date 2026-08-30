@@ -7,8 +7,8 @@ PHP's typical process-per-request model means requests do not share in-memory st
 ## Key Principles
 
 - For database-backed shared state, wrap the read and the write in a single PDO transaction using `SELECT ... FOR UPDATE`, or use a conditional atomic `UPDATE ... WHERE balance >= :amount` and check the affected row count
-- For shared files, use `flock($handle, LOCK_EX)` around the entire read-modify-write sequence, and release with `LOCK_UN` only after the write is flushed
-- For a counter or flag shared across PHP-FPM workers on one host, use `apcu_inc()`/`apcu_dec()` (atomic) or `apcu_cas()` (compare-and-swap) instead of a separate `apcu_fetch()` followed by `apcu_store()`
+- For shared files, use `flock($handle, LOCK_EX)` around the entire read-modify-write sequence, and release with `LOCK_UN` only after the write is flushed. `flock()` is unreliable on NFS and unsupported on some filesystems (it silently returns false); for a file on shared/network storage, use a datastore-level lock instead
+- For a counter or flag shared across PHP-FPM workers on one host, use `apcu_inc()`/`apcu_dec()` (atomic) or `apcu_cas()` (compare-and-swap) instead of a separate `apcu_fetch()` followed by `apcu_store()`. APCu is the `apcu` PECL extension, not bundled with PHP core - confirm it is installed rather than assuming it is present
 - Do not disable or bypass the default session file lock (avoid early `session_write_close()`) when later code in the same request still reads or writes `$_SESSION`
 - For state shared across multiple servers, use a datastore-level lock (database row lock, Redis `SET key value NX EX ttl`) rather than a host-local mechanism like `flock()` or APCu
 - Never assume "PHP is single-threaded" removes the race; concurrent requests are still concurrent processes acting on the same external resource

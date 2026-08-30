@@ -8,10 +8,10 @@ Goroutines make concurrent access trivial to introduce and easy to miss: a share
 
 - Protect the entire critical section with `sync.Mutex.Lock()`/`Unlock()` (or `sync.RWMutex` for read-heavy access), not just the individual field accesses
 - Use `sync/atomic` (`atomic.Int64.Add`, `atomic.CompareAndSwap`) for single-variable counters and flags instead of a mutex, but switch to a mutex once more than one field must change together
-- Never write to a plain `map` from multiple goroutines, even with a mutex elsewhere in the codebase protecting a different field; use `sync.Map` or a mutex-guarded map consistently
+- Never write to a plain `map` from multiple goroutines, even with a mutex elsewhere in the codebase protecting a different field; use a mutex-guarded map for the general case. `sync.Map`'s own docs recommend it only for two narrower patterns - an entry written once and read many times (a growing cache), or goroutines reading/writing disjoint sets of keys - not as a general substitute, and it still needs its own lock around a compound check-then-set
 - For state shared across processes or instances (not just goroutines), use database-level atomicity: `SELECT ... FOR UPDATE` in a transaction, or an atomic `UPDATE table SET balance = balance - $1 WHERE id = $2 AND balance >= $1`
 - Pass data ownership through channels where the design allows it, instead of sharing memory and synchronizing access to it
-- Run `go test -race` (or build with `-race`) in CI to catch missed synchronization before it reaches production
+- Run `go test -race` (or build with `-race`) in CI to catch missed synchronization before it reaches production. It is a detector, not a prover: it only reports races that actually happen during that run, so a clean result means the interleavings exercised were clean, not that none exist - write the test to genuinely contend on the resource
 
 ## Taint Sinks
 

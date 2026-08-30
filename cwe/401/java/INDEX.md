@@ -12,7 +12,7 @@ Java's garbage collector reclaims unreachable objects, so the finding here is ab
 - Unregister listeners, callbacks and observers in the same lifecycle method that registered them, and keep a reference to the exact instance so removal actually matches
 - Call `ThreadLocal.remove()` in a `finally` on any pooled thread - a container thread outlives the request and keeps the value alive
 - Use `WeakReference`/`WeakHashMap` for a cache keyed by an object whose lifetime someone else owns, and `SoftReference` where the entry is a recomputable optimisation
-- Watch the non-static inner class and the lambda capturing `this`: both retain the enclosing instance, so a long-lived registry entry keeps a whole component alive
+- A non-static inner class instance always retains the enclosing instance, whether or not its body ever uses it. A lambda is different: it captures the enclosing instance only if its body references `this`, an instance field, or an instance method - a lambda referencing only local variables or static members holds no reference to it at all. Check what the lambda body actually touches before assuming a long-lived registry entry keeps the component alive
 - Close connection-pool resources back to the pool rather than the underlying socket, and set a connection leak-detection threshold in the pool configuration
 - Diagnose with a heap dump and dominator tree (Eclipse MAT, JFR's old-object sample), not by inspection - the retaining path is usually not where the allocation is
 
