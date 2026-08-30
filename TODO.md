@@ -19,7 +19,7 @@ authored directly in this repo (rather than derived from `docs/`) has none.
 
 ## Sweep status
 
-**253 of 301 language files reviewed. 48 remain.** (The population was originally miscounted as
+**264 of 301 language files reviewed. 37 remain.** (The population was originally miscounted as
 287; a full directory diff against every batch's actual commits, not its self-reported count, found
 14 hidden gaps - see batch 19's commit for how. Root files are out of scope by default: they rarely
 carry falsifiable claims, but check before skipping if a root names specific APIs or versions -
@@ -27,8 +27,6 @@ carry falsifiable claims, but check before skipping if a root names specific API
 
 Remaining, grouped for batching at the ~9-12 entry size used throughout:
 
-- C dangerous/obsolete-function and format-string (11): `242/c, 243/c, 364/c, 479/c, 477/c,
-  477/python, 676/c, 676/python, 134/c, 134/java, 134/python`
 - Config/allowlist/path-control injection (10): `15/csharp, 15/java, 15/javascript, 15/python,
   183/java, 183/javascript, 183/python, 73/csharp, 73/java, 73/python`
 - LLM/AI, timing, cert, multi-byte string (11, loosely themed): `1426/javascript, 1426/python,
@@ -106,12 +104,13 @@ memory/native-and-resource. Batches 19-20 closed gaps the 287-baseline miscount 
 | 19 | 117 (+root) - never-assigned CWE found by the recount | 5 | 5/5 |
 | 20 | Closeout tail: `190/c`, `190/python`, `94/csharp`, `79/python`, `79/perl`, `601/python`, `943/go` | 7 | 6/7 (`79/perl` clean on vendor facts) |
 | 21 | C/C++ numeric-conversion group: `170/c`, `170/cpp`, `195/c`, `195/cpp`, `196/c`, `196/cpp`, `197/c`, `197/cpp`, `197/java`, `1105/c` | 10 | 6/10 (`170/cpp`, `195/c`, `195/cpp`, `197/java` clean on vendor facts) |
+| 22 | C dangerous/obsolete-function and format-string: `242/c`, `243/c`, `364/c`, `479/c`, `477/c`, `477/python`, `676/c`, `676/python`, `134/c`, `134/java`, `134/python` | 11 | 6/11 (`243/c`, `477/python`, `676/python`, `134/java`, `134/python` clean on vendor facts) |
 
 Clean-language-file count so far: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
 `434/python`, `201/python`, `125/cpp`, `121/cpp`, `401/javascript`, `401/python`, `362/java`,
 `367/go`, `367/java`, `367/javascript`, `367/python`, `377/java`, `79/perl`, `170/cpp`, `195/c`,
-`195/cpp`, `197/java` - 22 of ~260 reviewed files, still consistent with "treat every unreviewed
-file as suspect by default."
+`195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python` - 27 of ~271
+reviewed files, still consistent with "treat every unreviewed file as suspect by default."
 
 ## Findings not yet promoted to CLAUDE.md
 

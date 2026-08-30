@@ -7,11 +7,12 @@
 ## Key Principles
 
 - Replace `gets()` with `fgets()`, which enforces the bound through its own contract rather than depending on a caller-side check
-- `fgets()` also distinguishes failure from an empty read - it returns `NULL` at end of file with nothing consumed, or on error - which `gets()` never allowed the caller to tell apart
+- `fgets()`'s advantage over `gets()` is the bounded write, not failure reporting - both return `NULL` indistinguishably on end-of-file or error, and both require a separate `feof()`/`ferror()` call to tell the two apart
 - A non-`NULL` return does not mean a whole line was read: on an over-long line `fgets` fills the buffer, stops, and returns exactly as it would for a short line, leaving the remainder in the stream to be read as though it were the next line. Detect that by the missing trailing `'\n'` and drain to the next newline
 - Strip the newline with `buffer[strcspn(buffer, "\n")] = '\0'` rather than assuming it is present
 - Make reintroduction a build error where possible (a header that `#define`s the banned name to something that fails to compile, or a lint rule), so the fix cannot be silently undone
 - The same class covers other unbounded functions - `strcpy`, `strcat`, `sprintf`, `scanf("%s")` - whose replacements are on CWE-121 and CWE-787
+- A field width on `scanf` looks like the fix but isn't one without also checking it: `scanf("%99s", buffer)` bounds the write into a 100-byte buffer, but the identical unbounded defect returns the moment someone resizes the buffer without updating the literal width, or copies the call site to a differently-sized buffer
 - In C++, `std::cin >> buf` has three states depending on the standard: bounded for an array destination under C++20 and later (the overload takes `CharT (&)[N]`), unbounded for either shape under C++17 and earlier, and ill-formed for a `char *` destination under C++20+, since P0487R1 replaced the pointer overload rather than adding beside it. Check the translation unit's actual `-std` flag rather than the project's stated baseline; `std::setw(sizeof buf)` bounds it on older standards, and a `std::string` destination avoids the question
 
 ## Taint Sinks
@@ -25,5 +26,5 @@
 - Identify the unsafe pattern - a call whose signature has no way to receive the destination's size
 - Replace with the safe pattern - `fgets` for line input, `snprintf` for formatting, and an explicit length check before `memcpy`
 - Bind, encode, validate, or authorize - treat a truncated read as invalid input: drain the rest of the line and reject, rather than processing the fragment
-- Harden configuration - add a lint or compiler-diagnostic rule so a new call fails the build, and enable `-Wall -Wextra -D_FORTIFY_SOURCE=2` at `-O1` or higher
-- Test - feed a line longer than the buffer and assert the input is rejected and the remainder is not parsed as a second line; feed EOF with no data and assert the failure path is taken
+- Harden configuration - add a lint or compiler-diagnostic rule so a new call fails the build, and enable `-Wall -Wextra -D_FORTIFY_SOURCE=3` at `-O2` or higher (GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; fall back to `=2` on older toolchains)
+- Test - under `-fsanitize=address`, feed a line longer than the buffer and assert the input is rejected and the remainder is not parsed as a second line; feed EOF with no data and assert the failure path is taken

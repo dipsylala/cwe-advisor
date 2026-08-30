@@ -6,7 +6,7 @@
 
 ## Key Principles
 
-- Call `chdir("/")` immediately after `chroot()`, before any file access; a relative path resolved from the old working directory walks straight out of the jail
+- Call `chdir("/")` immediately after `chroot()`, before any file access; a relative path resolved from the old working directory walks straight out of the jail. `chdir(jail_path)` followed by `chroot(".")` is an equally correct alternative some daemons prefer, since it does not depend on a second path-based lookup after the root has moved - a symlink swapped in between two separate path resolutions is a smaller risk with only one path used across both calls
 - Close inherited file descriptors first: `chroot()` does not close them, and a directory handle opened before the call is a route back out through `fchdir()`. Use `closefrom(3)` (glibc 2.34+, the BSDs), `close_range(3, ~0U, 0)`, or a loop over `/proc/self/fd`
 - Drop privileges after entering the jail - a process that keeps root can call `chroot()` again from inside and escape, so the confinement is only meaningful once the effective and saved UIDs are unprivileged
 - Drop supplementary groups with `setgroups()` before `setgid()`, and `setgid()` before `setuid()`; reversing the order leaves the process without the privilege needed to complete the earlier step

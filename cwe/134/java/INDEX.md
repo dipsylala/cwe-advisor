@@ -12,7 +12,8 @@
 - Use the logging framework's own placeholders - SLF4J `logger.info("user {} did {}", user, action)` - rather than pre-formatting the message; the `{}` form is substituted, never interpreted as a format
 - `MessageFormat` patterns are equally unsafe from input, and its quoting rules (a single `'` escapes) make user text behave unexpectedly even without an attacker
 - Where a format must vary, select it from a fixed `Map` or enum of literals by key and reject unknown keys
-- Guard width specifiers (`%2000000000s`) in any path where a user fragment reaches a format, which is a memory-exhaustion vector rather than a disclosure one
+- Guard width specifiers (`%2000000000s`) in any path where a user fragment reaches a format, which is a memory-exhaustion vector rather than a disclosure one - wrapping the call in `catch (IllegalFormatException)` does not cover this: the huge width throws `OutOfMemoryError`, which is an `Error`, not an `IllegalFormatException`
+- `java.util.logging`'s no-parameter `log()` overload never interprets its message as a format at all; only the parameterized overload turns it into a live `MessageFormat` pattern - a scanner treating every `Logger.log()` call the same way misses which overload the finding actually names. A malformed pattern on that path is swallowed silently, with no exception and no log line, so a test that only checks "does it throw" can pass against data loss it never notices
 - Static analysis rules for non-constant format strings are cheap to enable and catch the whole class
 
 ## Taint Sinks

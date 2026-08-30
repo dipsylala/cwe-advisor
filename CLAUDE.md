@@ -165,6 +165,14 @@ defect. Each rule below is a shape that recurred, stated as the check that would
 - **A named library can stop.** `bleach` ended maintenance in June 2026 with an open advisory
   that will never be fixed. "Use a sanitization library" needs the library checked for
   maintenance status, not just named.
+- **A hardening flag's recommended level can be stale even where the file is otherwise correct.**
+  `_FORTIFY_SOURCE=2` recurred across eight independently-authored C files (`170`, `242`, `477`,
+  `676`, `134`) after already being corrected to `=3` in three siblings (`125`, `787`, `121`).
+  Level 3 is a documented strict superset of level 2 (GCC 12+/glibc 2.35+ or Clang 9+/glibc
+  2.33+, falling back to `=2` on older toolchains) with no downside beyond rare performance
+  overhead - when a file recommends a weaker level of a tiered hardening flag, check whether the
+  stronger level is a strict superset before treating the weaker one as sufficient, and sweep
+  every sibling file for the same flag rather than fixing it once.
 
 ## Maintenance Workflow
 

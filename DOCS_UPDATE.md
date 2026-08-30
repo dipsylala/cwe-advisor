@@ -11,7 +11,16 @@ elsewhere, so this file is the hand-off channel rather than a change set applied
    running - "raising warnings to errors for those two rules" presumes a starting state neither
    rule is actually in.
 
-2. `docs/CWE-196/c/index.md` states the mixed signed/unsigned comparison rule as "the usual
+2. `docs/CWE-242/c/index.md` claims `fgets()` "tells the caller when nothing was read... where
+   gets() gave the caller no way to distinguish either from a successful empty read." This is
+   backwards: both functions return `NULL` indistinguishably on end-of-file or error, and both
+   require a separate `feof()`/`ferror()` call to tell the two apart (confirmed against
+   cppreference's `gets()`/`fgets()` pages, which document identical return-value semantics for
+   this case). `fgets()`'s real advantage over `gets()` is the bounded write, not failure
+   reporting. `cwe/242/c/INDEX.md` in this repo carried the identical error until this sweep pass
+   corrected it.
+
+3. `docs/CWE-196/c/index.md` states the mixed signed/unsigned comparison rule as "the usual
    arithmetic conversions convert the unsigned operand to the signed type only where that type
    can represent every value it might hold, and in every other case the signed operand is the
    one that converts." This is backwards for the common case. C11 6.3.1.8's actual rule is
