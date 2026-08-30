@@ -11,6 +11,7 @@ Improper certificate validation in Java occurs when code replaces the default `T
 - Remove any `SSLContext` initialized with a trust-all `TrustManager` array
 - For custom CA certificates (internal PKI), import the CA into a `KeyStore` and build a `TrustManagerFactory` from it - do not disable validation
 - Use `HttpClient` (Java 11+) with default SSL configuration; it validates certificates by default
+- A raw `SSLSocket`/`SSLEngine` with a custom `TrustManager` does not check the hostname on its own - chain trust and hostname identity are separate checks, and only `HttpsURLConnection` and `HttpClient` perform the second one automatically. For lower-level socket code, call `sslParameters.setEndpointIdentificationAlgorithm("HTTPS")` before the handshake, or implement `X509ExtendedTrustManager` (which receives the `Socket`/`SSLEngine` so the trust manager itself can check the peer host) instead of the plain `X509TrustManager`
 
 ## Taint Sinks
 
