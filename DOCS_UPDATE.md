@@ -37,15 +37,16 @@ elsewhere, so this file is the hand-off channel rather than a change set applied
    Username Validation: "The anchored regex pattern ... uses `^` (start) and `$` (end) anchors to
    ensure the entire string matches exactly, preventing substring matches." Per Oracle's
    Pattern/Matcher javadoc, `Matcher.matches()`/`String.matches()` already require the entire
-   input to match regardless of anchors - the anchors add nothing, `matches()` vs `find()` is the
-   whole story. Worse, every "secure" example (`USERNAME_PATTERN`, `EMAIL_PATTERN`,
-   `FILENAME_PATTERN`, `ID_PATTERN`) anchors with `$` instead of `\z`, so each stays bypassable by
-   a trailing line terminator - `"admin\n"` passes `^[a-z0-9_]{3,20}$` under `matches()`. The file
-   does contain one accurate caveat ("`$` matches before a final line terminator by default, so
-   `\z` is the strict end") but never applies it to any of its own code samples, so the
-   corrected fact and the vulnerable examples sit side by side unreconciled. `cwe/183/java/
-   INDEX.md` in this repo already carries the corrected framing (anchors are redundant with
-   `matches()`; use `\A`/`\z` only where a pattern must carry its own anchors).
+   input region to match regardless of anchors, so `matches()` vs `find()` is what actually does
+   the work, not the anchors it credits. (Correction to an earlier version of this entry: `$`'s
+   general allowance for a trailing line terminator does not carry through to `matches()` - it
+   requires the match to reach the true end of the input regardless, so the file's own
+   `USERNAME_PATTERN`-style examples are not actually bypassable by a trailing `\n` under
+   `matches()`, verified directly against OpenJDK 26: `Pattern.matches("^[a-z0-9_]{3,20}$",
+   "admin\n")` returns `false`. That exception only bites a `find()`/`lookingAt()`-based partial
+   match, which switching to `matches()` already avoids.) `cwe/183/java/INDEX.md` in this repo
+   carries the corrected framing: anchors are redundant with `matches()`, and `\A`/`\z` is only
+   relevant where a `find()`-based check can't be replaced.
 
 5. `docs/CWE-183/javascript/index.md`'s Node.js path-validation "Why this works" write-up
    (around line 208) claims `path.resolve()` "normalizes [the path]... preventing path
