@@ -438,6 +438,30 @@ modern `HttpClient` traffic again - the opposite of what the page currently says
 
 Sources: https://learn.microsoft.com/en-us/dotnet/api/system.net.servicepointmanager.servercertificatevalidationcallback?view=net-10.0
 
+### 14. `docs/CWE-316/csharp/index.md` - `Array.Clear()` prescribed throughout in place of `CryptographicOperations.ZeroMemory()`
+
+The page's Primary Defence line and roughly fifteen worked examples (SecureKeyManager,
+SecretEncryption, ProtectedSecret, SecureCredentialManager, SecureJWTHandler, a BCrypt handler,
+and others) all clear sensitive arrays with `Array.Clear()`, including a "Why this works" bullet
+that credits it directly:
+
+> `Array.Clear()` zeros memory, unlike immutable strings that persist until GC.
+
+Microsoft's own remarks for the purpose-built alternative state why that call is not equivalent:
+
+> This method exists to future-proof against potential optimizations in the .NET runtime that
+> could eliminate memory writes that aren't followed by memory reads.
+
+Source: https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cryptographicoperations.zeromemory
+
+`Array.Clear()` carries no such guarantee in its own documentation - it is an ordinary write, and
+nothing states the JIT is barred from treating it as dead-store-eliminable when nothing reads the
+array afterward, which is exactly the scenario a `finally`-block clear right before the array goes
+out of scope creates. The page does show awareness of the same class of problem for *unmanaged*
+memory elsewhere (`NativeMemory.Clear` "is not elided by the optimiser the way a hand-written loop
+over a dead buffer can be"), but never extends that reasoning to `Array.Clear()` on managed arrays,
+and prescribes it as the standard clearing call throughout instead of `CryptographicOperations.ZeroMemory()`.
+
 ---
 
 ## Systematic gap: version floors
