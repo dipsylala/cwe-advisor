@@ -364,12 +364,17 @@ targeting is what surfaced the `IsPrivate` and `mysql2` defects; a generic brief
 - Batch 11 - CWE-306 (6 entries). All 6 defective. Started cold, as the lost batch-10 evidence required.
 - Batch 12 - CWE-798 (6 entries) and CWE-522 (5 entries), plus both roots. All 11 defective.
 - Batch 13 - CWE-285 and CWE-566 (8 entries, plus both roots). All 8 defective. Completes the authn/authz group.
+- Batch 14 - CWE-326 (5 entries) and CWE-330 (6 entries), plus both roots. All 11 defective. Opens the crypto and randomness group.
 
-**Running count: 134 of 287 language files reviewed, 134 carried at least one defect.**
+**Running count: 145 of 287 language files reviewed, 145 carried at least one defect.**
 
-The rate has not moved across thirteen batches, the whole injection family, the authz pair, CWE-287,
-CWE-306, the credential pair and now CWE-285/CWE-566. Treat every unreviewed language entry as suspect rather than
-sampling further to confirm it.
+The rate has not moved across fourteen batches, the whole injection family, the authz pair, CWE-287,
+CWE-306, the credential pair, CWE-285/CWE-566 and now the first of the crypto group. Treat every
+unreviewed language entry as suspect rather than sampling further to confirm it.
+
+**The `Safe Pattern` retirement is finished.** Six root files still routed the model to a section
+retired across all 307 language files; five were fixed in 2dc5a63 and `cwe/330`'s went with its
+rewrite. A grep for `Safe Pattern` across `cwe/` now returns nothing.
 
 **Batch 10 was re-run rather than trusted.** Its first pass gathered evidence for CWE-287 and
 CWE-306 but committed none of it, leaving the findings only in a session transcript that was gone by
@@ -437,6 +442,72 @@ below.
   comment gives the only difference as decoding twice versus reusing the decoded session. The
   remediation would be applied, reviewed, and change nothing. Distinct from a stale claim - this one
   was never true - and from a wrong reason, because here the reason is the mechanism.
+- *Two recommendations that are each correct and jointly fatal.* New in batch 14 and not yet seen
+  twice, so it stays here rather than moving to CLAUDE.md. `cwe/330/java` prescribed
+  `SecureRandom.getInstanceStrong()` and `secureRandom.nextInt(bound)` in separate bullets; the
+  first resolves to a `/dev/random` reader on Linux and the second inherits an unbounded rejection
+  loop, so together they hang. Ask what an entry's recommendations do when applied at once.
+- *Advice a major library adopted and then reverted.* Also new in batch 14. `commons-lang3` 3.15.0
+  moved `RandomStringUtils` onto `getInstanceStrong()`, LANG-1748 reported the resulting production
+  timeouts, and 3.17.0 backed it out. Searching an ecosystem's issue tracker for the approach an
+  entry recommends is cheap and finds what API documentation cannot.
+
+### Batch 14 - what it changed about the method
+
+**A new shape, and the most expensive one found so far: two bullets that are each defensible and
+combine into a failure.** Batch 13 named the seam between two bullets of one file as a
+*contradiction* - each bullet wrong about the other. This is different and harder to see, because
+neither bullet is wrong. `cwe/330/java` said to use `SecureRandom.getInstanceStrong()` for key
+generation, and to use `secureRandom.nextInt(bound)` for OTP ranges. Separately both are ordinary
+advice. Together they are JDK-8240296 verbatim: `getInstanceStrong()` resolves through
+`securerandom.strongAlgorithms` to `NativePRNGBlocking`, whose `nextBytes()` reads `/dev/random` on
+every call; `nextInt(int)` is not overridden by `SecureRandom` but inherited from
+`java.util.Random`, whose rejection loop is documented as unbounded in iterations; so each retry is
+another blocking read and the program hangs. Reading each bullet against the vendor passes both.
+The check that finds it is to ask what the entry's own recommendations do *when applied together*.
+
+**A second new shape, and the cheapest check in the sweep: has the ecosystem already run this
+experiment?** The same CWE-330 advice was adopted by Apache Commons Lang in `commons-lang3` 3.15.0,
+reported as a production outage in LANG-1748, and reverted in 3.17.0. A major library adopting a
+prescribed approach and backing it out is the strongest possible evidence against it, it is
+recorded in public issue trackers, and no amount of reading the API documentation surfaces it.
+Worth adding to any brief where the entry recommends one API over another on non-obvious grounds.
+
+**The "prescribed test that passes against unfixed code" shape is now the batch's most common
+finding, at four instances in eleven entries** - `cwe/326/go` (identical plaintext blocks yield
+different ciphertext for RC4, DES-CBC and static-IV CBC, so the ECB test clears three of the four
+sinks the same entry names), `cwe/330/INDEX.md` and `cwe/330/java` and `cwe/330/python` (all
+variations on "verify the values are not sequential", which Mersenne Twister and a randomly seeded
+`java.util.Random` both pass). It is promoted in CLAUDE.md already; what batch 14 adds is that in
+a randomness CWE it is close to universal, because *every* weak generator produces output that
+looks random. Assume the test bullet is wrong in CWEs 331, 338 and 347 rather than checking whether
+it is.
+
+**Two corrections ran the other way, and both were "right conclusion, wrong reason".** `cwe/330/csharp`
+said `Guid.NewGuid()` "is not a cryptographically secure random source"; Microsoft documents the
+opposite - `CoCreateGuid` on Windows, the OS CSPRNG elsewhere since .NET 6 - and grounds its own
+recommendation on the 122-bit ceiling and the fixed version/variant bits instead. `cwe/330/php`
+called `uniqid()` a predictable PRNG when it invokes no PRNG at all, its default form being
+`sprintf("%08x%05x", sec, usec)`. In both cases the advice to stop using the API survives and every
+stated reason had to be replaced - and in the csharp case the correct reasoning exposed a real
+version floor (before .NET 6, non-Windows GUID entropy was *not* guaranteed cryptographic) that the
+wrong reasoning had hidden.
+
+**Word budget: the constraint bound again, and step 5 is what pushed it over.** The CWE-326 root
+finished at 608 words against a ~500 guideline and `cwe/330/INDEX.md` at 573, both because
+essentially every sentence is a traced correction and the alternative was dropping one. `cwe/330/java`
+reached 906 after reconciliation and had to be trimmed twice to 831. That is batch 12's rule
+confirmed for a third time: measure after step 5, not after the vendor pass. Note the linter warns
+at 650/950 rather than at the 500/800 guideline, so a file can pass lint and still be over.
+
+**The docs/ yield was high in this family and worth budgeting for in 331 and 338.** Every
+`docs/CWE-330/*` page carries both a shared `Considerations` block and a `Common Pitfalls` section,
+and the reconciliation produced findings in six of the seven entries - including the one thing six
+vendor agents missed on CWE-326, that no entry said data already encrypted under the old algorithm
+has to keep decrypting. It also supplied a qualification that *corrected* the vendor evidence:
+LANG-1748's "drains the systems entropy pool" framing has itself dated, because since Linux 5.6
+drawing bytes depletes nothing. Taking the issue tracker at face value would have shipped a stale
+mechanism behind a correct conclusion.
 
 ### Batch 10's defect families - the entry frozen at a prior release
 
@@ -549,9 +620,29 @@ f4cfab2, 4ed535e); batch 9 did CWE-862/863 and the authn/authz doctrine (7c73974
 
 **The authn/authz group is complete.** CWE-287, CWE-306, CWE-798, CWE-522, CWE-285 and CWE-566 are
 all done and committed (batch 10; batch 11 as 79ee709, cf6140d, 083bb0c; batch 12 as 48e46cc,
-bcb5cef, aaae74a, 709109c; batch 13 as c2630cc, 6e69b63). Next is **batch 14, the first of the
-crypto and randomness group** - 326, 330, 331, 338, 347, 295, 780, 316 in that order. Nothing in
-that group has been read since the version-claim sweep, which covered one error class only.
+bcb5cef, aaae74a, 709109c; batch 13 as c2630cc, 6e69b63).
+
+**Batch 14 opened the crypto and randomness group** with CWE-326 and CWE-330 (a8d4630, dda4f12,
+90a32f8, 3dd0dbd). Next is **batch 15: CWE-331 and CWE-338**, which must be swept together with
+CWE-330 in view rather than file by file. The three overlap almost completely - 330 is the parent,
+331 is insufficient entropy, 338 is a weak PRNG - and batch 9's lesson was that a defect can live
+in the seam between two entries that are each internally consistent. Three specific obligations
+carry into that batch:
+
+- `cwe/331/java` was corrected by the sampling pass (setSeed "supplements, rather than replaces")
+  while `cwe/330/INDEX.md` went on asserting the opposite for four more batches. Check that 331 and
+  338 now agree with the rewritten 330 root on seeding, on the 128-bit floor, and on what a test
+  can prove.
+- `cwe/331/INDEX.md` and `cwe/338/INDEX.md` both still say to "replace with a properly-seeded
+  CSPRNG" and to use "the platform's blocking or entropy-aware random API where early-boot or
+  low-entropy environments are a concern". Batch 14 established that this is the wrong instinct:
+  `getInstanceStrong()` is what hung in JDK-8240296 and what commons-lang3 reverted in 3.17.0, and
+  since Linux 5.6 drawing bytes depletes nothing. Both roots need that checked.
+- `cwe/331/javascript` and `cwe/338/javascript` cover the same generator ground as the rewritten
+  `cwe/330/javascript`; read all three together before editing either.
+
+After 331 and 338: 347, 295, 780, 316. Nothing in the group has been read since the version-claim
+sweep, which covered one error class only.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
