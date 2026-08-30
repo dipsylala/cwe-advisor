@@ -19,7 +19,7 @@ authored directly in this repo (rather than derived from `docs/`) has none.
 
 ## Sweep status
 
-**274 of 301 language files reviewed. 27 remain.** (The population was originally miscounted as
+**285 of 301 language files reviewed. 16 remain.** (The population was originally miscounted as
 287; a full directory diff against every batch's actual commits, not its self-reported count, found
 14 hidden gaps - see batch 19's commit for how. Root files are out of scope by default: they rarely
 carry falsifiable claims, but check before skipping if a root names specific APIs or versions -
@@ -27,9 +27,6 @@ carry falsifiable claims, but check before skipping if a root names specific API
 
 Remaining, grouped for batching at the ~9-12 entry size used throughout:
 
-- LLM/AI, timing, cert, multi-byte string (11, loosely themed): `1426/javascript, 1426/python,
-  1427/javascript, 1427/python, 208/csharp, 208/java, 208/javascript, 208/python, 299/java,
-  135/c, 135/php`
 - Mass assignment and process control (10): `915/csharp, 915/java, 915/javascript, 915/php,
   915/python, 915/ruby, 114/c, 114/java, 114/javascript, 114/python`
 - Small platform-specific leftovers, undersized alone (6): `382/java, 498/java, 597/csharp,
@@ -104,13 +101,14 @@ memory/native-and-resource. Batches 19-20 closed gaps the 287-baseline miscount 
 | 21 | C/C++ numeric-conversion group: `170/c`, `170/cpp`, `195/c`, `195/cpp`, `196/c`, `196/cpp`, `197/c`, `197/cpp`, `197/java`, `1105/c` | 10 | 6/10 (`170/cpp`, `195/c`, `195/cpp`, `197/java` clean on vendor facts) |
 | 22 | C dangerous/obsolete-function and format-string: `242/c`, `243/c`, `364/c`, `479/c`, `477/c`, `477/python`, `676/c`, `676/python`, `134/c`, `134/java`, `134/python` | 11 | 6/11 (`243/c`, `477/python`, `676/python`, `134/java`, `134/python` clean on vendor facts) |
 | 23 | Config/allowlist/path-control injection: `15/csharp`, `15/java`, `15/javascript`, `15/python`, `183/java`, `183/javascript`, `183/python`, `73/csharp`, `73/java`, `73/python` | 10 | 8/10 (`73/csharp`, `73/python` clean on vendor facts) |
+| 24 | LLM/AI, timing, cert, multi-byte string: `1426/javascript`, `1426/python`, `1427/javascript`, `1427/python`, `208/csharp`, `208/java`, `208/javascript`, `208/python`, `299/java`, `135/c`, `135/php` | 11 | 6/11 (`208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php` clean on vendor facts; `208/java`'s "isEqual() returns early on unequal lengths" claim was true only through JDK 21 - JDK 22 removed the early return, caught only by reading OpenJDK's actual source after a reconciliation agent contradicted the file) |
 
 Clean-language-file count so far: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
 `434/python`, `201/python`, `125/cpp`, `121/cpp`, `401/javascript`, `401/python`, `362/java`,
 `367/go`, `367/java`, `367/javascript`, `367/python`, `377/java`, `79/perl`, `170/cpp`, `195/c`,
 `195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python`, `73/csharp`,
-`73/python` - 29 of ~281 reviewed files, still consistent with "treat every unreviewed file as
-suspect by default."
+`73/python`, `208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php` - 34 of ~292
+reviewed files, still consistent with "treat every unreviewed file as suspect by default."
 
 ## Findings not yet promoted to CLAUDE.md
 
@@ -137,6 +135,21 @@ instance.
   ever evaluates narrowing. Distinct from "test proves nothing against unfixed code" (already in
   CLAUDE.md) because here the *cast itself* is the fake fix, not a test - check whether a "fix"
   that resolves a compiler warning did anything beyond making the types match.
+- **A framework wrapper's method name gets misattributed to the raw SDK it wraps.** Four instances
+  in batch 24, one batch: `withStructuredOutput()`/`with_structured_output()` (`1426/javascript`,
+  `1426/python`) and `RunnableConfig` (`1427/javascript`, `1427/python`) all belong to LangChain(.js),
+  not the raw `@anthropic-ai/sdk`/`anthropic` packages these files are otherwise scoped to - in each
+  case the file's own correctly-named raw-SDK mechanism sat one bullet away from the misattributed
+  one. Worth checking, for any entry naming a framework-adjacent ecosystem (LangChain, Spring,
+  Express middleware), whether a named method actually lives on the base library the file claims to
+  cover or on a wrapper around it.
+- **An authorization check can pass honestly while the request is still attacker-induced.**
+  `1427/javascript` and `1427/python` both only gated tool actions on "does the caller own this
+  resource" - which a prompt injection instructing the model to act on the caller's *own* resource
+  (e.g. "refund my own order for $500") satisfies legitimately. The fix is a value/irreversibility
+  threshold routed to human approval, independent of and in addition to ownership authorization.
+  Ask whether an entry's authorization check would still block an attack that only asks for
+  something the legitimate caller was already allowed to have.
 
 ## Other open work (non-sweep)
 

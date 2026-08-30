@@ -9,9 +9,9 @@ In Python apps calling the Anthropic `anthropic` SDK (or OpenAI's, which follows
 - Never pass a model's text response or tool-call argument to `eval()`, `subprocess` with `shell=True`, an f-string SQL query, or `Markup()`/`|safe` in a template without the same validation that input reaching that sink requires - see this repo's code injection, command injection, SQL injection, and XSS guidance for the sink-specific fix
 - Use `output_config={"format": {"type": "json_schema", "schema": {...}}}` (or `client.messages.parse()` with a Pydantic model) to constrain response shape instead of parsing free text with regex - this narrows the injection surface for whatever consumes the output
 - Validate every `tool_use.input` field against expected types and ranges before use, the same as validating a client-supplied request body - do not assume the model's JSON output already conforms to the schema you gave it
-- Treat any filename or path present in model output or a tool result as attacker-controlled: apply `os.path.basename()` and confirm the resolved path stays within the intended directory before any file write or read
+- Treat any filename or path present in model output or a tool result as attacker-controlled: reject the value if `os.path.basename(name) != name` rather than silently rewriting it - `os.path.basename('../../etc/passwd')` returns `'passwd'` and writes successfully, a different file than requested, not a safe version of it. A leading `-` also survives `basename()` unchanged, so a model-derived filename can still be read as a flag if later passed as a bare `subprocess` argument - join it against a fixed directory first so the first character is always a separator
 - A model claiming it "verified" or "checked" something in its text output is not evidence of anything - perform independent verification for security-relevant claims
-- Constrain the shape of the output with the SDK's structured-output binding (`with_structured_output()`), so the value the application acts on is a parsed object against a schema rather than free text it has to interpret
+- Never authorize an action from a field inside `tool_use.input` (a user or resource ID the model echoed back) - it is model-influenced; authorize from the actual authenticated session only
 
 ## Taint Sinks
 
@@ -23,5 +23,5 @@ In Python apps calling the Anthropic `anthropic` SDK (or OpenAI's, which follows
 - For each sink, apply this repo's existing guidance for that sink type (code injection, command injection, SQL injection, path traversal, XSS), treating the model as the untrusted source
 - Where free-form parsing is used to extract structured data, replace it with `output_config.format` (JSON Schema) or `client.messages.parse()` against a Pydantic model, reading the validated object from `response.parsed_output`
 - Add explicit type and range checks on every `tool_use.input` field before it is used, matching what you would validate on an equivalent HTTP request body
-- Sanitize any model- or tool-produced filename with `os.path.basename()`, reject a result of `.` or `..`, and verify the resolved path is contained within the target directory before writing
+- Reject any model- or tool-produced filename where `os.path.basename(name) != name`, or that resolves to `.` or `..`, rather than rewriting it to the basename and proceeding
 - Test with a mocked or adversarial model response that returns an out-of-schema value, a path-traversal filename (`../../etc/passwd`), or an injection payload in a text field, and confirm the validation layer rejects it before the sink executes

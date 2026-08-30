@@ -9,9 +9,9 @@ In Node.js/TypeScript apps using `@anthropic-ai/sdk` (or OpenAI's, which follows
 - Never pass a model's text response or `tool_use.input` value to `eval()`, `child_process.exec()`, a template-literal SQL query, or `dangerouslySetInnerHTML` without the same validation that path requires for user input - see this repo's code injection, command injection, SQL injection, and XSS guidance for the sink-specific fix
 - Use `output_config.format` with `zodOutputFormat()` (or a raw JSON Schema) to constrain response shape instead of parsing free text - this narrows the injection surface for whatever consumes the output downstream
 - Validate every field of `tool_use.input` against expected types and ranges before use - re-parse it through the same Zod schema (or equivalent) you would apply to an HTTP request body, don't assume the model's JSON already conforms
-- Treat any filename or path present in model output or a tool result as attacker-controlled: apply `path.basename()` and confirm the resolved path is contained within the intended directory before any file write or read
+- Treat any filename or path present in model output or a tool result as attacker-controlled: reject the value if `path.basename(name) !== name` rather than silently rewriting it - `path.basename('../../etc/passwd')` returns `'passwd'` and writes successfully, which is a different file than the one requested, not a safe version of it
 - A model claiming in its text output that it "verified" or "checked" something is not evidence of anything - perform independent verification for security-relevant claims
-- Constrain the shape of the output with the SDK's structured-output binding (`withStructuredOutput()`), so the value the application acts on is a parsed object against a schema rather than free text it has to interpret
+- Never authorize an action from a field inside `tool_use.input` (a user or resource ID the model echoed back) - it is model-influenced; authorize from the actual authenticated session only
 
 ## Taint Sinks
 
@@ -23,5 +23,5 @@ In Node.js/TypeScript apps using `@anthropic-ai/sdk` (or OpenAI's, which follows
 - For each sink, apply this repo's existing guidance for that sink type (code injection, command injection, SQL injection, path traversal, XSS), treating the model as the untrusted source
 - Where free-form parsing extracts structured data, replace it with `client.messages.parse()` and `output_config.format` using `zodOutputFormat()` from `@anthropic-ai/sdk/helpers/zod`, reading the validated object from `response.parsed_output`
 - Re-validate every `tool_use.input` field with the same Zod schema (or equivalent) used for the corresponding HTTP endpoint, before the tool handler acts on it
-- Sanitize any model- or tool-produced filename with `path.basename()`, reject a result of `.` or `..`, and verify the resolved path stays within the target directory before writing
+- Reject any model- or tool-produced filename where `path.basename(name) !== name`, or that resolves to `.` or `..`, rather than rewriting it to the basename and proceeding
 - Test with a mocked or adversarial model response containing an out-of-schema value, a path-traversal filename (`../../etc/passwd`), or an injection payload in a text field, and confirm validation rejects it before the sink executes

@@ -10,8 +10,9 @@ In Node.js/TypeScript apps using `@anthropic-ai/sdk` (or the OpenAI SDK, which f
 - On models that support it (Claude Opus 5, Opus 4.8, Fable 5, Mythos 5), send trusted operator context as a mid-conversation `{role: "system", ...}` message appended to `messages` rather than embedding it in user-turn text - untrusted content in the conversation cannot forge a `system`-role message the way it can forge text inside a user turn, and no beta header is required
 - Treat every `tool_use` block's `input` as attacker-influenced whenever any untrusted content (user message, fetched page, retrieved document, prior tool result) is present in the conversation; validate and re-authorize in your tool handler before executing
 - Keep tools narrow and parameterized rather than giving the model broad capabilities (arbitrary shell, unrestricted network fetch) that turn a successful injection into full compromise
-- Gate irreversible actions behind a check against the real authenticated session, never a value read from the tool call's `input`
-- Carry the caller's identity in the framework's per-invocation context (`RunnableConfig`) and authorize each tool call against it server-side, so the model's decision to call a tool is never the authorization for it
+- Gate irreversible actions behind a check against the real authenticated session, never a value read from the tool call's `input` - authorization alone is not enough when the injected instruction asks the model to act on the caller's *own* resource (e.g. "refund my own order for $500"), since that passes both validation and ownership checks legitimately; route value-moving or irreversible actions above a threshold through a human-approval step regardless of who owns the resource
+- Audit every handler reachable by model-driven tool calls, not just the primary chat flow - an authorization check added to the customer-facing tool handler is easy to leave missing on an internal or admin automation path that processes the same model output
+- Carry the caller's identity in your own request-scoped context (from the authenticated session, never from a value the model or a tool result supplied) and authorize each tool call against it server-side, so the model's decision to call a tool is never the authorization for it - if using LangChain.js, this is the framework's `RunnableConfig`
 
 ## Taint Sinks
 
