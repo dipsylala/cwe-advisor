@@ -6,12 +6,13 @@ XSS occurs when untrusted data is included in web output without proper encoding
 
 ## Key Principles
 
-- Use framework auto-escaping: Django templates escape by default, and Flask enables Jinja2 autoescaping for `.html`/`.xhtml`/`.xml` templates - a standalone `jinja2.Environment` does not autoescape unless constructed with `autoescape=True`, and `render_template_string()` follows the same rule
+- Use framework auto-escaping: Django templates escape by default, and Flask enables Jinja2 autoescaping for `.html`/`.htm`/`.xhtml`/`.xml`/`.svg` templates and for `render_template_string()` - a standalone `jinja2.Environment` does not autoescape unless constructed with `autoescape=True`
 - Use the Django filter matching the context - `escapejs` inside a `<script>` block, `urlencode` for a URL component - rather than relying on the default HTML escaping everywhere
-- Never mark untrusted input as safe: Avoid `|safe`, `mark_safe()`, or `Markup()` on user data
+- Never mark untrusted input as safe: Avoid `|safe`, `mark_safe()`, or `Markup()` on user data - truncating or `.format()`-ing a value first does not make it safe to wrap, since neither operation strips HTML
+- `{% autoescape off %}` disables escaping for every variable in that block, not only the one it was added for - a block reused later for another variable silently loses protection
 - Context-aware encoding: Use HTML escaping for HTML context, JavaScript encoding for `<script>` blocks
-- Sanitize rich content with `nh3.clean()` and a strict tag/attribute allowlist; an existing `bleach.clean()` call is a dependency to replace, not a safe default to leave in place
-- `json.dumps()` does not escape `</script>`, so its output embedded in a `<script>` block lets a string value close the block early - in Django render through `{{ value|json_script:"id" }}` and read it back with `JSON.parse`, and in Jinja2 use `|tojson`, which escapes `<`, `>` and `&`
+- Sanitize rich content with `nh3.clean()` and a strict tag/attribute allowlist; an existing `bleach.clean()` call is a dependency to replace, not a safe default to leave in place. An allowlist that permits `style` or event-handler attributes still lets CSS-based injection through even with `<script>` stripped
+- `json.dumps()` does not escape `</script>`, so its output embedded in a `<script>` block lets a string value close the block early - in Django render through `{{ value|json_script:"id" }}` and read it back with `JSON.parse`, and in Jinja2 use `|tojson`, which escapes `<`, `>`, `&`, and `'`
 - Validate input format: Reject unexpected formats early before rendering
 
 ## Taint Sinks

@@ -7,9 +7,10 @@ Python's built-in `int` is arbitrary precision, so the classic wrap-to-a-small-o
 ## Key Principles
 
 - "Cannot overflow" is not "is safe": validate both the operands and the computed total against practical limits the process can actually allocate
-- Bound the result as well as the inputs - two individually reasonable values can multiply into an allocation that exhausts memory
-- Check explicitly against the target width before crossing into NumPy or `ctypes`: a value above `2**31 - 1` assigned into an `int32` array wraps there, and NumPy will not raise for a Python `int` that fits in `int64` but not in the array's dtype
-- NumPy's own integer arrays wrap on overflow (with a `RuntimeWarning` at most); use `dtype=object`, a wider dtype, or explicit checks where the operands are attacker-influenced
+- Bound the result as well as the inputs - two individually reasonable values can multiply into an allocation that exhausts memory. The most dangerous range is not the largest: a total above `sys.maxsize` self-rejects with `OverflowError` before any allocation is attempted, while a large-but-representable total can nearly succeed, drive the process into swap, and trigger the OOM killer against an unrelated process
+- Test negative values, not just large ones: two negative dimensions multiply to a positive total, and a single negative dimension produces a negative total, both of which pass an upper-bound-only check
+- Check explicitly against the target width before crossing into NumPy or `ctypes`: on NumPy 2.0+ (June 2024), constructing an array or a scalar from an out-of-range Python `int` (`np.array([300], dtype=np.int8)`, `np.int8(300)`) raises `OverflowError`; on NumPy 1.x it silently wrapped instead, so pin or check the NumPy version before relying on the exception
+- That construction-time check does not cover arithmetic on values already in an array: overflow from `+`/`-`/`*` on existing array elements still wraps silently on every NumPy version, and the accompanying `RuntimeWarning` is unreliable - a documented, still-open NumPy issue shows the same wraparound emits a warning for a 0-d scalar operation but no warning at all for the equivalent plain-array operation. Do not depend on the warning; use `dtype=object`, a wider dtype, or an explicit bounds check where the operands are attacker-influenced
 - `struct.pack` raises for an out-of-range value, so prefer it over a manual cast when serialising to a fixed-width field
 - Watch loop counts and slice sizes as well as allocations: `range(n)` with a large `n` is a denial of service without allocating anything
 - Where a value is read from a wire format as a fixed-width field, validate it against the domain's limits after unpacking, not before

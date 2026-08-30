@@ -951,13 +951,14 @@ missing *file* inside an otherwise-swept CWE has no seam for it to find. Confirm
   touched by the narrow "lead with call-site encoding" edit (commit d5861d7), which reordered one
   remediation step without a vendor sweep of the rest of each file.
 
-**Corrected running count: 236 of 301 language files reviewed** (287's baseline itself undercounted
+**Corrected running count: 243 of 301 language files reviewed** (287's baseline itself undercounted
 the population by the same 14; the true starting population was 301, not 287; batch 19 closed the
-5-entry CWE-117 gap). **65 language files remain unreviewed.** Suggested grouping for the remaining
+5-entry CWE-117 gap, batch 20 closed the 7-entry closeout tail). **58 language files remain
+unreviewed.** Suggested grouping for the remaining
 batches, sized to the ~9-12 convention:
 
-- The six-CWE "closeout tail" inside otherwise-finished batches (7 entries): `190/c`, `190/python`,
-  `94/csharp`, `79/python`, `79/perl`, `601/python`, `943/go`.
+- ~~The six-CWE "closeout tail" inside otherwise-finished batches (7 entries): `190/c`, `190/python`,
+  `94/csharp`, `79/python`, `79/perl`, `601/python`, `943/go`.~~ **Done as batch 20.**
 - C/C++ numeric-conversion and truncation (10): `170/c,170/cpp,195/c,195/cpp,196/c,196/cpp,
   197/c,197/cpp,197/java,1105/c`.
 - C dangerous/obsolete-function and format-string family (11): `242/c,243/c,364/c,479/c,477/c,
@@ -1017,6 +1018,77 @@ Text's `escapeJava()` as a named Java alternative with its own documented DEL ga
 carries the old misattribution, confirming the skill is ahead of the parent corpus on this one vendor
 fact. No `DOCS_UPDATE.md` finding filed for that, since `docs/` is a working copy this repo doesn't
 control - the correction lives in this repo's own root file instead.
+
+**Batch 20 closed the "closeout tail"** - 7 files, each a gap left behind when its siblings were
+swept in an earlier, unrelated batch: `190/c`, `190/python`, `94/csharp`, `79/python`, `79/perl`,
+`601/python`, `943/go`. Unlike every prior batch, this one spanned five unrelated CWEs at once, so
+each file was checked against its own root and already-reviewed siblings for doctrine, not against
+each other. 6 of 7 were defective; **`79/perl` came back clean on every vendor-fact claim checked**
+(Template Toolkit, HTML::Mason, Mojolicious, HTML::Entities, URI::Escape/JSON::XS) - the fourth clean
+language entry the sweep has found, after `347/csharp`, `601/go`, and `362/java`. Its `docs/`
+reconciliation still yielded real, verifiable operational detail (see below), confirming clean-on-
+vendor-facts and clean-overall are different findings.
+
+Most consequential: `601/python`'s core check was actually broken, not just imprecise -
+`urlparse().netloc == ''` returns `''` (misread as "safe relative path") for `https:/evil.com`,
+`https:evil.com`, `///evil.com`, and `////evil.com`, confirmed by direct empirical testing in Python
+3.13, while a browser's WHATWG-spec parser resolves every one of them to host `evil.com` by
+tolerating a missing or doubled slash after the scheme. This is the fourth CWE-601 language file the
+sweep has found with a broken check that doesn't survive adversarial input, after `java`'s
+`isAbsolute()`/`getHost()` misclassification and `javascript`'s `TypeError`-on-relative-input `new
+URL()` call in batch 17a. The fix required requiring the raw string's shape (single leading `/`, no
+`:` before it) alongside the parsed fields, rather than trusting either alone - the same "parse
+against a trusted base, then compare canonical components" doctrine the `java`/`javascript` fixes
+already established, adapted to `urlparse` having no base-relative form. Also corrected: Django's
+`url_has_allowed_host_and_scheme()` is internal, unversioned API - a Django core developer has
+publicly said not to use it directly - so presenting it as a supported "framework-specific safe
+redirect utility" pointed the model at the wrong kind of dependency.
+
+`94/csharp` named a dead taint sink: `CSharpCodeProvider.CompileAssemblyFromSource()` throws
+`PlatformNotSupportedException` unconditionally on .NET Core and .NET 5+, per Microsoft's own
+exceptions table ("in all cases") - it is live only on a .NET Framework target, and a finding
+against it on any modern TFM cannot execute. A new instance of the "prescribed edit does something
+when applied literally" check, this time applied to a *finding* rather than a *fix*: naming a taint
+sink that cannot run is the mirror image of prescribing a fix that cannot run. The same file's `NCalc`
+guidance had borrowed `DynamicExpresso`'s named allowlist/reflection-toggle mechanism
+(`EnableReflection()`/`Reference()`) for a library that has no such API - NCalc's containment is
+structural (its grammar has no member-access syntax at all), not configurable.
+
+`190/python` had a version-blind absolute of the kind CLAUDE.md already tracks: NumPy 2.0 (June 2024)
+changed array/scalar construction from an out-of-range Python `int` to raise `OverflowError` where it
+previously wrapped silently, but the file's "NumPy will not raise" claim didn't carry that floor. The
+construction-time fix does not cover arithmetic on values already in an array, which still wraps on
+every version behind an unreliable `RuntimeWarning` - a still-open NumPy issue shows the identical
+wraparound warning for a 0-d scalar op and silent for the equivalent plain-array op. `190/c` needed
+two smaller corrections: `calloc`'s multiplication-overflow check is glibc/modern-libc documented
+behavior, not a C standard or POSIX guarantee, and `-ftrapv` is a "prescribed test that passes
+against unfixed code" instance on GCC specifically - GCC bug 35412 documents it silently failing to
+trap on common overflow cases, contrasted with Clang's own `-ftrapv`, which does not share the bug.
+
+`docs/` reconciliation (step 5, run bundled across all seven files since each comparison was
+single-file rather than family-wide) surfaced high-value operational detail even on files with no
+vendor-fact defect: `79/perl` gained a version-dependent trap (CGI.pm's `escapeHTML()` only escapes
+`'` unconditionally from 4.11 on; before that it depends on the object's charset, so a single-quoted
+attribute stays breakable after "escaping" on an older CGI.pm) and a `param()` list-context gotcha
+(a repeated query parameter returns every value, so validating only the first one and reading the
+parameter again elsewhere can read a different, unvalidated value). `943/go` gained a "prescribed
+test proves nothing" instance distinct from the ones already in CLAUDE.md: CQL's `WHERE` grammar is
+`relation (AND relation)*` with no `OR` and no `UNION`, so a classic `' OR 1=1`/`UNION SELECT` test
+payload is a parse error regardless of whether values are actually bound, and a Redis fix that only
+strips `\r`/`\n` from a key defends nothing since RESP is length-prefixed and treats an embedded
+newline as data, not a command separator - both prevent the model from shipping a no-op fix that
+would pass a naive test. `943/go` also gained a self-undermining-advice catch: the file's own
+recommended fix ("build the filter with `bson.D{...}`") could be misread as "use the decoded struct
+as the filter," which the MongoDB driver marshals field-by-field including every zero-valued field,
+producing a filter that matches nothing - worth a bullet warning against the misreading of the file's
+own guidance. `601/python` gained five further traps docs had and the vendor pass didn't surface:
+`.port` raising `ValueError` on a malformed value, `ALLOWED_HOSTS` wildcard entries silently
+widening an allowlist passed through it, `urljoin` providing no restriction against an already-
+absolute external URL, a Pydantic `HttpUrl` validating well-formedness rather than trust, and
+indirect reference (a server-side key-to-destination map) as a strategic alternative to parsing at
+all. No `DOCS_UPDATE.md` findings filed - every divergence found ran in this repo's favor (a stale
+`-ftrapv` endorsement, a Flask-autoescape claim missing `.svg`) or added detail rather than
+surfacing a defect docs should be credited with introducing.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
