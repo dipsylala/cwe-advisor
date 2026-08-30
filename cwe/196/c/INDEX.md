@@ -10,8 +10,9 @@ C converts an unsigned value larger than a signed type's maximum implicitly - on
 - Better still, remove the conversion: compare `size_t` against `size_t` and keep lengths and counts unsigned end to end
 - Return an explicit error indicator from a conversion helper (a `bool` plus an out-parameter) so every call site has to handle the too-large case rather than silently accepting a wrapped result
 - A negative result from a length function is the observable symptom: a subsequent `if (len < 0)` guard may look like a check while the damage - an allocation or index computed from the wrapped value - has already been done elsewhere
-- A mixed signed/unsigned *comparison* does not produce this direction: the usual arithmetic conversions convert the unsigned operand to the signed type only when that type can represent all its values, and otherwise convert the signed one. A finding on a mixed comparison belongs to CWE-195; what belongs here is an operand somebody has already cast
+- A mixed signed/unsigned *comparison* does not produce this direction: the usual arithmetic conversions are gated on rank, not representability - if the unsigned operand's rank is greater than or equal to the signed operand's, the signed operand converts to unsigned (the common case, e.g. `int` vs `size_t`); only when the signed operand's rank is strictly greater does the question of whether it can represent every unsigned value arise. Either way, a mixed comparison converts one operand toward the other and belongs to CWE-195; what belongs here is an operand somebody has already cast
 - Use fixed-width types (`int32_t`, `uint32_t`) where the range matters, and check the high bit explicitly when narrowing between them
+- Casting both sides of a comparison to the same type (`(int)a < (int)b`) can look like a careful fix because the types now match, while doing nothing to validate either value - a comparison needs a bounds check, not just uniform typing
 - Build with `-Wsign-conversion -Wconversion` and treat the warnings as errors in new code
 
 ## Taint Sinks

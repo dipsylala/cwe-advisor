@@ -11,7 +11,9 @@ C++ inherits C's conversion rules, so a negative `int` assigned to a `std::size_
 - Before C++20, write it as `value < 0 || static_cast<std::uintmax_t>(value) > MAX`, in that order: the sign test must come first
 - Have the helper return `std::optional` (or use `gsl::narrow`, which throws `gsl::narrowing_error`, where the project already depends on GSL) so the policy stays at the call site, which knows whether an out-of-range value is a client error or a bug
 - Apply an application-level upper bound as well as the type's: a value that converts cleanly can still request an allocation large enough to be a denial of service
-- Prefer `std::ssize()` and signed indices in loop arithmetic so no conversion is needed until the container is actually indexed, and convert once at that point
+- Prefer `std::ssize()` and signed indices in loop arithmetic so no conversion is needed until the container is actually indexed, and convert once at that point - `for (size_t i = data.size() - 1; i >= 0; --i)` has two independent bugs with an unsigned `i`: `size() - 1` wraps to `SIZE_MAX` when the container is empty, and `i >= 0` is a tautology that never terminates
+- Checking `count <= src.size()` is not enough once a start offset is involved: `first=4090, count=10` against a 4096-byte source passes that check but still reads 4 bytes past the end. Check `first <= src.size()` first, then `count > src.size() - first` - not `first + count > src.size()`, which can itself wrap
+- A `static_cast` added only to silence `-Wsign-compare`/`-Wsign-conversion` makes the warning disappear without changing what the code does - confirm the value is actually validated, not just uniformly typed
 - Enable `-Wsign-conversion -Wsign-compare -Wconversion`; the conversions here are implicit and invisible without them
 - The C entry covers the same conversion at the syscall boundary (error returns from `read()` and friends); this one covers container and iterator idioms
 

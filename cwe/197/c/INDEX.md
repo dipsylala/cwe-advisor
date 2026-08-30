@@ -12,7 +12,7 @@ C narrows implicitly whenever a value is assigned or cast to a smaller type - `i
 - Keep the wide type all the way to the sink where possible: a length that stays `int64_t` until it reaches `malloc((size_t)len)` has no narrowing step to check
 - Watch for the sizes and the copy diverging - the classic shape is an allocation sized from the truncated value and a copy sized from the original, which is an out-of-bounds write (CWE-787)
 - `time_t` narrowed into a 32-bit field is the recurring real-world instance and overflows on 19 January 2038; store and compare it at its native width
-- Build with `-Wconversion -Wfloat-conversion` and treat them as errors in new code, and run tests under `-fsanitize=undefined` which reports the invalid float-to-int conversions
+- Build with `-Wconversion -Wfloat-conversion` and treat them as errors in new code, and run tests under `-fsanitize=undefined` for the invalid float-to-int conversions - Clang's default `undefined` umbrella includes this check, but GCC's does not, so on GCC request it explicitly as `-fsanitize=undefined,float-cast-overflow` or the test proves nothing. `-Wnarrowing` is a C++-only GCC flag and does nothing when compiling C - it is `-Wconversion` that covers this here
 
 ## Taint Sinks
 
@@ -25,5 +25,5 @@ C narrows implicitly whenever a value is assigned or cast to a smaller type - `i
 - Identify the unsafe pattern - a narrowing conversion with no prior range check, or a check written against the already-narrowed value
 - Replace with the safe pattern - a checked conversion helper, or a signature change that keeps the wide type to the point of use
 - Bind, encode, validate, or authorize - reject an unrepresentable value with an error rather than clamping it, so the caller does not act on a substituted size
-- Harden configuration - enable `-Wconversion -Wfloat-conversion`; build tests with `-fsanitize=undefined`
+- Harden configuration - enable `-Wconversion -Wfloat-conversion`; build tests with `-fsanitize=undefined` and, on GCC, also `float-cast-overflow` explicitly - GCC excludes it from the default umbrella
 - Test - pass `INT32_MAX + 1`, a value whose low 32 bits are small (`0x100000001`), `NaN`, and an infinity through every conversion, and assert the operation is refused rather than performed at the truncated size

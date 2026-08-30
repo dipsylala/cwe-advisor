@@ -13,6 +13,7 @@
 - `strncpy` behaves identically in C++: filling a fixed-size `char[]` from a `std::string` needs the same reserved final byte and explicit terminator
 - Guard a read with `bytes_read < 0` for the error case and handle `0` (peer closed) as an empty result - a `> 0` guard skips the terminator on exactly the closed-connection path
 - Prefer `std::string_view` for passing text you do not own, but remember it is *not* guaranteed terminated - never hand `.data()` from a view to a C string function
+- `std::string::data()` only gained `c_str()`'s termination guarantee in C++11; on a codebase that still targets an older standard, or that writes through a non-`const` pointer obtained from `data()`, the guarantee does not hold
 
 ## Taint Sinks
 

@@ -14,6 +14,7 @@ C converts a negative signed value to unsigned implicitly - on assignment, on a 
 - Prefer `size_t`/`ssize_t` to `int` for anything derived from a length, and check the result of `snprintf` for a negative return before using it as a length
 - Build with `-Wsign-conversion -Wsign-compare -Wconversion` so the implicit conversions become visible, and treat them as errors in new code
 - Where the value crosses an API boundary, validate it in the callee too - the caller's check does not travel with the value
+- Adding a checked conversion at the sink does not fix an unrelated bounds check upstream that still runs in `int`: if that earlier guard already let the negative value through, the value still reaches the sink exactly as before - trace every check on the value's path, not just the one nearest the vulnerable sink
 
 ## Taint Sinks
 

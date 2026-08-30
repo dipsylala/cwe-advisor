@@ -10,3 +10,14 @@ elsewhere, so this file is the hand-off channel rather than a change set applied
    warning. Both need enabling deliberately (and raising to error severity) rather than already
    running - "raising warnings to errors for those two rules" presumes a starting state neither
    rule is actually in.
+
+2. `docs/CWE-196/c/index.md` states the mixed signed/unsigned comparison rule as "the usual
+   arithmetic conversions convert the unsigned operand to the signed type only where that type
+   can represent every value it might hold, and in every other case the signed operand is the
+   one that converts." This is backwards for the common case. C11 6.3.1.8's actual rule is
+   gated on conversion rank, not representability: when the unsigned operand's rank is greater
+   than or equal to the signed operand's rank - the ordinary case, e.g. `int` vs `size_t` - the
+   signed operand converts to unsigned regardless of whether it could represent every unsigned
+   value. Representability only decides the direction in the less common case where the signed
+   operand's rank is strictly greater. `cwe/196/c/INDEX.md` in this repo carried the identical
+   error until this sweep pass corrected it to state the rank-gated rule.

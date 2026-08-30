@@ -11,7 +11,8 @@ Java's narrowing primitive conversions are silent: the compiler requires an expl
 - For floating point, reject `Double.isNaN()` and `Double.isInfinite()` explicitly before the range check - the cast's clamp-and-continue behaviour hides both
 - Apply the domain's own limit as well as the type's: a size that fits in `int` can still be an unreasonable allocation, and `new byte[]` with a negative length throws while a truncated *positive* length silently under-allocates
 - Use `Math.addExact`/`multiplyExact`/`subtractExact` for arithmetic that must not wrap, so an overflow surfaces as an `ArithmeticException` instead of a wrapped value
-- Use `BigDecimal` (with an explicit `RoundingMode`) for monetary calculations rather than `double`, and never construct it from a `double` literal
+- Use `BigDecimal` (with an explicit `RoundingMode`) for monetary calculations rather than `double`, and never construct it from a `double` literal - switching a monetary field from `float` to `double` is not this fix, it only narrows the range where the same rounding error appears
+- A value validated at an API boundary can still exceed range after later arithmetic - a sum or product computed from validated inputs is itself unvalidated, so `Math.addExact`/`multiplyExact` still belongs at the point of computation, not only at entry
 - Watch for the truncation happening at an API boundary - `long` file sizes, `System.currentTimeMillis()`, `InputStream.transferTo()` counts, and JDBC `getLong` results are the common wide sources
 
 ## Taint Sinks

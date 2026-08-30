@@ -10,6 +10,7 @@ C++ inherits C's implicit unsigned-to-signed conversion rules, so `.size()`, `.l
 - Bound the check with `std::numeric_limits<int>::max()` rather than a hardcoded `INT_MAX`, so it stays correct across platforms with different `int` widths
 - Throw (or return `std::optional`) on an out-of-range conversion so it cannot be silently ignored; a wrapped length that reaches the caller is indistinguishable from a real one
 - Compare with `std::cmp_greater`/`std::cmp_less` when one operand is signed and the other unsigned - they compare by mathematical value, so no operand is converted before the comparison
+- Silencing a CWE-195 `-Wsign-compare` warning with `static_cast<int>(container.size())` introduces this CWE instead of fixing that one - a mixed comparison needs `std::cmp_*` or a checked conversion, not a cast that just picks a side
 - Convert *after* the bounds check, not before: a size narrowed to `int` and then compared is being checked against a value that has already changed
 - Container methods returning `size_type` are the usual source; a loop index declared `int` against `.size()` is the same defect in comparison form
 - Build with `-Wsign-conversion -Wconversion` (or `/W4` and `C4245`/`C4365` on MSVC) so these conversions become visible

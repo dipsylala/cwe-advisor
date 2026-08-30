@@ -6,7 +6,7 @@ C exposes pointer representation, raw memory layout, and the instruction set dir
 
 ## Key Principles
 
-- Round-trip a pointer through `uintptr_t`/`intptr_t`, never `int` or `long` - those truncate on LLP64 and on any platform where pointers are wider
+- Round-trip a pointer through `uintptr_t`/`intptr_t`, never `int` or `long` - those truncate on LLP64 and on any platform where pointers are wider. No sanitizer catches this: an explicit `(int)ptr` cast is exactly the form ASan/UBSan treat as intentional, so the real defense is `-Wpointer-to-int-cast` (on by default under `-Wall` when the widths differ) plus `-Wconversion`, not a runtime test. A handle table that only ever stores small integers round-trips fine through the same buggy cast for years - the bug surfaces only once something stores a real pointer in it
 - Convert byte order explicitly at every boundary with `ntohl`/`htonl`/`ntohs`/`htons`, or unpack byte by byte for a documented order that is not network order
 - Read multi-byte values out of a byte buffer with `memcpy` into a correctly typed local rather than casting the buffer pointer: the cast assumes alignment that faults on some architectures and violates strict aliasing, which the optimiser may act on. Compilers turn the `memcpy` back into a single load where the target allows one
 - Declare wire buffers `const uint8_t *`, not `char *`: plain `char`'s signedness is implementation-defined, so a byte from `0x80` upward sign-extends during the shift and corrupts the bytes beneath the top one - the failure looks correct in the high byte, which is the hardest version to debug
@@ -14,7 +14,7 @@ C exposes pointer representation, raw memory layout, and the instruction set dir
 - Detect CPU features at runtime (`__get_cpuid`, `__builtin_cpu_supports`, MSVC `__cpuid`), not with build-time macros like `#ifdef __AVX2__`, which describe the machine that compiled the binary rather than the one running it
 - Guard the architecture-specific *header* as well as the call - `<cpuid.h>` does not exist on ARM, so an unguarded include turns a portability fix into a build failure
 - Give every accelerated path an equally correct software fallback, so a CPU without the extension gets a correct result rather than a degraded one
-- Replace architecture-specific inline assembly with a portable equivalent; for zeroing secrets use a `volatile` byte loop (or `explicit_bzero`/`memset_s` where available), since a plain `memset` can be optimised away
+- Replace architecture-specific inline assembly with a portable equivalent; for zeroing secrets, a plain `memset` can be optimised away if the compiler sees the buffer is never read again - use `explicit_bzero` (glibc 2.25+, BSD) or a `volatile` byte loop, which the C standard itself guarantees cannot be elided. `memset_s` is C11 Annex K, which is optional and which glibc does not implement - do not offer it as a Linux fallback. C23's `memset_explicit()` is a portable, standardized option once the target compiles as C23
 
 ## Taint Sinks
 

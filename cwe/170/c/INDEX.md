@@ -12,7 +12,8 @@ A C string is a byte array with no stored length, so every function that treats 
 - Guard that write with `if (bytes_read < 0) return;`, not `if (bytes_read > 0)` - `recv()` returns 0 when the peer closes, and a `> 0` guard skips the terminator on exactly that path, leaving the buffer as unterminated as before the fix
 - One `recv()` is not one message: it returns whatever has arrived, so a caller needing a whole line or a length-prefixed frame must loop and terminate after the last byte of the accumulated data
 - Allocate `strlen(src) + 1` bytes, counting the terminator, whenever a string is copied into fresh memory
-- Bound a loop that rewrites string bytes with `i < len`, so index `len` - the terminator's position - is never written whatever the loop body later becomes
+- Bound a loop that rewrites string bytes with `i < len`, so index `len` - the terminator's position - is never written whatever the loop body later becomes. A loop written as `i <= len` can still look correct under one specific body (`toupper('\0')` is a fixed point, so a case-folding loop with that bound never corrupts anything) and only fails once the body changes to something without a fixed point at `\0` - verify the bound itself, not just the current body's behavior against it
+- `strlcpy()` (BSD, and glibc 2.38+) always null-terminates its destination and returns the source's length, unlike `strncpy` - prefer it over `strncpy` plus a manual terminator where it is available
 - Use `strnlen(buf, cap)` rather than `strlen(buf)` on any buffer whose termination is not guaranteed, and treat a result equal to `cap` as invalid data rather than a string
 
 ## Taint Sinks
@@ -26,5 +27,5 @@ A C string is a byte array with no stored length, so every function that treats 
 - Identify the unsafe pattern - a copy sized at exactly the destination's capacity, a read whose return value is not used to place a terminator, or an allocation of `strlen(src)` without the extra byte
 - Replace with the safe pattern - reserve the final byte, terminate explicitly at the count actually written, and size allocations as `len + 1`
 - Bind, encode, validate, or authorize - where the source may legitimately exceed the destination, reject the input rather than relying on a silent truncation the caller cannot detect
-- Harden configuration - build with `-Wall -Wextra` and `-D_FORTIFY_SOURCE=2` at `-O1` or higher, and run tests under `-fsanitize=address`
+- Harden configuration - build with `-Wall -Wextra` and `-D_FORTIFY_SOURCE=3` at `-O2` or higher (GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; fall back to `=2` on older toolchains), and run tests under `-fsanitize=address`
 - Test - exercise a source exactly as long as the destination, a source one byte longer, a zero-byte read from a closed peer, and a read error; confirm under ASan that no read runs past the buffer
