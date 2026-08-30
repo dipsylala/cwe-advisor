@@ -2,12 +2,12 @@
 
 ## LLM Guidance
 
-Insufficient entropy in Python is not about picking the wrong random API - `secrets` and `os.urandom()` are already correct CSPRNG calls (contrast with CWE-338, which covers replacing the `random` module). The risk here is generating security-critical values before the OS entropy source is properly seeded, or in a cloned VM/container image that duplicated PRNG seed state. On Linux, `os.urandom()` (which `secrets` uses internally) calls the `getrandom()` syscall, and since Python 3.6 (PEP 524) that call blocks until the kernel CSPRNG has been seeded at least once - so standard `secrets` calls already wait out an unseeded pool rather than silently returning weak output.
+Insufficient entropy in Python is not about picking the wrong random API - `secrets` and `os.urandom()` are already correct CSPRNG calls (contrast with CWE-338, which covers replacing the `random` module). The risk here is generating security-critical values before the OS entropy source is properly seeded, or in a cloned VM/container image that duplicated PRNG seed state. On Linux and Solaris specifically, `os.urandom()` (which `secrets` uses internally) calls the `getrandom()` syscall, and since Python 3.6 (PEP 524, whose rationale is explicitly scoped to those two platforms) that call blocks until the kernel CSPRNG has been seeded at least once - so standard `secrets` calls already wait out an unseeded pool rather than silently returning weak output. This is a documented, intentional tradeoff rather than a purely theoretical one: an earlier attempt to use `getrandom()` unconditionally caused real early-boot hangs (Debian #822431), which is why PEP 524 reintroduced blocking deliberately rather than falling back to weaker output.
 
 ## Key Principles
 
 - `secrets`/`os.urandom()` are the correct APIs; the defect is calling them before the OS entropy source is seeded, or from an image/instance that shares seed state with a clone - not the choice of function
-- On Linux, `os.urandom()` already blocks on `getrandom()` until the kernel CSPRNG is seeded (PEP 524), so no extra blocking logic is needed around `secrets` calls on that platform
+- On Linux and Solaris, `os.urandom()` already blocks on `getrandom()` until the kernel CSPRNG is seeded (PEP 524), so no extra blocking logic is needed around `secrets` calls there; PEP 524 does not describe this guarantee for macOS or Windows
 - Ensure sufficient entropy regardless of correct API: 16+ bytes (128+ bits) for tokens, 32+ bytes (256+ bits) for keys
 - Never bake long-lived secrets into a VM/container image at build time; generate them at first real startup so cloned instances don't inherit identical secret or seed material
 - On embedded or minimal container systems without a hardware RNG or entropy daemon (`rngd`, `haveged`), verify the OS entropy source is healthy before assuming `secrets` calls return strong output promptly

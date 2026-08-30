@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-`math/rand` and `math/rand/v2` in Go implement fast, deterministic pseudo-random algorithms that are not cryptographically secure, regardless of how they are seeded: enough observed output lets an attacker reconstruct the generator's internal state and predict every future value. Since Go 1.20 the global `math/rand` source auto-seeds from OS randomness at startup, but this only removes a fixed or guessable seed - it does not make the algorithm itself safe for security use. Replace any `math/rand`/`math/rand/v2` call in a security-sensitive path with `crypto/rand`.
+`math/rand` and `math/rand/v2` in Go implement fast, deterministic pseudo-random algorithms that are not cryptographically secure, regardless of how they are seeded: enough observed output lets an attacker reconstruct the generator's internal state and predict every future value. Since Go 1.20 the global `math/rand` source (the top-level functions, not a `rand.New(rand.NewSource(...))` instance) auto-seeds from OS randomness at startup, and since Go 1.22 that global source is backed by ChaCha8 rather than the older LFSR algorithm - Go's release notes call ChaCha8 "a new, cryptographically strong random number generator", which sits in tension with `math/rand`'s own package-level warning that its outputs "might be easily predictable regardless of how it's seeded." Treat the package warning as authoritative and replace any `math/rand`/`math/rand/v2` call in a security-sensitive path with `crypto/rand` regardless of Go version.
 
 ## Key Principles
 
@@ -12,7 +12,7 @@
 - Audit helper functions written for non-security use (shuffling, sampling) that later get reused for a security-relevant selection, such as choosing a verification question or partitioning a feature flag
 - When reducing `crypto/rand` output to a smaller range (OTP digits), use `crypto/rand.Int(rand.Reader, big.NewInt(n))` rather than `%` on raw bytes, which introduces modulo bias
 - `math/rand`/`math/rand/v2` remain the correct choice for simulations, games, and reproducible test fixtures - the fix is scoping their use away from security code, not removing them entirely
-- `crypto/rand` draws from the OS (`getrandom(2)` on Linux, `ProcessPrng` on Windows) and needs no seeding; `math/rand/v2`'s `NewPCG` is a newer non-cryptographic generator whose name suggests otherwise
+- `crypto/rand` draws from the OS (`getrandom(2)` on Linux, `ProcessPrng` on Windows) and needs no seeding; `math/rand/v2`'s `PCG` source is documented by the package itself as "unfit for security-relevant purposes" - `ChaCha8`'s "cryptographically strong" framing in the Go 1.22 release notes describes only the *global* generator's algorithm choice, and does not override `math/rand`/`math/rand/v2`'s own blanket warning against security use
 - Size the token in bytes rather than characters and set the cookie carrying it `Secure` and `HttpOnly`, since a strong value read off the wire is no longer unguessable
 
 ## Taint Sinks

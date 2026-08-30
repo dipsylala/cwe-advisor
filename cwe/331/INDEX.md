@@ -6,7 +6,7 @@ CWE-331 occurs when a security-sensitive value is generated with insufficient ac
 
 ## Key Principles
 
-- Use the platform's blocking or entropy-aware random source (not just any CSPRNG API) when generating security-critical values early in a system's lifecycle, before the entropy pool is guaranteed to be filled
+- Trust the platform's ordinary CSPRNG call rather than reaching for a separate "strong" or manually-blocking variant by default. Since Linux 5.6 (2020), the kernel CSPRNG blocks only once, at boot, before first being seeded, and never again - the old model of an entropy pool that can run dry is obsolete there. A language's own "strong" variant can carry a worse cost instead: Java's `SecureRandom.getInstanceStrong()` reads `/dev/random` on every call, not only while unseeded, and has caused production hangs (see the language-specific guidance for which call is which)
 - Ensure generated values carry sufficient entropy for their purpose - 128+ bits for session tokens, 256+ bits for symmetric key material - even when using a correct CSPRNG algorithm
 - Never seed a random generator from a low-entropy or guessable source (timestamp, process ID, MAC address), even if the generator's output function is itself cryptographically strong
 - Be cautious of cloned or templated virtual machine/container images, which can share identical PRNG seed state unless explicitly re-seeded after cloning
@@ -21,6 +21,6 @@ CWE-331 occurs when a security-sensitive value is generated with insufficient ac
 - Identify the generation point - Locate where a security-sensitive random value (key, token, nonce, IV) is generated and how its underlying entropy source is obtained
 - Determine usage context - Check if random values are used for encryption keys, IVs/nonces, session tokens, CSRF tokens, or API keys
 - Assess entropy sufficiency - Confirm both the entropy source (a properly seeded OS/hardware entropy pool) and the output length carry enough randomness for the security purpose
-- Replace with a properly-seeded CSPRNG - Use the platform's blocking or entropy-aware random API where early-boot or low-entropy environments are a concern (see the language-specific guidance's Remediation Steps for concrete APIs)
+- Replace with a properly-seeded CSPRNG - Use the platform's ordinary CSPRNG call, established per the language-specific guidance; reach for a distinct "strong" or blocking variant only where that language's own documentation says the default does not wait for the OS source to be seeded
 - Re-seed after cloning - For VM/container images, ensure the entropy pool is explicitly re-seeded on first boot after cloning rather than inheriting the template's state
 - Test unpredictability - Verify that sequential calls, including immediately after boot or VM clone, produce non-repeating, non-predictable values

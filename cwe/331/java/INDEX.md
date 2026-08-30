@@ -7,7 +7,7 @@ Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptograp
 ## Key Principles
 
 - `SecureRandom` is the correct algorithm; the defect is drawing from an entropy source that isn't seeded yet, or from a cloned instance sharing seed state - not the choice of class
-- For security-critical values generated at process/container/VM startup, prefer `SecureRandom.getInstanceStrong()`, which resolves to a blocking entropy source on typical Linux JVM configurations rather than the default non-blocking `SecureRandom()`
+- For security-critical values generated at process/container/VM startup, `new SecureRandom()` is still the right default - since Linux 5.6 the kernel CSPRNG it draws from blocks only once, before first output, and never again. `getInstanceStrong()` is not automatically safer: it resolves to `NativePRNGBlocking`, which reads `/dev/random` on every `nextBytes()` call rather than only while unseeded, and has hung production key/IV generation in the wild (Apache RANGER-2700, OrientDB #9603) with no `nextInt()` involved at all. Reserve it for one-off generation of long-lived key material outside a request or startup path, which is what its own Javadoc describes
 - Generate sufficient entropy regardless of correct algorithm: 16+ bytes (128+ bits) for tokens/IVs, 32+ bytes (256+ bits) for keys
 - Be cautious of VM/container images built via templating or snapshotting; JVM/OS entropy or seed state captured at image-build time can be duplicated across clones unless reseeded
 - On embedded or virtualized hosts, verify the underlying OS entropy source is healthy - Java delegates entirely to the platform and does not generate its own entropy
@@ -24,7 +24,7 @@ Insufficient entropy in Java is not about `SecureRandom` versus a non-cryptograp
 
 - Locate where `SecureRandom` generates keys, tokens, or IVs, and identify whether generation happens during image build, container/VM startup, or normal runtime
 - Confirm output length: 16+ bytes for tokens/IVs, 32+ bytes for keys
-- For startup-time or boot-time generation, use `SecureRandom.getInstanceStrong()` instead of the default constructor so the call draws from a blocking, entropy-aware source
+- For startup-time or boot-time generation, use the default `new SecureRandom()` rather than reaching for `getInstanceStrong()` as a blanket habit - the default already waits out an unseeded pool on a modern kernel, and `getInstanceStrong()`'s blocking source has caused startup hangs of its own
 - Do not generate long-lived keys as part of an image/template build step; defer generation to first real boot of each deployed instance
 - On embedded or virtualized JVM hosts, verify the OS-level entropy source (`/dev/random`, hardware RNG) is healthy
 - Verify unpredictability across multiple instances launched from the same image, not only across repeated calls within one instance
