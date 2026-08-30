@@ -8,7 +8,7 @@ Using RSA encryption without OAEP padding enables padding oracle attacks, chosen
 
 - Use `cryptography` library with explicit `padding.OAEP()`; if using PyCryptodome, configure `PKCS1_OAEP` with SHA-256
 - Specify MGF1 hash (SHA-256 minimum) and OAEP hash algorithm explicitly
-- Set minimum 2048-bit RSA keys (3072-bit or 4096-bit recommended)
+- Use 3072-bit RSA keys for new key generation (NIST SP 800-57 Part 1 disallows 2048-bit/112-bit-strength RSA after 2030, rating 3072-bit at 128-bit strength); 4096-bit for longer-lived keys, 2048 only on an existing key not yet due for rotation
 - Never use `PKCS1v15()` or `PKCS1_v1_5` for encryption
 
 ## Taint Sinks
@@ -20,6 +20,6 @@ Using RSA encryption without OAEP padding enables padding oracle attacks, chosen
 - Replace deprecated PyCrypto and any `PKCS1_v1_5` encryption; PyCryptodome `PKCS1_OAEP` is acceptable when configured with SHA-256
 - Install - `pip install cryptography`
 - Use `padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)`
-- Verify key size is at least 2048 bits in `rsa.generate_private_key(public_exponent=65537, key_size=2048)`
+- Verify `rsa.generate_private_key(public_exponent=65537, key_size=...)` uses `key_size=3072` for a new key, not the 2048 floor alone
 - Test encryption/decryption with OAEP padding
 - Remove deprecated PyCrypto imports; do not remove maintained PyCryptodome solely because it uses the `Crypto` package namespace

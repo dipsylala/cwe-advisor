@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-In .NET, `RSACryptoServiceProvider` defaults to PKCS#1 v1.5 padding when `fOAEP = false` is passed to `Encrypt()` / `Decrypt()`. PKCS#1 v1.5 is vulnerable to padding oracle and chosen-ciphertext attacks (Bleichenbacher's attack). Passing `fOAEP = true` is a legacy minimum improvement but uses OAEP-SHA1; new code should use `RSA.Create()` with `RSAEncryptionPadding.OaepSHA256`.
+In .NET, `RSACryptoServiceProvider` defaults to PKCS#1 v1.5 padding when `fOAEP = false` is passed to `Encrypt()` / `Decrypt()`. PKCS#1 v1.5 is vulnerable to padding oracle and chosen-ciphertext attacks (Bleichenbacher's attack). Passing `fOAEP = true` is a legacy minimum improvement but is fixed to OAEP-SHA1 - `RSACryptoServiceProvider` cannot be parameterized to a stronger OAEP hash even via its `RSAEncryptionPadding` overload, which itself needs .NET Framework 4.6+. The `Encrypt(byte[], bool)`/`Decrypt(byte[], bool)` overloads are obsolete from .NET 11 (SYSLIB0064). New code should use `RSA.Create()` with `RSAEncryptionPadding.OaepSHA256`.
 
 ## Key Principles
 
@@ -10,7 +10,7 @@ In .NET, `RSACryptoServiceProvider` defaults to PKCS#1 v1.5 padding when `fOAEP 
 - Use `RSAEncryptionPadding.OaepSHA256` (or `OaepSHA384`, `OaepSHA512`) - not `OaepSHA1` which uses a deprecated hash
 - For data larger than the key size minus OAEP overhead (~190 bytes for 2048-bit), use hybrid encryption: encrypt a random AES-256 key with RSA-OAEP, encrypt data with AES-GCM
 - Prefer `RSA.Create()` (CNG-backed) over `RSACryptoServiceProvider` (CAPI) for new code
-- Minimum key size: 2048 bits; prefer 4096 bits for long-lived keys
+- Use 3072-bit keys for new key generation (NIST SP 800-57 Part 1 disallows 2048-bit/112-bit-strength RSA after 2030); 4096 bits for long-lived keys, 2048 only on an existing key not yet due for rotation
 - Use `RSAEncryptionPadding.OaepSHA256` explicitly rather than the PKCS#1 v1.5 overload, and catch `CryptographicException` into one generic failure - a distinguishable decode error is the oracle the attack needs
 - `ImportParameters` with a public-only key still encrypts; make sure the private key material is loaded from the store rather than embedded (CWE-321)
 

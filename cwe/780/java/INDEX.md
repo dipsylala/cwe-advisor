@@ -8,8 +8,8 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 
 - Always specify the complete cipher transformation string including OAEP padding mode
 - Use SHA-256 or stronger hash functions for OAEP (avoid SHA-1)
-- Configure OAEPParameterSpec explicitly with MGF1 and appropriate hash algorithm
-- Use RSA key sizes of 2048 bits minimum (4096 recommended for sensitive data)
+- Configure `OAEPParameterSpec` explicitly with MGF1 and appropriate hash algorithm - do not reach for `OAEPParameterSpec.DEFAULT` thinking the name implies a safe default: it is SHA-1-based and has been `@Deprecated(since="19")` for exactly that reason
+- Use 3072-bit RSA keys for new key generation (NIST SP 800-57 Part 1 disallows 2048-bit/112-bit-strength RSA after 2030); 4096 recommended for sensitive data, 2048 only on an existing key not yet due for rotation
 - Do not report the difference: `BadPaddingException` and `IllegalBlockSizeException` distinguish "padding parsed" from "it did not", which is exactly the oracle the attack needs - catch both, return one generic failure, and log the detail server-side
 
 ## Taint Sinks
@@ -21,5 +21,5 @@ Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enable
 - Replace `Cipher.getInstance("RSA")` with `Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")`
 - Create OAEPParameterSpec with SHA-256, MGF1ParameterSpec.SHA256, and PSource.PSpecified.DEFAULT
 - Initialize cipher with the OAEP parameter spec using `cipher.init()` with AlgorithmParameterSpec
-- Generate RSA keys with minimum 2048-bit key size using KeyPairGenerator
+- Generate RSA keys with `KeyPairGenerator` at 3072-bit for new keys, not the 2048-bit floor alone
 - Test encryption/decryption with sample data to verify proper OAEP implementation
