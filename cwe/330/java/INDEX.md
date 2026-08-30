@@ -2,28 +2,28 @@
 
 ## LLM Guidance
 
-`java.util.Random` and `Math.random()` are seeded PRNGs unsuitable for security operations; their output can be predicted if the seed is known. For security-sensitive values (session tokens, API keys, password reset tokens, OTP codes), always use `java.security.SecureRandom`, which sources entropy from the OS.
+`java.util.Random`, `Math.random()` and `ThreadLocalRandom` are unsuitable for session tokens, API keys, reset tokens and OTP codes; `java.security.SecureRandom` is the replacement. The trap here is not choosing `SecureRandom` but how you obtain it: `getInstanceStrong()` resolves to a blocking entropy source on Linux and macOS, and prescribing it by default has caused documented production hangs. A plain `new SecureRandom()` is the right default in any request path.
 
 ## Key Principles
 
-- Replace all `new Random()` and `Math.random()` in security contexts with `SecureRandom`
-- Use `SecureRandom.getInstanceStrong()` for key generation; use `new SecureRandom()` for high-throughput token generation
-- Do not manually seed `SecureRandom` with `setSeed()` unless adding to the existing entropy pool
-- Generate at least 128 bits (16 bytes) for tokens; 256 bits (32 bytes) for cryptographic keys
-- Encode output in Base64URL or hex before storage or transmission
-- `UUID.randomUUID()` draws from `SecureRandom` and carries 122 random bits - adequate as an identifier, short of the usual bar for key material
-- Ask for `"DRBG"` where a NIST DRBG is required and `getInstanceStrong()` where a blocking source is wanted; naming a legacy algorithm such as `"SHA1PRNG"` selects an implementation rather than strengthening it
-- `nextLong()` yields 64 bits whatever the generator - size the request to the purpose rather than assuming one call is enough
+- Use `new SecureRandom()`. `getInstanceStrong()` returns whatever `securerandom.strongAlgorithms` names, which ships as `NativePRNGBlocking:SUN,DRBG:SUN` on non-Windows and `Windows-PRNG:SunMSCAPI,DRBG:SUN` on Windows - so the same call yields a different implementation per platform, and on Linux `NativePRNGBlocking.nextBytes()` reads `/dev/random` on **every** call, not only when seeding
+- That is not theoretical. JDK-8240296 reports `getInstanceStrong()` followed by `nextInt(29)` hanging indefinitely on Ubuntu with the note "Executes fine on Windows". Apache Commons Lang adopted `getInstanceStrong()` in `commons-lang3` 3.15.0, was told in LANG-1748 that it "drains the systems entropy pool and blocks" in production, and reverted `RandomStringUtils.secure()` to `new SecureRandom()` in 3.17.0
+- Read those reports with their kernel in mind rather than repeating the depletion framing. Since Linux 5.6 drawing bytes depletes nothing and `/dev/random` blocks only until the CRNG is first initialised at boot, so a modern host usually will not reproduce the hang. Where it still does, the cause is a VM or container starting before the host CSPRNG is seeded - an infrastructure problem, which choosing a different JCA algorithm does not fix and choosing a blocking one causes
+- `SecureRandom` does not override `nextInt(int)`; it inherits `java.util.Random`'s, which stays safe because `SecureRandom` overrides the protected `next(int)` feeding it. That inherited version rejects and retries to avoid bias, with a loop documented as unbounded in iterations - so on a blocking source every retry is another `/dev/random` read, which is how the two bullets above combine into a hang
+- `setSeed` always supplements: "The seed supplements, rather than replaces, the existing seed. Thus, repeated calls are guaranteed never to reduce randomness." There is no mode in which it weakens the instance. The documented hazard is ordering - "This self-seeding will not occur if `setSeed` was previously called", so a fresh PRNG `SecureRandom` seeded by the caller before its first `nextBytes` has exactly the entropy the caller supplied and no more
+- Ask for `"DRBG"` only on JDK 9 or later, where JEP 273 added it; on JDK 8 it throws `NoSuchAlgorithmException`. Its shipped `securerandom.drbg.config` is empty, equivalent to `Hash_DRBG,SHA-256,128,none` - 128-bit strength, with neither prediction resistance nor reseeding requested
+- `UUID.randomUUID()` is generated "using a cryptographically strong pseudo random number generator" and carries 122 random bits, six being fixed for version and variant - an identifier, not a secret. `UUID.nameUUIDFromBytes()` is one method away in the same class, an MD5 digest of its input, and fully deterministic
+- Generate at least 128 bits (16 bytes) for tokens and size keys by their algorithm
 
 ## Taint Sinks
 
-`new Random()`, `Math.random()`
+`new Random(`, `Math.random()`, `ThreadLocalRandom.current()`, `UUID.nameUUIDFromBytes(`, `RandomStringUtils.random`, `RandomStringUtils.insecure()`
 
 ## Remediation Steps
 
-- Locate `new Random()` and `Math.random()` calls in security-sensitive paths (token generation, OTP, key derivation)
-- Replace with a shared `SecureRandom` instance (thread-safe; safe to reuse)
-- Call `secureRandom.nextBytes(byte[])` to fill a buffer, then encode with `Base64.getUrlEncoder().withoutPadding().encodeToString()`
-- For integer ranges (OTP), use `secureRandom.nextInt(bound)` instead of `random.nextInt(bound)`
-- Verify all call sites - search for `import java.util.Random` across the codebase
-- Run tests to confirm generated values are not sequential or predictable across restarts
+- Locate the weak source, and do not anchor the search on one import. `Math.random()` is in `java.lang` and needs none; `ThreadLocalRandom` is in `java.util.concurrent` and its name reads like a threading fix rather than a weakness, though its Javadoc carries Oracle's own "Instances of `ThreadLocalRandom` are not cryptographically secure"; and a wildcard `import java.util.*` matches no search for `import java.util.Random`
+- Check `RandomStringUtils` usage against `commons-lang3` 3.17.0, which deprecated the static `random*()` methods in favour of `secure()`, `secureStrong()` and `insecure()`. Before 3.15.0 those statics drew from `ThreadLocalRandom`, so the same call is insecure on older versions and merely deprecated on newer ones - read the version before deciding which finding it is
+- Replace with a shared `new SecureRandom()` in a `private static final` field - the Javadoc's own "SecureRandom objects are safe for use by multiple concurrent threads", a sentence absent from JDK 8's - then fill with `nextBytes(byte[])`, and encode via `Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)`. Reusing one instance also removes the reason `ThreadLocalRandom` tends to appear on hot token paths: constructing a fresh `SecureRandom` per request pays provider lookup and self-seeding every time, and that cost is what the optimisation was reaching for. Reserve `getInstanceStrong()` for one-off generation of long-lived key material outside a request path, which is the use its own Javadoc describes
+- Use the inherited `nextInt(bound)` for OTP ranges rather than reducing bytes with a modulo, since the inherited version already rejects and retries
+- Rotate the values the weak generator issued; changing generation alone leaves the guessable ones valid until they expire
+- Verify by reading which generator the security path constructs, not by inspecting output. `new Random()` "sets the seed of the random number generator to a value very likely to be distinct from any other invocation", so unfixed code already yields non-sequential values that differ across restarts and passes any such test. Its real weakness - a 48-bit LCG state recoverable from observed output - is not what that test exercises
