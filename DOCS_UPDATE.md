@@ -415,6 +415,29 @@ Sources: https://github.com/fernet/spec/blob/master/Spec.md ,
 https://github.com/pyca/cryptography/blob/main/src/cryptography/fernet.py ,
 https://cryptography.io/en/latest/fernet/
 
+### 13. `docs/CWE-295/csharp/index.md` - `ServicePointManager` claimed inert against `HttpClient`/`SslStream` from .NET 5, contradicted by .NET 9's remap
+
+The page states:
+
+> From .NET 5 onwards `HttpClient` and `SslStream` ignore it entirely... Confirmed on .NET 10:
+> with the bypass installed, `new HttpClient().GetAsync(...)` throws `HttpRequestException`
+> for `UntrustedRoot`.
+
+Microsoft's own reference page contradicts the .NET 10 empirical claim:
+
+> Since .NET 9, the `ServerCertificateValidationCallback` property maps to
+> `RemoteCertificateValidationCallback` on `SocketsHttpHandler.SslOptions`.
+
+Source: https://learn.microsoft.com/en-us/dotnet/api/system.net.servicepointmanager.servercertificatevalidationcallback?view=net-10.0
+
+So the "ignore it entirely" framing was accurate for .NET 5 through .NET 8, and the docs/ page's
+"Confirmed on .NET 10" test result looks like it was run against an SDK below 9, or predates
+the .NET 9 change and was never re-run after upgrading the target framework in the test project.
+On .NET 9+, a global `ServicePointManager.ServerCertificateValidationCallback` bypass reaches
+modern `HttpClient` traffic again - the opposite of what the page currently says.
+
+Sources: https://learn.microsoft.com/en-us/dotnet/api/system.net.servicepointmanager.servercertificatevalidationcallback?view=net-10.0
+
 ---
 
 ## Systematic gap: version floors
