@@ -2,15 +2,15 @@
 
 ## LLM Guidance
 
-Log Injection occurs when untrusted data is written to log files without encoding, allowing attackers to forge log entries or inject malicious content. The core fix is to use structured logging (JSON/ECS format) with SLF4J/Logback or Log4j2, which automatically encodes control characters within field values, preventing log forgery. Parameterized logging alone is insufficient without structured output formats.
+Log Injection occurs when untrusted data is written to log files without encoding, allowing attackers to forge log entries or inject malicious content. Encode at the call site to close a reported finding immediately; moving to structured JSON logging (`logstash-logback-encoder` for Logback, or `log4j-layout-template-json` for Log4j2) is a separate, durable improvement, not a substitute - both encoders escape the ASCII control range plus quote and backslash, but neither escapes DEL (0x7F) or the Unicode line separators (U+0085, U+2028, U+2029), so the manual encoding below is still needed even with JSON output configured. Parameterized logging (`{}` placeholders) alone encodes nothing.
 
 ## Key Principles
 
-- Use structured logging formats (JSON, ECS) that encode control characters automatically within field boundaries
-- Employ parameterized logging with SLF4J `{}` placeholders to separate untrusted data from log messages
-- If structured logging is unavailable, encode ALL control characters: ASCII controls (0x00-0x1F), DEL (0x7F), C1 controls (0x80-0x9F), and Unicode line separators (U+0085, U+2028, U+2029)
+- Encode the value at the call site first: ASCII controls (0x00-0x1F), DEL (0x7F), U+0085, U+2028, U+2029, and the backslash itself. This closes the finding regardless of which logging backend is configured
+- Employ parameterized logging with SLF4J `{}` placeholders to keep untrusted data out of the message template - `{}` is documented as positional substitution only and does not encode the substituted value, so this accompanies the encoding above rather than replacing it
+- Structured logging (JSON, ECS) via `logstash-logback-encoder` or `log4j-layout-template-json` is a durable secondary control: both escape 0x00-0x1F and `"`/`\` automatically, but neither extends to DEL or the Unicode line separators
 - Avoid string concatenation when building log messages with user-controlled data
-- Configure logstash-logback-encoder or Log4j2 JsonLayout for production environments
+- `org.apache.commons.text.StringEscapeUtils.escapeJava()` (Apache Commons Text) is a maintained alternative to hand-rolled escaping - it does encode the Unicode line separators but, like the JSON encoders above, does not encode DEL (0x7F)
 
 ## Taint Sinks
 

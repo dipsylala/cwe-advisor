@@ -2,16 +2,17 @@
 
 ## LLM Guidance
 
-Log injection occurs when untrusted data is written to logs without proper encoding, allowing attackers to inject newline characters to forge entries, CRLF sequences to split entries, or escape sequences to manipulate output. Use structured logging with JSON output (python-json-logger or structlog) to automatically encode control characters within fields, preventing log forging while preserving evidence.
+Log injection occurs when untrusted data is written to logs without proper encoding, allowing attackers to inject newline characters to forge entries, CRLF sequences to split entries, or escape sequences to manipulate output. Encode at the call site to close a reported finding; `python-json-logger` and `structlog` are durable secondary controls, not substitutes - both serialize via `json.dumps` by default, which with its default `ensure_ascii=True` escapes the full range this entry cares about (ASCII controls, DEL, and non-ASCII code points including U+0085/U+2028/U+2029), but a project that sets `ensure_ascii=False` for readability loses that coverage for DEL and the Unicode separators.
 
 ## Key Principles
 
-- Structured logging automatically handles encoding and prevents injection
+- Encode the value at the call site first, regardless of what the logging backend does
 - Never concatenate user input directly into log messages
-- Encode ALL control characters if manual logging required: ASCII controls (0x00-0x1F), DEL (0x7F), C1 controls (0x80-0x9F), Unicode line separators (U+0085, U+2028, U+2029), and ANSI escape sequences
+- Encode ALL control characters if manual logging required: ASCII controls (0x00-0x1F), DEL (0x7F), Unicode line separators (U+0085, U+2028, U+2029), and ANSI escape sequences
 - Parameterize log messages using `%` or `{}` formatting
 - Treat all external input (user data, headers, API responses) as untrusted
-- Redact in a `logging.Filter` or a custom `Formatter` that rewrites `record.msg` and `record.args`, so it applies to every call site rather than the ones that remember
+- Redact in a `logging.Filter` or a custom `Formatter` that rewrites both `record.msg` and `record.args`, not `record.msg` alone: a parameterized call (`logger.info("User input: %s", value)`) leaves `value` in `record.args`, so a filter that only encodes `record.msg` lets the payload through unchanged when the message is formatted
+- Passing a reserved `LogRecord` attribute name in `extra` (`extra={"message": ...}` or `extra={"name": ...}`) raises `KeyError` at the call site rather than being silently dropped
 - Escape with `repr()` or `json.dumps()` on the value rather than a hand-rolled replace: both render control characters as escape sequences and keep the backslash unambiguous, so `admin\nFAKE` typed literally and a real newline do not produce the same output
 - Where structured JSON logging is not available, ESAPI-style `encodeForSingleLineTextLog()` semantics are what to reproduce: encode the whole ASCII control range plus U+0085, U+2028 and U+2029
 

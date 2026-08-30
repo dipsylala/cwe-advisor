@@ -10,7 +10,7 @@ Log Injection occurs when untrusted user input is written to logs without proper
 - If JSON/ECS logging is not possible, always encode untrusted input so it appears as data values, not log control characters
 - Never concatenate user input directly into log messages - and note that a parameterized call (`logger.info("User: {}", username)`) neutralizes nothing by itself: it keeps the template and the value separate so the sink *can* encode, which makes it a prerequisite for the JSON sink rather than a substitute for it
 - Never hand-build a JSON-looking line by concatenation - a value containing a quote or brace forges or breaks out of the field exactly as a newline would in plain text
-- Attach request-scoped values through the framework's context features (SLF4J/Logback MDC, .NET `LogContext`, Python `contextvars`) so they inherit the sink's encoding instead of being spliced into the message
+- Attach request-scoped values through the framework's context features (SLF4J/Logback MDC, Serilog's `LogContext` or ASP.NET Core's `ILogger.BeginScope`, Python `contextvars`) so they inherit the sink's encoding instead of being spliced into the message
 - Validate and sanitize all external data before logging
 - Configure logging frameworks to auto-escape or encode fields
 
@@ -27,3 +27,4 @@ Log Injection occurs when untrusted user input is written to logs without proper
 - JSON encoding always escapes the ASCII control range, but encoders differ on U+0085/U+2028/U+2029 and several emit them raw. Raw separators only forge an entry where a line-oriented stage runs before the parser - Python's `str.splitlines()` and Java's `Scanner` treat all three as terminators, while `BufferedReader.readLine()` and .NET's `StringReader.ReadLine()` do not
 - Configure the JSON layout to emit one event per line (an end-of-event delimiter) and confirm nothing prepends a timestamp or level to the object - a line that is only mostly JSON breaks the aggregator that parses it
 - Fix every sink, not the reported one: a `console.log`/`print`/`Trace.WriteLine` debug statement, a `catch` block, or a second appender that still writes unencoded text leaves the finding live
+- Verify legitimate log entries containing ordinary punctuation or non-ASCII text still read correctly after the fix, not only that the injection payload is escaped

@@ -922,14 +922,101 @@ randomness, web hygiene, memory/native and resource).
 
 **It does not exhaust the full 287-file scope.** Summing the language-entry count recorded in every
 batch line from 1 through 18d (12+11+10+10+11+9+9+6+12+6+6+11+8+11+11+11+9+11+12+9+6+8+12+10) gives
-**231 of the original 287** in scope when the triage sweep began. **56 language files remain
-unreviewed** against that original count. The "intended order" list (authn/authz, crypto/randomness,
-web hygiene, memory/native and resource) is now fully worked, so the 56 remaining are files that were
-never named in that list at all - the original "79 CWEs" scoping was never fully enumerated in this
-file, only discovered batch by batch. Before picking up further batches, identify the 56 by diffing
-every language directory under `cwe/` against the CWE numbers this file records as swept (batches 1-18d
-plus the pre-sweep Top-25 and coverage-gap authoring), rather than assuming the next unswept family is
-obvious.
+**231 of the original 287** in scope when the triage sweep began, implying 56 remained. The "intended
+order" list (authn/authz, crypto/randomness, web hygiene, memory/native and resource) is now fully
+worked, so anything left was never named in that list at all.
+
+**The 56 figure was wrong. A full diff against actual directory contents found 70.** The arithmetic
+subtraction was never checked against which specific files it corresponded to, and several batches
+silently excluded one file of a CWE their own summary line counted as fully covered - a shortfall
+their reconciliation/restoration step never caught either, because reconciliation runs per-CWE and a
+missing *file* inside an otherwise-swept CWE has no seam for it to find. Confirmed per-file via
+`git log -- <path>` showing no commit past the initial repo move:
+
+- **`94/csharp`** - silently excluded from batch 3's own count (batch 3 line says "CWE-22 and
+  CWE-94, 10 entries" - 94 has five language dirs but only four were touched).
+- **`79/python`** - touched only by the later "config-first remediation ordering" pass (a single
+  step reordered, not a vendor sweep) and never by batch 4 or the reconciliation that followed it.
+- **`79/perl`** - never touched by any batch; CWE-79 also has `perl` alongside the six sibling
+  languages CWE-80 shares, easy to miss since no other swept CWE in the injection family has a perl
+  directory to pattern-match against.
+- **`943/go`** - never touched; batch 4's csharp/java/javascript/python coverage of CWE-943 was
+  taken as the whole CWE.
+- **`601/python`** - never touched by batch 17a; only csharp/go/java/javascript/php were swept.
+- **`190/c`, `190/python`** - the gap the rank-23 Top-25 entry's own wording already implied ("Root
+  and java reviewed; csharp and go entries authored" never mentions c or python) but nothing in this
+  file flagged as open.
+- **CWE-117 (5 files: csharp, go, java, javascript, python)** - a whole CWE never assigned to any
+  batch, despite recurring throughout the eval-corpus and config-ordering narrative below. Only ever
+  touched by the narrow "lead with call-site encoding" edit (commit d5861d7), which reordered one
+  remediation step without a vendor sweep of the rest of each file.
+
+**Corrected running count: 236 of 301 language files reviewed** (287's baseline itself undercounted
+the population by the same 14; the true starting population was 301, not 287; batch 19 closed the
+5-entry CWE-117 gap). **65 language files remain unreviewed.** Suggested grouping for the remaining
+batches, sized to the ~9-12 convention:
+
+- The six-CWE "closeout tail" inside otherwise-finished batches (7 entries): `190/c`, `190/python`,
+  `94/csharp`, `79/python`, `79/perl`, `601/python`, `943/go`.
+- C/C++ numeric-conversion and truncation (10): `170/c,170/cpp,195/c,195/cpp,196/c,196/cpp,
+  197/c,197/cpp,197/java,1105/c`.
+- C dangerous/obsolete-function and format-string family (11): `242/c,243/c,364/c,479/c,477/c,
+  477/python,676/c,676/python,134/c,134/java,134/python`.
+- Config/allowlist/path-control injection (10): `15/csharp,15/java,15/javascript,15/python,
+  183/java,183/javascript,183/python,73/csharp,73/java,73/python`.
+- LLM/AI, timing, cert, multi-byte string - loosely themed, unsure this is the best split (11):
+  `1426/javascript,1426/python,1427/javascript,1427/python,208/csharp,208/java,208/javascript,
+  208/python,299/java,135/c,135/php`.
+- Mass assignment and process control (10): `915/csharp,915/java,915/javascript,915/php,
+  915/python,915/ruby,114/c,114/java,114/javascript,114/python`.
+- Small platform-specific leftovers, undersized on its own (6): `382/java,498/java,597/csharp,
+  597/java,597/php,926/android` - merge into an adjacent batch if a reviewer prefers larger batches.
+
+**Batch 19 covered CWE-117 (5 entries, plus root)** - the whole CWE the corrected count surfaced as
+never assigned to any batch. All 5 language entries and the root were defective. Most consequential:
+every non-go language file claimed structured JSON logging "automatically encodes control
+characters," and every one of those claims was too broad by the same shape - Serilog's
+`JsonFormatter`/`CompactJsonFormatter` escape only 0x00-0x1F plus quote/backslash (DEL and the
+Unicode line separators pass through raw, confirmed against Serilog's own
+`JsonValueFormatter.WriteQuotedJsonString` source), Jackson-based `logstash-logback-encoder` and
+Log4j2's `JsonWriter` share the identical 128-entry escape-table ceiling, and `JSON.stringify`
+(which winston/bunyan/pino all serialize through) has the same gap per the ECMA-262
+`QuoteJSONString` algorithm - DEL, U+0085, and U+2028/U+2029 (a well-known historical JS quirk,
+predating the ES2019 "subsume JSON" grammar fix that never touched `JSON.stringify` itself) are
+unescaped. Python was the one language where the claim actually held: `json.dumps()`'s default
+`ensure_ascii=True` does cover the full range, confirmed from the stdlib docs' own "non-ASCII and
+non-printable" wording - though `ensure_ascii=False`, sometimes set for readability, silently drops
+that coverage for DEL and the separators. `csharp`, `java` and `python` also had the shape CLAUDE.md
+already tracks for `476/java`'s ternary defect: `LLM Guidance`/`Key Principles` called structured
+logging "the core fix," directly contradicting each file's own `Remediation Steps` (already edited
+by the earlier "config-first remediation ordering" pass, d5861d7, which fixed the steps but never
+went back to the surrounding sections - the exact "read the whole file after editing" lapse CLAUDE.md
+warns about). `go` carried a different, more consequential version of the same doctrine error, found
+only by reading the `log/slog` source directly: the file's `Remediation Steps` sequence required
+configuring `slog.NewJSONHandler` as a separate step to get attribute encoding, but `slog`'s
+`needsQuoting`/`strconv.Quote`-based escaping runs identically under the zero-value default,
+`NewTextHandler`, and `NewJSONHandler` - converting a `log.Printf` call to a structured `slog`
+attribute closes an ASCII-control-character injection finding regardless of which handler is
+configured. The `docs/` reconciliation (step 5) surfaced one Unicode-level nuance in the *other*
+direction that a first vendor-source pass had over-generalized past: `docs/CWE-117/go` states
+`JSONHandler` escapes U+2028/U+2029 (via `encoding/json`'s HTML-safe default) but leaves U+0085 raw,
+while `TextHandler`'s printable-rune quoting escapes all three - confirmed against `encoding/json`'s
+documented U+2028/U+2029 special-casing, and folded in as a caveat rather than treated as
+contradicting the ASCII-control-range finding, which holds regardless. `docs/` also supplied several
+operational-detail items no vendor-fact check would have surfaced: JavaScript's winston-3-verified
+key-injection pitfall (`logger.info("...", req.body)` lets an attacker-controlled `timestamp` or
+`message` key overwrite the generated one, since JSON-encoding a value says nothing about a key
+appearing at all), Python's `record.msg`-vs-`record.args` filter gap (a parameterized call leaves the
+value in `record.args`, so a filter encoding only `record.msg` passes the payload through unchanged),
+a reserved-`LogRecord`-attribute-name `KeyError` gotcha, C#'s URL-decode-ordering trap (ASP.NET Core
+already decodes `Request.Query`/`Request.Form`, so a raw-string CR/LF check never sees a `%0D%0A`
+payload, and re-decoding corrupts literal `+`/`%`), the CA2254 analyzer name, and Apache Commons
+Text's `escapeJava()` as a named Java alternative with its own documented DEL gap. Root's ".NET
+`LogContext`" was corrected to attribute the API to Serilog (`Serilog.Context.LogContext`, requiring
+`.Enrich.FromLogContext()` to take effect) rather than to the BCL - `docs/CWE-117/index.md` still
+carries the old misattribution, confirming the skill is ahead of the parent corpus on this one vendor
+fact. No `DOCS_UPDATE.md` finding filed for that, since `docs/` is a working copy this repo doesn't
+control - the correction lives in this repo's own root file instead.
 
 **What batch 13 changed about the method.** Three of its four CWE-566 entries and two of its four
 CWE-285 entries prescribed an edit that *cannot be applied as written* - not a no-op this time but
