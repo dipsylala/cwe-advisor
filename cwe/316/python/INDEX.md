@@ -10,10 +10,10 @@ Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cl
 - Minimize the lifetime of secrets in memory-clear immediately after use
 - Avoid operations that create copies of sensitive data (string concatenation, logging)
 - Use secure input methods (`getpass`) and avoid printing/logging credentials
-- Consider memory-locking libraries (`mlock`) for highly sensitive applications
+- Consider memory-locking for highly sensitive applications - Python's standard library does not wrap `mlock` itself; the only route is calling libc's `mlock()` directly via `ctypes.CDLL`, a manual FFI call rather than a documented Python feature
 - A `str` cannot be wiped: convert to a `bytearray` at the boundary and clear it with a slice assignment, since `bytes(password)` produces an immutable copy that stays until collected
 - Compare secrets with `hmac.compare_digest()`, which is constant-time as well as exact
-- Where the platform allows it, keep the secret out of a normal file entirely (`memfd_create`, an anonymous mapping) rather than writing it and deleting it afterwards
+- Where the platform allows it, keep the secret out of a normal file entirely rather than writing it and deleting it afterwards - `os.memfd_create()` needs Python 3.8+ and Linux kernel 3.17+ specifically (not "Linux" generically; a pre-3.16 Python also needed glibc 2.27+, which 3.16 removed the requirement for)
 
 ## Taint Sinks
 
@@ -26,4 +26,4 @@ Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cl
 - Use context managers or try-finally blocks to ensure cleanup occurs
 - Avoid storing secrets in exception messages or stack traces
 - Use `getpass.getpass()` instead of `input()`, but account for the temporary immutable string it returns
-- Integrate libraries like `ctypes` with `mlock()` for critical data protection
+- For critical data, call libc's `mlock()` directly via `ctypes.CDLL` to prevent swapping - there is no stdlib wrapper for it
