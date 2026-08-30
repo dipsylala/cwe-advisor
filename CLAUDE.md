@@ -185,6 +185,20 @@ defect. Each rule below is a shape that recurred, stated as the check that would
   from the scenario under discussion* live - check whether the value is read once (into a cached
   static field, at class-init or process start) or read fresh on every use, and check that against
   when the attacker-controlled write can actually happen, before naming something a taint sink.
+- **Reproduce a runtime-behavior claim instead of trusting a paraphrase of it, when a runtime is
+  reachable.** Batch 23 shipped two wrong claims about specific inputs to specific APIs -
+  `cwe/183/java` said `"value\n".matches("^value$")` returns `true` (an evidence agent's
+  paraphrase of `$`'s general trailing-terminator allowance, applied to the wrong method: `Matcher`
+  and `String.matches()` require reaching the true end of the input region regardless of where `$`
+  internally matches, so it returns `false` - confirmed against OpenJDK); `cwe/183/javascript` said
+  a backslash before `@` in a URL produces host `evil.com` (confirmed against Node: it normalizes
+  to `/` and keeps the original host, producing the opposite of the stated risk - the real
+  host-confusion bypass needs no backslash at all). Both survived a plausibility reread. A vendor
+  doc excerpt establishes that a rule exists; it does not establish that the rule produces the
+  specific claimed output for the specific claimed input when combined with everything else in
+  play (which method is called, how the input reaches the API). Where a JDK, Node, Python, or
+  other runtime is available, run the one-line reproduction before writing the claim down, not
+  just cite the doc that seems to support it.
 
 ## Maintenance Workflow
 
