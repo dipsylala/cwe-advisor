@@ -13,6 +13,8 @@ Process control vulnerabilities in JavaScript/Node.js applications occur when un
 - Treat `NODE_OPTIONS`, `--require`, and any environment variable that injects startup code as a trust boundary; strip or reject them in contexts that accept untrusted env vars
 - Implement least privilege principles for process execution permissions
 - Use safe APIs like `execFile()` that bypass shell interpretation
+- A PID is not an identity check: it's a small, reused integer, so validating that a submitted value merely *looks like* a PID proves nothing about which process it names. Look it up in a registry the app itself maintains of processes it started, and confirm ownership there before calling `process.kill()` - never authorize a kill purely from an attacker-supplied PID matching a format
+- Return a generic failure to the caller on an authorization or ownership rejection for a process-control endpoint, and log the specific reason server-side - echoing `error.message` back turns different internal rejection reasons into a PID/process-existence enumeration oracle
 
 ## Taint Sinks
 
@@ -23,7 +25,7 @@ Process control vulnerabilities in JavaScript/Node.js applications occur when un
 - Replace `exec()` and `execSync()` with `spawn()` or `execFile()` to avoid shell interpretation
 - Create allowlists of permitted executables and validate against them before execution
 - Sanitize and validate all user inputs used in process arguments or environment variables
-- Use argument arrays instead of concatenating strings for command execution, and place `--` before user-supplied operands so a value beginning with `-` is not parsed as an option
+- Use argument arrays instead of concatenating strings for command execution, and place `--` before user-supplied operands so a value beginning with `-` is not parsed as an option - Node itself doesn't interpret `--` or any argument in the array, it passes the array to the OS verbatim, so this only protects against option injection into a *target program* that honors `--` as an end-of-options marker; a program that doesn't will still read a leading `-` as a flag
 - For dynamic module loading, resolve user input against a fixed allowlist/map of module specifiers rather than passing input straight to `require()`
 - Reject or scrub `NODE_OPTIONS` and other code-injecting environment variables before they reach a spawned Node process, and only load native `.node` addons from trusted, integrity-checked locations
 - Implement timeout and resource limits for spawned processes

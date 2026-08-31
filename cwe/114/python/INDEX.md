@@ -6,7 +6,8 @@ Process control vulnerabilities occur when untrusted input influences process cr
 
 ## Key Principles
 
-- Validate all process identifiers (PIDs) against an allowlist of expected/authorized processes
+- Validate all process identifiers (PIDs) against an allowlist of expected/authorized processes - a bare PID is not a stable identity, since PIDs are reused; resolve and re-check identity via `psutil.Process(pid).create_time()` (or an app-maintained registry of processes it started) immediately before signaling, not just at validation time, to close the gap between the check and the `os.kill()` call
+- Avoid `preexec_fn` in a threaded process (any WSGI/ASGI server, Celery worker) - it runs between `fork()` and `exec()`, where only async-signal-safe calls are legal, and a lock held by another thread at fork time can deadlock the child silently; prefer cgroup/systemd/container-level resource limits instead
 - Never pass unsanitized user input to subprocess calls, signal operations, or process management functions
 - Never pass user-controlled names to `ctypes.CDLL()`/`LoadLibrary()` or `importlib.import_module()`; resolve against an allowlist of fully-qualified, known-safe names first
 - Use least-privilege principles: restrict process control operations to specific authorized users/roles
@@ -24,6 +25,7 @@ Process control vulnerabilities occur when untrusted input influences process cr
 - Replace dynamic process calls with parameterized safe alternatives using validated inputs
 - For library/module loading, map user input to a fixed allowlist of absolute library paths or fully-qualified module names rather than building the path/name from input
 - Never let request data, environment variables, or config files reachable by untrusted users set `sys.path` entries or `LD_PRELOAD`/`LD_LIBRARY_PATH`
+- Run with `-P` (or `PYTHONSAFEPATH=1`, Python 3.11+) so the interpreter does not automatically prepend the script's directory or the current working directory to `sys.path` - without it, a same-named malicious module in an attacker-writable directory can shadow a trusted one on a plain `import` statement, no `sys.path` mutation required
 - Add authorization checks before any process control operation
 - Set resource limits using setrlimit() to prevent process exhaustion attacks
 - Log and monitor all process control and dynamic-loading operations for security auditing

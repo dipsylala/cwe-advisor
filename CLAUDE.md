@@ -198,7 +198,25 @@ defect. Each rule below is a shape that recurred, stated as the check that would
   specific claimed output for the specific claimed input when combined with everything else in
   play (which method is called, how the input reaches the API). Where a JDK, Node, Python, or
   other runtime is available, run the one-line reproduction before writing the claim down, not
-  just cite the doc that seems to support it.
+  just cite the doc that seems to support it. This applies equally to a claim a sweep session
+  writes itself while patching, not only to one paraphrased from an evidence-gathering agent: a
+  batch-25 fix recommended Jackson's `@JsonProperty(access = Access.WRITE_ONLY)` to keep a field
+  serializable-but-not-settable, which is exactly backwards - `WRITE_ONLY` still accepts the field
+  on deserialization and only hides it from the response, while `READ_ONLY` is the one that blocks
+  incoming writes; confirmed by compiling and running both against real Jackson jars, only after a
+  second opinion flagged it. A name that sounds intuitively right for the desired behavior is not
+  evidence for it.
+- **An argument array closes shell-metacharacter injection but not option/flag injection.**
+  Recurred across four instances in three separate batches: `676/c` (`execve` with an argument
+  array still lets a leading `-` be read as a flag by the target program); `1426/python`
+  (`os.path.basename()` leaves a leading `-` unchanged, so a model-derived filename can still be
+  read as a flag if passed as a bare `subprocess` argument); `114/java` and `114/javascript`
+  (`ProcessBuilder`/`spawn()` with an argument array have the identical gap). The fix in each case
+  is the same and is not what "use an argument array instead of a shell string" already provides:
+  pass `--` before user-supplied operands where the target program honors it as an end-of-options
+  marker, or constrain the value so it structurally cannot start with `-` (e.g. join it under a
+  fixed directory first). When an entry's fix for command/process injection stops at "use an
+  argument array, not a shell string," check whether it also covers this second, distinct gap.
 
 ## Maintenance Workflow
 
