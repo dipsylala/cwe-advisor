@@ -223,6 +223,39 @@ instance.
   the `no_harm` rubric needs the case's `must_preserve` contract passed to the judge (currently
   withheld, so judges apply their own reading and disagree); nothing in the corpus is compiled or
   executed, so a fix is scored on intent, not correctness.
+- **Three more authored cases added (2026-08-31), not yet run.** `OrderEventQueueDeserialize`
+  (CWE-502/java), `ModelCachePickleLoad` (CWE-502/python), `DeprecatedEntityLoaderGuard`
+  (CWE-611/php) - not padding for the existing ten, but targeting the one shape that actually caught
+  the guided arm in run 4: an entry's `Remediation Steps` opening with an infrastructure/config
+  change (migrate to JSON; call a deprecated no-op loader) ahead of the sink-local fix. Confirmed by
+  reading `cwe/502/java`, `cwe/502/python` and `cwe/611/php` directly - none carries the "do not
+  offer this as the fix for one finding" caveat that `cwe/117/java` and `cwe/78/java` gained after
+  being caught the same way. Needs a run before it tells us anything.
+- **Per-language coverage campaign started (2026-08-31), four batches so far.** Goal: at least one
+  case per `(CWE, language)` slot that has a language-specific entry (318 slots were missing across
+  the 190 CWEs in the repo at the start; root-only CWEs with no language subfolder - 105 of them,
+  mostly design-level weaknesses like CWE-16/269/1174 - are out of scope). A `source: "authored"`
+  case type was added for this: plain true-positive, no `trap`/`must_preserve`/`origin`, since most
+  language slots don't carry the specific "leads with an infra fix" defect the docs-pitfall cases
+  target - see `evals/README.md`'s source table. Each case is written by a workflow agent that reads
+  the target `cwe/{CWE}/{language}/INDEX.md`'s own `Taint Sinks` list and picks a real API from it,
+  then has its `sink_line`/`sink_code` checked against the file it actually wrote.
+  Batch 1 (14 cases) completed CWE-90, 117, 209, 338. Batch 2 (16 cases) completed CWE-78, 326, 434,
+  502. Batch 3 (15 cases) completed CWE-89, 330, 347. Batch 4 (15 cases) completed CWE-22, 611, 614 -
+  all across every language they have. One defect caught in batch 2 and fixed: the
+  `434/python/FlaskUploadNoValidation` agent pointed the SAST comment at a `content_type` check
+  rather than the actual `file.save()` write two lines down - moved to the write call, matching the
+  corpus convention that the comment sits on the dangerous operation itself, not an adjacent check.
+  Batch 3's prompt added an explicit instruction against this same mistake plus a rule against
+  forcing a fake finding onto an API a language's entry documents as safe-by-default; no further
+  instance of either turned up in batches 3 or 4 - e.g. batch 4's Go CWE-611 case correctly used the
+  entry's one documented risky pattern (`xml.Decoder.Entity` populated from untrusted input) rather
+  than a fake finding on plain `xml.Unmarshal`, which the entry says is safe. Worth keeping both
+  instructions in future batches rather than assuming they're now unnecessary.
+  Combined cost: ~2.87M subagent tokens for 60 cases (~47.8k/case), 0 agent errors across 60 agents.
+  258 `(cwe, language)` slots remain - at the observed rate, finishing all of them is roughly a
+  further 12.3M-token campaign; continue in similar-sized batches (~15 cases, one workflow run
+  each), checking each batch's output before the next.
 - **Resolved (2026-08-31): JWT secret-strength and token-lifetime coverage.** `docs/CWE-522` covered
   this under Insufficiently Protected Credentials, but MITRE's own definitions say otherwise - 522
   is about an insecure transmission/storage *method*, not a value's strength or a token's lifetime.
