@@ -17,6 +17,15 @@ this repo toward LLM-facing remediation, `docs/` toward human explanation. It mi
 `docs/CWE-{ID}/{language}/index.md`. Not every language file has a `docs/` counterpart; anything
 authored directly in this repo (rather than derived from `docs/`) has none.
 
+Now that the initial sweep is complete, future work is re-verification of specific claims as they
+age, not batch-by-batch first coverage. `python scripts/version_claims.py` generates a worklist for
+that: it extracts version/CVE/GHSA-shaped claims from every file and ranks files by how long since
+they were last substantively edited, oldest first - a starting point for picking what to re-check
+next, not a correctness checker (see the script's own docstring for what it does and does not do,
+and a caveat about a directory-rename commit that briefly broke its first version). Run
+`python scripts/version_claims.py --claims --limit N` to get the actual claim lines for the N
+oldest-edited files.
+
 ## Sweep status
 
 **All 333 language files reviewed. Verified complete by directory-diff recount, not just by the
