@@ -288,6 +288,22 @@ instance.
   `sink_code` de-indented.
   Remaining, in rank order: 78, 89 (both already breadth-complete at 1/language, need 2 more per
   slot to reach 3), 94, 125, 287, 352, 416, 434 (same), 787, 862.
+- **Multi-file depth pass (2026-08-31), one batch, first authored multi-file cases in the corpus.**
+  Separate from the two campaigns above: every `authored` case so far was single-file (`depth: 1`);
+  only `juliet` had multi-file chains, and only in Java. 11 cases, one per language slot across the
+  two CWEs already at the 3-case single-file target (CWE-79's 7 languages, CWE-77's 4), `depth`
+  varying 2-5 to mirror Juliet's original range. Each case threads untrusted input through genuine
+  intermediate logic - a value object, a service layer doing unrelated bookkeeping, a partial
+  allowlist that checks one half of a dotted action string but not the other (PHP, depth 5), a
+  formatter that correctly escapes one field while leaving a sibling field it also handles
+  unescaped (JavaScript, depth 5) - rather than a bare pass-through, so the chain has to be traced
+  rather than walked past boilerplate. Cost: ~587k subagent tokens for 11 cases (~53.4k/case), 0
+  agent errors. Verified: file count matches declared depth for all 11, `sink_line`/`sink_code`
+  correct against the actual last file for all 11, zero CWE-78 shell-pattern drift in the 4 CWE-77
+  cases, and the two depth-5 chains read through end to end by hand to confirm the taint survives
+  every intermediate file unsanitized. Not yet extended to the other completed/in-progress top-15
+  CWEs, or applied as a default going forward - this was a one-off pass over the two CWEs already
+  at the single-file target, per the direction that prompted it.
 - **Resolved (2026-08-31): JWT secret-strength and token-lifetime coverage.** `docs/CWE-522` covered
   this under Insufficiently Protected Credentials, but MITRE's own definitions say otherwise - 522
   is about an insecure transmission/storage *method*, not a value's strength or a token's lifetime.
