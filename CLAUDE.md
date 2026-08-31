@@ -17,7 +17,7 @@ cwe/
 - Language folders are lowercase ecosystem names. Existing folders include `c`, `cpp`, `csharp`, `java`, `android`, `javascript`, `perl`, `php`, `python`, `go`, and `ruby`.
 - Language-specific files supplement the root guidance; they do not replace it.
 - `cwe/77/{language}` deliberately covers non-shell command interpreters only. `cwe/77/INDEX.md` routes shell sinks to CWE-78, so shell guidance belongs under `cwe/78/` and should not be duplicated into `cwe/77/`.
-- [evals/](evals/) holds the validation harness: externally authored test cases, the pre-registered rubric, and run results. It is not part of the knowledge base and is skipped by the linter.
+- [evals/](evals/) holds the validation harness: externally authored test cases, the pre-registered rubric, and run results. It is not part of the knowledge base and is skipped by the linter. It lives in its own repo ([cwe-advisor-evals](https://github.com/dipsylala/cwe-advisor-evals)), linked in here as a git submodule so a plain clone of this repo stays small - run `git submodule update --init` to fetch it before touching anything under `evals/`.
 - [references/cwe-identifier.md](references/cwe-identifier.md) maps vulnerability names and common industry synonyms (e.g. "SQLi", "XSS", "SSRF") to CWE IDs, so SKILL.md Step 1 can resolve a description without asking the developer to look up the number.
 
 ## SKILL.md Maintenance
