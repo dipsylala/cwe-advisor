@@ -2,42 +2,28 @@
 """Surface version/advisory claims for re-verification prioritization.
 
 This tool does NOT judge whether any claim is still correct - that requires the
-same vendor-source-tracing an LLM sweep batch does (see TODO.md's per-batch
-method). What it does:
+same vendor-source-tracing a manual review does. What it does:
 
   1. Extract every line that looks like it makes a version, CVE/GHSA, or
      spec-number claim (a version floor, a fix release, an advisory ID, a JEP/PEP
      number, an obsoletion code, ...), across every cwe/{ID}/INDEX.md and
      cwe/{ID}/{language}/INDEX.md file.
   2. Look up, from git history, the date each file was last substantively
-     edited by ANY commit - used as a staleness proxy, not a "last verified"
-     guarantee (see caveat below) - plus, separately, the most recent commit
-     whose message names a sweep batch (e.g. "Sweep batch 27"), shown for
-     context when one exists.
-  3. Rank files oldest-edited-first (never-touched-since-authoring files sort
-     first), so the next targeted sweep has a generated worklist instead of a
-     manual grep-and-guess.
+     edited by any commit - used as a staleness proxy, not a "last verified"
+     guarantee (see caveat below).
+  3. Rank files oldest-edited-first, so the next re-verification pass has a
+     generated worklist instead of a manual grep-and-guess.
 
-CAVEAT - this was tested against the repo's own history and found wanting in
-one specific way, worth knowing before trusting the ranking: an earlier
-version of this tool filtered to commits whose *message* names a batch, and
-that undercounted badly. A repo-wide directory rename ("Move CWE directories
-under cwe/") silently dropped content from several files; the follow-up
-commit that restored it ("Restore operational detail the compression to
-cwe/ had dropped") touched files across four already-swept batches' worth of
-CWEs but doesn't say "batch" anywhere in its message - so those files looked
-"never verified" under that filter even though they'd been through the
-sweep. Falling back to "last edited by any commit" fixes that specific case,
-but the general problem doesn't fully go away: a file the sweep reviewed and
-found clean, and that nothing has touched since, will still rank as if it
-were stale, when it was actually just confirmed correct. Cross-check
-anything this tool ranks as a top priority against TODO.md's "Clean-
-language-file count" list before assuming it's genuinely unreviewed.
+CAVEAT: "last edited" is a proxy, not a guarantee. A file that was reviewed
+and found correct, and that nothing has touched since, still ranks as if it
+were stale - there's no way to tell "never looked at" apart from "looked at,
+confirmed correct" from git history alone. Treat the ranking as a starting
+point to read from, not as ground truth about what's actually wrong.
 
 Regex extraction is necessarily approximate: expect some false positives
 (a byte count, a CVSS score) and some misses (an unusually-phrased claim).
-That's fine for a worklist - a human or sweep agent still reads and judges
-each line; this tool only decides what order to look at files in.
+That's fine for a worklist - a human still reads and judges each line; this
+tool only decides what order to look at files in.
 
 Usage:
   python scripts/version_claims.py                  # summary, oldest-edited first
@@ -55,8 +41,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CWE_ROOT = ROOT / "cwe"
-
-BATCH_COMMIT_RE = re.compile(r"\bbatch\s+\d+", re.IGNORECASE)
 
 ECOSYSTEM_WORDS = (
     r"(?:PHP|Python|Java(?:Script)?|JDK|JRE|JVM|OpenJDK|Node(?:\.js)?|"
@@ -111,12 +95,9 @@ def extract_claims(path):
     return claims
 
 
-def build_history_maps():
-    """One git-log pass over full history -> two dicts keyed by relpath:
-    last_edited:    (date, hash, subject) of the most recent commit touching the file, any message.
-    last_batch:     same, but only among commits whose message names a sweep batch (may be absent
-                    even for a genuinely-reviewed file - see the CAVEAT in the module docstring).
-    """
+def build_last_edited_map():
+    """One git-log pass over full history -> {relpath: (date, hash, subject)} for the
+    most recent commit that touched each file, regardless of commit message."""
     result = subprocess.run(
         ["git", "log", "--format=COMMIT|%H|%cI|%s", "--name-only"],
         cwd=ROOT,
@@ -125,40 +106,31 @@ def build_history_maps():
         check=True,
     )
     last_edited = {}
-    last_batch = {}
     current = None
-    current_is_batch = False
     for line in result.stdout.splitlines():
         if line.startswith("COMMIT|"):
             _, commit_hash, date, subject = line.split("|", 3)
             current = (date, commit_hash, subject)
-            current_is_batch = bool(BATCH_COMMIT_RE.search(subject))
             continue
         if not line.strip() or current is None:
             continue
         # First commit touching a file in log order is the most recent one (git log is newest-first).
-        path = line.strip()
-        last_edited.setdefault(path, current)
-        if current_is_batch:
-            last_batch.setdefault(path, current)
-    return last_edited, last_batch
+        last_edited.setdefault(line.strip(), current)
+    return last_edited
 
 
-def format_row(relpath, edited, batch):
+def format_row(relpath, edited):
     if edited is None:
-        return f"{'NEVER':<10}  {'-':<40}  {relpath}"
-    edit_date = edited[0].split("T", 1)[0]
-    if batch is None:
-        batch_note = "(no batch-labeled commit)"
-    else:
-        subject = batch[2]
-        batch_note = subject if len(subject) <= 40 else subject[:37] + "..."
-    return f"{edit_date:<10}  {batch_note:<40}  {relpath}"
+        return f"{'NEVER':<10}  {'-':<50}  {relpath}"
+    edit_date, _hash, subject = edited
+    edit_date = edit_date.split("T", 1)[0]
+    short_subject = subject if len(subject) <= 50 else subject[:47] + "..."
+    return f"{edit_date:<10}  {short_subject:<50}  {relpath}"
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--limit", type=int, default=None, help="only show the N oldest-verified files")
+    parser.add_argument("--limit", type=int, default=None, help="only show the N oldest-edited files")
     parser.add_argument("--file", type=str, default=None, help="show claim lines for one file only")
     parser.add_argument("--claims", action="store_true", help="dump every matched claim line, grouped by file")
     args = parser.parse_args()
@@ -176,7 +148,7 @@ def main():
             print(f"{line_no:>4}  [{','.join(kinds)}]  {text}")
         return 0
 
-    last_edited, last_batch = build_history_maps()
+    last_edited = build_last_edited_map()
     files = list(iter_target_files())
 
     def sort_key(path):
@@ -200,11 +172,10 @@ def main():
                 print(f"{line_no:>4}  [{','.join(kinds)}]  {text}")
         return 0
 
-    print(f"{'LAST EDITED':<10}  {'LAST BATCH COMMIT':<40}  FILE")
+    print(f"{'LAST EDITED':<10}  {'LAST COMMIT':<50}  FILE")
     for path in files:
         edited = last_edited.get(rel(path))
-        batch = last_batch.get(rel(path))
-        print(format_row(rel(path), edited, batch))
+        print(format_row(rel(path), edited))
     return 0
 
 
