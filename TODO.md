@@ -19,14 +19,36 @@ authored directly in this repo (rather than derived from `docs/`) has none.
 
 ## Sweep status
 
-**All 301 language files reviewed. The initial pass is complete.** (The population was originally
-miscounted as 287; a full directory diff against every batch's actual commits, not its
-self-reported count, found 14 hidden gaps - see batch 19's commit for how. Root files are out of
-scope by default: they rarely carry falsifiable claims, but check before skipping if a root names
-specific APIs or versions - `cwe/88` and `cwe/113` both did, and both were wrong.)
+**310 of 333 language files reviewed. 23 remain, never yet swept.** A user review of batch 26's
+"301/301 complete" claim caught that the batch table's own Entries column sums to 304, not 301 -
+which prompted a fresh directory-diff recount (the same method batch 19 used after the
+287-baseline miscount, run again here because the same drift recurred). The recount found the
+repo had grown past 301 with nobody updating this file: three entirely new CWEs (`328`, `476`,
+`501`, `643`, all added 2026-08-28) plus a handful of individual language files added to
+already-swept CWEs were never entered into the queue. Cross-checked by add-date against each
+CWE's batch commit date to rule out the same drift hiding inside an already-"reviewed" CWE
+directory - none found beyond the 23 below. Root files are out of scope by default: they rarely
+carry falsifiable claims, but check before skipping if a root names specific APIs or versions -
+`cwe/88` and `cwe/113` both did, and both were wrong.
 
-Any future correctness work on language files is a fresh, targeted pass (e.g. re-verifying a
-specific claim, or sweeping a newly-added CWE), not a continuation of this batch queue.
+**Lesson for next time:** re-run the directory-diff recount before declaring the sweep closed, not
+just when a miscount is suspected - the population moves while the sweep is in progress, since
+this repo keeps growing new CWE entries independent of the sweep's own commits.
+
+Remaining, grouped for batching:
+
+- `190/csharp`, `190/go`, `190/java` - new language entries on an already-swept CWE (batch 20 only
+  covered `190/c`, `190/python`)
+- `114/csharp` - new language entry on an already-swept CWE (batch 25 covered `c`, `java`,
+  `javascript`, `python` only)
+- `134/php` - new language entry on an already-swept CWE (batch 22 covered `c`, `java`, `python`
+  only)
+- `328` (Use of Weak Hash), all 6 languages: `csharp`, `go`, `java`, `javascript`, `php`, `python`
+  - entirely new CWE, never swept
+- `476` (NULL Pointer Dereference), 3 languages: `c`, `cpp`, `java` - entirely new CWE, never swept
+- `501` (Trust Boundary Violation), all 6 languages: `csharp`, `go`, `java`, `javascript`, `php`,
+  `python` - entirely new CWE, never swept
+- `643` (XPath Injection), 3 languages: `csharp`, `java`, `python` - entirely new CWE, never swept
 
 ## Per-batch method
 
@@ -66,6 +88,11 @@ File real `docs/` defects (a false claim, not just a gap) to `DOCS_UPDATE.md`.
 Batches 1-18d covered the "intended order": authn/authz, crypto/randomness, web hygiene, and
 memory/native-and-resource. Batches 19-20 closed gaps the 287-baseline miscount had hidden.
 
+The Entries column is a per-batch count of files reviewed, language files and root files both -
+several rows include a root file's `(+root)`/`(+roots)` review alongside its language files, so
+the column does not sum to the language-file population on its own; the "Sweep status" section
+above tracks the language-file-only count separately and is the number to trust.
+
 | Batch | CWEs | Entries | Defective |
 |---|---|---|---|
 | 1 | 89, 78 | 12 | 12/12 |
@@ -99,15 +126,16 @@ memory/native-and-resource. Batches 19-20 closed gaps the 287-baseline miscount 
 | 23 | Config/allowlist/path-control injection: `15/csharp`, `15/java`, `15/javascript`, `15/python`, `183/java`, `183/javascript`, `183/python`, `73/csharp`, `73/java`, `73/python` | 10 | 8/10 (`73/csharp`, `73/python` clean on vendor facts) |
 | 24 | LLM/AI, timing, cert, multi-byte string: `1426/javascript`, `1426/python`, `1427/javascript`, `1427/python`, `208/csharp`, `208/java`, `208/javascript`, `208/python`, `299/java`, `135/c`, `135/php` | 11 | 6/11 (`208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php` clean on vendor facts; `208/java`'s "isEqual() returns early on unequal lengths" claim was true only through JDK 21 - JDK 22 removed the early return, caught only by reading OpenJDK's actual source after a reconciliation agent contradicted the file) |
 | 25 | Mass assignment and process control: `915/csharp`, `915/java`, `915/javascript`, `915/php`, `915/python`, `915/ruby`, `114/c`, `114/java`, `114/javascript`, `114/python` | 10 | 6/10 (`915/ruby`, `114/c`, `114/javascript`, `114/python` clean on vendor facts; `915/python` also got a substantial FastAPI/Pydantic expansion since the file previously covered Django/DRF only) |
-| 26 | Closeout: `382/java`, `498/java`, `597/csharp`, `597/java`, `597/php`, `926/android` | 6 | 4/6 (`498/java`, `597/java` clean on vendor facts; `597/java`'s `MessageDigest.isEqual()` constant-time claim was re-verified directly against tagged OpenJDK source for 8u/11u/17u/21u current branches, not just trusted from batch 24's finding on a different file) |
+| 26 | `382/java`, `498/java`, `597/csharp`, `597/java`, `597/php`, `926/android` (queued as a "closeout" batch that turned out not to be one - see Sweep status) | 6 | 4/6 (`498/java`, `597/java` clean on vendor facts; `597/java`'s `MessageDigest.isEqual()` constant-time claim was re-verified directly against tagged OpenJDK source for 8u/11u/17u/21u current branches, not just trusted from batch 24's finding on a different file). User review of this batch's commit caught two agent-evidence errors the human judgment pass missed: `597/csharp`'s `FixedTimeEquals()` bullet omitted that it short-circuits on a length mismatch (needs hashing both sides to a fixed length first, not just byte-encoding), and `926/android`'s manifest-merger fix named the wrong marker (`tools:replace="android:exported"` at the attribute level, not `tools:node`) - both corrected in a follow-up commit. |
 
 Clean-language-file count: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
 `434/python`, `201/python`, `125/cpp`, `121/cpp`, `401/javascript`, `401/python`, `362/java`,
 `367/go`, `367/java`, `367/javascript`, `367/python`, `377/java`, `79/perl`, `170/cpp`, `195/c`,
 `195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python`, `73/csharp`,
 `73/python`, `208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php`, `915/ruby`,
-`114/c`, `114/javascript`, `114/python`, `498/java`, `597/java` - 40 of 301 reviewed files, still
-consistent with "treat every unreviewed file as suspect by default."
+`114/c`, `114/javascript`, `114/python`, `498/java`, `597/java` - 40 of 310 reviewed files (333
+total, 23 not yet reviewed - see Sweep status), still consistent with "treat every unreviewed file
+as suspect by default."
 
 ## Findings not yet promoted to CLAUDE.md
 
