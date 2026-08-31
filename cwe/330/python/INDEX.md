@@ -13,6 +13,7 @@ The `random` module is backed by the Mersenne Twister and, in CPython's own word
 - `random.seed()` generates no values and is not itself a sink. Called with no argument it draws from the OS randomness source; the finding is a *fixed or attacker-derivable* seed argument, and even then the fix is to change the generator rather than the seed
 - `uuid.uuid4()` draws `os.urandom(16)` and is documented as generated "in a cryptographically-secure method", leaving 122 random bits after the version and variant bits - an identifier, not a secret. `uuid8` is explicitly not CSPRNG-backed by default and its own docs say to "use `uuid4()` when a UUID needs to be used in a security-sensitive context"; `uuid1()` embeds the computer's network address
 - `os.urandom()` blocks on Linux until the kernel pool is first initialized (PEP 524) and raises `NotImplementedError` where `/dev/urandom` is unreadable. CPython points to `secrets` as the higher-level interface rather than presenting the two as equivalent
+- PyJWT checks HMAC key length against RFC 7518's floor (256 bits for HS256) but only warns by default - `InsecureKeyLengthWarning`, not an error - so a short secret still signs and verifies unless `enforce_minimum_key_length=True` is set explicitly. Generate the key with `secrets.token_bytes(32)` rather than relying on the warning to be noticed
 
 ## Taint Sinks
 

@@ -13,6 +13,7 @@ Hard-coded credentials in PHP are usually a literal in `config.php`, a `define()
 - On PHP 8.2+ a hard-coded password passed to `PDO::__construct` is redacted from stack traces, because php-src marks that parameter `#[\SensitiveParameter]`; on earlier versions the same literal appears in any trace that unwinds through it. This changes what a leaked log shows, not whether the credential is hard-coded
 - Do not rely on Laravel's shipped `public/.htaccess` to deny `.env` - it contains no dotfile rule. The dotfile deny (`location ~ /\.(?!well-known).* { deny all; }`) appears only in the nginx sample in Laravel's deployment documentation, so an Apache deployment needs one written
 - Keep only the front controller under the document root: Laravel documents that serving from the project root "will expose many sensitive configuration files to the public Internet", and Symfony's nginx sample returns 404 for every `.php` but `index.php`
+- A JWT signing key hardcoded as a literal is this same weakness with a wider blast radius: it forges every token the application will ever issue, not the one credential that leaked. Load it the same way as any other secret; see CWE-330 for how large it needs to be, since `firebase/php-jwt` only started enforcing that in 7.0.0
 
 ## Taint Sinks
 

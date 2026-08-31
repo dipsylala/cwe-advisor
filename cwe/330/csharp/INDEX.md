@@ -12,6 +12,7 @@
 - `Guid.CreateVersion7()` is .NET 9+. It starts from `NewGuid()` and overwrites the leading 48 bits with a `UtcNow` millisecond timestamp, leaving 74 random bits - sortable and not secret
 - `RandomNumberGenerator.GetInt32` is the bounded-integer API precisely because, in Microsoft's words, it "uses a discard-and-retry strategy to avoid the low value bias that a simple modular arithmetic operation would produce". Deriving an OTP with `BitConverter.ToInt32(bytes) % 1_000_000` reintroduces that bias and can yield a negative value. Note the upper bound is exclusive, so `GetInt32` can never return `Int32.MaxValue`
 - Generate at least 128 bits (16 bytes) for tokens; size keys by their algorithm
+- A JWT HMAC signing key needs its own floor: `Microsoft.IdentityModel.Tokens`'s `SymmetricSecurityKey` only rejects a key under 128 bits (`IDX10653`), but RFC 7518 requires a key at least as large as the hash output - 256 bits for HS256 - so a 16-byte key clears the library's check and still falls short of the spec. Generate 32 bytes with `RandomNumberGenerator.GetBytes(32)`, not the library's own floor
 
 ## Taint Sinks
 

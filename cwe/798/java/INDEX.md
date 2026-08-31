@@ -13,6 +13,7 @@ A hard-coded credential in Java survives compilation: the JVM specification stor
 - `PasswordAuthentication` takes `(String userName, char[] password)` - there is no no-argument form. The array is cloned on construction and `getPassword()` hands back a live reference the caller is expected to zero, which a `String` literal can never support
 - A build can inject the secret for you: with `spring-boot-starter-parent`, Maven resource filtering expands `@...@` placeholders in `application.properties`, which puts the resolved value inside the JAR. If the project sets `useDefaultDelimiters` to anything but `false`, the build also expands ordinary `${...}` Spring placeholders, silently baking in what was meant to resolve at runtime
 - A JDK `KeyStore` can hold an arbitrary secret as a `SecretKeyEntry`, and `pkcs12` has been the default and recommended type since JDK 9 where `jceks` is documented as proprietary - but the store itself opens with a password, so it relocates the bootstrapping problem rather than removing it
+- A JWT signing key hardcoded as a literal is this same weakness with a wider blast radius: it forges every token the application will ever issue, not the one credential that leaked. Load it the same way as any other secret; see CWE-330 for how large it needs to be - jjwt itself will reject a key that's too short, but not one that's merely predictable
 
 ## Taint Sinks
 

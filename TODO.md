@@ -223,10 +223,17 @@ instance.
   the `no_harm` rubric needs the case's `must_preserve` contract passed to the judge (currently
   withheld, so judges apply their own reading and disagree); nothing in the corpus is compiled or
   executed, so a fix is scored on intent, not correctness.
-- **CWE-522 has no JWT secret-strength or token-lifetime coverage.** `docs/CWE-522` covers this in
-  its root, java, javascript, and python pages; none of the five language entries here do. Whether
-  it belongs in 522 or should route to CWE-326/CWE-330 is the open question - 522 already routes
-  password hashing elsewhere, so precedent exists either way.
+- **Resolved (2026-08-31): JWT secret-strength and token-lifetime coverage.** `docs/CWE-522` covered
+  this under Insufficiently Protected Credentials, but MITRE's own definitions say otherwise - 522
+  is about an insecure transmission/storage *method*, not a value's strength or a token's lifetime.
+  Routed instead to where the definitions actually point: secret-strength bullets added to `330`
+  (weak generation) and `798` (hardcoding) across all six languages plus root, verified per-language
+  against primary sources - notably that HMAC-key-length enforcement varies by JWT library (jjwt
+  throws `WeakKeyException`; PyJWT only warns by default; `jsonwebtoken` and `golang-jwt` enforce
+  nothing at all; `Microsoft.IdentityModel.Tokens` enforces 128 bits against RFC 7518's 256-bit
+  requirement; `firebase/php-jwt` only started enforcing it in 7.0.0, via a disputed CVE). Token
+  lifetime got its own new CWE-613 (Insufficient Session Expiration) entry, root plus all six
+  languages - it didn't exist in this repo at all before this pass.
 - **MITRE rank is a proxy, not the real signal.** Top 25 rank reflects CVE/KEV exploitation data;
   this skill receives whatever a SAST tool flags in source. If scanner output naming which CWEs
   actually arrive becomes available, it should override rank order for prioritizing remaining work.

@@ -14,6 +14,7 @@
 - Ask for `"DRBG"` only on JDK 9 or later, where JEP 273 added it; on JDK 8 it throws `NoSuchAlgorithmException`. Its shipped `securerandom.drbg.config` is empty, equivalent to `Hash_DRBG,SHA-256,128,none` - 128-bit strength, with neither prediction resistance nor reseeding requested
 - `UUID.randomUUID()` is generated "using a cryptographically strong pseudo random number generator" and carries 122 random bits, six being fixed for version and variant - an identifier, not a secret. `UUID.nameUUIDFromBytes()` is one method away in the same class, an MD5 digest of its input, and fully deterministic
 - Generate at least 128 bits (16 bytes) for tokens and size keys by their algorithm
+- jjwt already enforces RFC 7518's HMAC key floor itself - `Jwts.builder().signWith(key)` throws `WeakKeyException` for a key under the algorithm's required size (256 bits for HS256). If that exception shows up, the fix is a properly-sized key (`Jwts.SIG.HS256.key().build()`), not catching and suppressing it to keep a legacy short secret working
 
 ## Taint Sinks
 

@@ -13,6 +13,7 @@
 - `crypto.pseudoRandomBytes` is **not** a weaker generator. Node's DEP0115 states "there is no difference between `crypto.randomBytes()` and `crypto.pseudoRandomBytes()`", and in `lib/crypto.js` it is an alias bound to the same function. The name is a fossil of OpenSSL's `RAND_pseudo_bytes`, deprecated in OpenSSL 1.1.0. A scanner hit here is a false positive on the source: rename the call, keep the bytes
 - Generate at least 128 bits (16 bytes) for tokens, per ASVS; size keys by their algorithm. Remember hex doubles the character count, so a 32-character hex token carries 128 bits
 - The `'base64url'` Buffer encoding arrived in Node 15.7.0 / 14.18.0. Below that it is not an error but a silently wrong encoding
+- `jsonwebtoken` enforces no minimum length on an HMAC secret - it validates key size only for RSA/PS algorithms, never for HS256/384/512 - so RFC 7518's floor (256 bits for HS256) has to be enforced when the secret is generated, not assumed from `jwt.sign()` accepting the call. Generate it with `crypto.randomBytes(32)`, not a short literal
 
 ## Taint Sinks
 

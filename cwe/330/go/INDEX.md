@@ -13,6 +13,7 @@ Go separates `math/rand` (and `math/rand/v2`), non-cryptographic generators for 
 - `crypto/rand.Int(rand.Reader, max)` returns "a uniform random value in [0, max)" - exclusive of `max`, so pass `n` to get `0..n-1`. It masks and retries internally rather than taking a modulo, and it **panics** if `max <= 0` rather than returning an error
 - `base64.URLEncoding` pads: 16 bytes encodes to 24 characters ending `==`, and 32 bytes to 44 ending `=`. Use `base64.RawURLEncoding` for a token that goes in a URL, since `=` is a reserved character
 - Seeding a non-cryptographic generator from `crypto/rand` does not help - `rand.New(rand.NewSource(x))` is a deterministic stream once the seed is fixed, and it is separately documented as "not safe for concurrent use by multiple goroutines"
+- `golang-jwt/jwt`'s HMAC signing methods enforce no minimum key length at all - even an empty `[]byte("")` key signs without error - so RFC 7518's floor (256 bits for HS256) has to be enforced at generation, not assumed from the library accepting the call. Generate the key with `crypto/rand`, sized to the algorithm, not a short literal
 
 ## Taint Sinks
 

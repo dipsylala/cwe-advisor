@@ -14,6 +14,7 @@ Hard-coded credentials in Node reach version control, build artifacts and, when 
 - Floor `jsonwebtoken` at **9.0.0**, which closed three advisories in `jwt.verify` including an insecure default algorithm permitting signature-validation bypass (CVE-2022-23540) and an RSA-to-HMAC key confusion (CVE-2022-23541). Latest is 9.0.3, so floor and latest differ
 - Pre-commit and CI are one layer; GitHub's own push protection is another, and its defaults are easy to misread - repository-level protection is off by default and needs GitHub Secret Protection, while user-level protection is on by default but only blocks pushes to *public* repositories
 - `gitleaks` is MIT and `trufflehog` is AGPL-3.0 with a paid enterprise tier, which is a real difference when the scanner is vendored into a build rather than run as a hosted action
+- The `secret` argument to `jwt.sign()`/`jwt.verify()` is this same weakness when it's a literal, with a wider blast radius: it forges every token the application will ever issue, not the one credential that leaked. See CWE-330 for how large it needs to be, since `jsonwebtoken` enforces no minimum length on an HMAC secret at all
 
 ## Taint Sinks
 

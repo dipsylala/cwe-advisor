@@ -96,7 +96,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 327 | Use of a Broken or Risky Cryptographic Algorithm | weak cryptography, broken crypto |
 | 328 | Use of Weak Hash | weak hashing algorithm |
 | 329 | Generation of Predictable IV with CBC Mode | predictable IV |
-| 330 | Use of Insufficiently Random Values | weak randomness, insecure randomness |
+| 330 | Use of Insufficiently Random Values | weak randomness, insecure randomness, weak JWT secret |
 | 331 | Insufficient Entropy | low entropy |
 | 338 | Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) | insecure PRNG, weak RNG |
 | 345 | Insufficient Verification of Data Authenticity | - |
@@ -154,6 +154,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 597 | Use of Wrong Operator in String Comparison | - |
 | 601 | URL Redirection to Untrusted Site ('Open Redirect') | open redirect |
 | 611 | Improper Restriction of XML External Entity Reference | XXE |
+| 613 | Insufficient Session Expiration | excessive session timeout, JWT never expires, unrevocable token |
 | 614 | Sensitive Cookie in HTTPS Session Without 'Secure' Attribute | missing Secure cookie flag |
 | 615 | Inclusion of Sensitive Information in Source Code Comments | secrets in code comments |
 | 618 | Exposed Unsafe ActiveX Method | - |
@@ -177,7 +178,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 778 | Insufficient Logging | missing audit log |
 | 780 | Use of RSA Algorithm without OAEP | RSA PKCS1v1.5 padding |
 | 787 | Out-of-bounds Write | OOB write |
-| 798 | Use of Hard-coded Credentials | hardcoded credentials, hardcoded secrets |
+| 798 | Use of Hard-coded Credentials | hardcoded credentials, hardcoded secrets, hardcoded JWT secret |
 | 823 | Use of Out-of-range Pointer Offset | - |
 | 824 | Access of Uninitialized Pointer | dangling pointer |
 | 829 | Inclusion of Functionality from Untrusted Control Sphere | untrusted third-party code |

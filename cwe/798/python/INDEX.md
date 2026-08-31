@@ -15,6 +15,7 @@ Hard-coded credentials in Python are usually a module-level literal or a keyword
 - `boto3` resolves credentials in a documented order that starts with the arguments passed to `client()`, so a literal there wins over every environment and role-based source - removing the argument is what lets the instance role take over, and AWS's own guidance is not to hard-code them
 - Generate replacement credentials with `secrets`, not `random`: the standard library states `secrets` "should be used in preference to" `random`, whose generator is for modelling rather than security. `secrets.token_urlsafe()` is the usual shape
 - Environment variables are a fallback rather than a store, but state the exposure accurately: `/proc/<pid>/environ` is governed by a `PTRACE_MODE_READ_FSCREDS` check, so it is readable by the same user or a process holding `CAP_SYS_PTRACE`, not by any local account. The concrete exposures are `docker inspect`, which Docker documents as where `ENV` values can be viewed, and inheritance by every child process
+- A JWT signing key hardcoded as a literal is this same weakness with a wider blast radius: it forges every token the application will ever issue, not the one credential that leaked. Load it the same way as any other secret; see CWE-330 for how large it needs to be, since PyJWT only warns about a short one by default
 
 ## Taint Sinks
 

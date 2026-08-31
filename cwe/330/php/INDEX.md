@@ -13,6 +13,7 @@ A CWE-330 finding in PHP is a session token, reset token, API key or CSRF token 
 - `array_rand()`, `str_shuffle()` **and `shuffle()`** all carry the manual's identical caution: they use the global Mt19937 and "must not be used for cryptographic purposes, or purposes that require returned values to be unguessable"
 - `lcg_value()` is deprecated as of PHP 8.4 because, in php-src's words, "the function is broken in multiple ways". The vendor's named replacement is `Random\Randomizer::getFloat()`, not `random_int()` - `lcg_value()` returns a float in (0,1), which `random_int()` cannot produce
 - `password_hash()` generates its own salt, and the `salt` option was **removed in PHP 8.0**, not merely discouraged: passing one now raises a warning and is ignored. On any supported PHP it cannot do harm, so a finding about a bad salt passed to `password_hash()` is stale
+- `firebase/php-jwt` 7.0.0 (December 2025) added a 32-byte minimum key-length check for HMAC algorithms, rejecting a short secret with an exception rather than signing anyway - a change tied to CVE-2025-45769, which NVD marked **Disputed** on the grounds that key length is the application's responsibility, not the library's, though GitHub's advisory database still lists it as high severity. Either way, generate the key with `random_bytes(32)` rather than relying on either version's behavior
 
 ## Taint Sinks
 

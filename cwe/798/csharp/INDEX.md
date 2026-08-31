@@ -15,6 +15,7 @@ Hard-coded credentials in C# reach version control and compiled assemblies alike
 - `CA5390` ("Do not hard-code encryption key") ships with the analyzers but is **not enabled by default**, so turn it on rather than assuming the build would have caught the key
 - `SecureString` is not the remediation. Microsoft advises against it for new development and it does not encrypt its storage off Windows; the recommended shape is an opaque handle to a credential held outside the process
 - Grant the vault identity `get`/`list` only - an application that can also `set` or `delete` secrets has a far larger blast radius than one that can read the two it needs
+- A JWT signing key hardcoded as a literal is this same weakness with a wider blast radius than most: it forges every token the application will ever issue, not just the one request that leaked it. Load it the same way as any other secret; see CWE-330 for how large it needs to be, since `Microsoft.IdentityModel.Tokens` only rejects one under 128 bits
 
 ## Taint Sinks
 
