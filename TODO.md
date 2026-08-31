@@ -19,33 +19,29 @@ authored directly in this repo (rather than derived from `docs/`) has none.
 
 ## Sweep status
 
-**324 of 333 language files reviewed. 9 remain, never yet swept.** A user review of batch 26's
-"301/301 complete" claim caught that the batch table's own Entries column sums to 304, not 301 -
-which prompted a fresh directory-diff recount (the same method batch 19 used after the
-287-baseline miscount, run again here because the same drift recurred). The recount found the
-repo had grown past 301 with nobody updating this file: three entirely new CWEs (`328`, `476`,
-`501`, `643`, all added 2026-08-28) plus a handful of individual language files added to
-already-swept CWEs were never entered into the queue. Cross-checked by add-date against each
-CWE's batch commit date to rule out the same drift hiding inside an already-"reviewed" CWE
-directory - none found beyond the 23 identified then. Root files are out of scope by default: they
-rarely carry falsifiable claims, but check before skipping if a root names specific APIs or
-versions - `cwe/88`, `cwe/113`, and `cwe/328` all did, and all three were wrong.
+**All 333 language files reviewed. Verified complete by directory-diff recount, not just by the
+batch table's self-reported count** - the same recount method batch 19 and batch 26 each had to
+run after a miscount, run pre-emptively here instead of waited for a third one. The recount cross-
+references every file the batch table's CWE/file lists actually name against every `INDEX.md`
+under `cwe/{id}/{language}/`, so it does not just trust arithmetic - see the "Lesson for next time"
+below for why that distinction mattered twice already.
+
+Batches 26-28 closed the gap the 287-to-301 recount had missed: three entirely new CWEs (`328`,
+`476`, `501`, `643`, all added 2026-08-28) plus a handful of individual language files added to
+already-swept CWEs (`190/csharp`, `190/go`, `190/java`, `114/csharp`, `134/php`) had never entered
+the queue. Batch 27 covered `190`'s three new languages, `114/csharp`, `134/php`, `328` (root + all
+6 languages), and `476` (`c`/`cpp`/`java`) - 5 of 14 defective. Batch 28 covered `501` (root + all 6
+languages) and `643` (root + `csharp`/`java`/`python`) - 3 of 9 defective. Root files are out of
+scope by default: they rarely carry falsifiable claims, but check before skipping if a root names
+specific APIs or versions - `cwe/88`, `cwe/113`, and `cwe/328` all did, and all three were wrong.
 
 **Lesson for next time:** re-run the directory-diff recount before declaring the sweep closed, not
 just when a miscount is suspected - the population moves while the sweep is in progress, since
-this repo keeps growing new CWE entries independent of the sweep's own commits.
-
-Batch 27 cleared 14 of the 23: `190/csharp`, `190/go`, `190/java`, `114/csharp`, `134/php`, and
-`328` (all 6 languages plus root). 5/14 defective (root, `114/csharp`, `328/java`, `328/php`,
-`328/python`); `190/csharp`, `190/go`, `190/java`, `134/php`, `328/csharp`, `328/go`,
-`328/javascript` clean on vendor facts. Also opened `476` (`c`, `cpp`, `java`) as part of the same
-batch, all 3 clean.
-
-Remaining, for the next batch:
-
-- `501` (Trust Boundary Violation), all 6 languages: `csharp`, `go`, `java`, `javascript`, `php`,
-  `python` - entirely new CWE, never swept
-- `643` (XPath Injection), 3 languages: `csharp`, `java`, `python` - entirely new CWE, never swept
+this repo keeps growing new CWE entries independent of the sweep's own commits. Any future
+correctness work on language files is a fresh, targeted pass (e.g. re-verifying a specific claim,
+or sweeping a newly-added CWE created after this recount), not a continuation of this batch queue -
+but re-run the same directory diff before trusting that "all files are covered" again, since this
+is now the second time the tracked total silently fell behind the real one.
 
 ## Per-batch method
 
@@ -125,6 +121,7 @@ above tracks the language-file-only count separately and is the number to trust.
 | 25 | Mass assignment and process control: `915/csharp`, `915/java`, `915/javascript`, `915/php`, `915/python`, `915/ruby`, `114/c`, `114/java`, `114/javascript`, `114/python` | 10 | 6/10 (`915/ruby`, `114/c`, `114/javascript`, `114/python` clean on vendor facts; `915/python` also got a substantial FastAPI/Pydantic expansion since the file previously covered Django/DRF only) |
 | 26 | `382/java`, `498/java`, `597/csharp`, `597/java`, `597/php`, `926/android` (queued as a "closeout" batch that turned out not to be one - see Sweep status) | 6 | 4/6 (`498/java`, `597/java` clean on vendor facts; `597/java`'s `MessageDigest.isEqual()` constant-time claim was re-verified directly against tagged OpenJDK source for 8u/11u/17u/21u current branches, not just trusted from batch 24's finding on a different file). User review of this batch's commit caught two agent-evidence errors the human judgment pass missed: `597/csharp`'s `FixedTimeEquals()` bullet omitted that it short-circuits on a length mismatch (needs hashing both sides to a fixed length first, not just byte-encoding), and `926/android`'s manifest-merger fix named the wrong marker (`tools:replace="android:exported"` at the attribute level, not `tools:node`) - both corrected in a follow-up commit. |
 | 27 | Newly-discovered files (see batch 26's recount): `190/csharp`, `190/go`, `190/java`, `114/csharp`, `134/php`, `328` root + 6 languages, `476` `c`/`cpp`/`java` | 14 | 5/14 (root's "bcrypt cost 12+" overstated OWASP's actual minimum of 10; `114/csharp` conflated two different `AppDomain.CreateDomain` overloads - one doesn't exist at all on .NET Core/5+, the other compiles and throws; `328/java`'s `BCryptPasswordEncoder` truncation claim was backwards for current/fixed versions - CVE-2025-22228 made it throw `IllegalArgumentException` instead of silently truncating, as of Spring Security 6.4.4/6.3.8 and other patched lines; `328/php`'s `crypt()` DES-fallback claim needed PHP-8.0 version scoping, since the salt parameter became required that release; `328/python`'s "OpenSSL hard requirement in 3.12" was wrong - PEP 644 raised the minimum OpenSSL version in 3.10, and neither version made OpenSSL mandatory for the whole build. `190/csharp`, `190/go`, `190/java`, `134/php`, `328/csharp`, `328/go`, `328/javascript`, `476/c`, `476/cpp`, `476/java` clean on vendor facts) |
+| 28 | The last two never-swept CWEs: `501` root + 6 languages, `643` root + `csharp`/`java`/`python` - closeout, verified by a full directory-diff recount, not just the batch table's arithmetic | 9 | 3/9 (`501/csharp` named a nonexistent identifier `SecurityStampValidationInterval` - the real property is `SecurityStampValidatorOptions.ValidationInterval`; `501/php` claimed `session.use_only_cookies` defaults off, but php.net documents its default as on, conflating it with `use_strict_mode`'s correctly-stated off-by-default two bullets earlier; `643/csharp` claimed `XPathDocument` needs `XmlResolver = null` like `XmlDocument`, but `XPathDocument` has no `XmlResolver` property at all - the null-resolver mitigation has to be applied to the `XmlReader` passed into its constructor. `501/go`, `501/java`, `501/javascript`, `501/python`, `643/java` clean on vendor facts; `643/python`'s `no_network=True` recommendation was accurate-but-redundant (already the lxml default) and tightened to name only the setting that actually needs flipping) |
 
 Clean-language-file count: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
 `434/python`, `201/python`, `125/cpp`, `121/cpp`, `401/javascript`, `401/python`, `362/java`,
@@ -132,9 +129,10 @@ Clean-language-file count: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/
 `195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python`, `73/csharp`,
 `73/python`, `208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php`, `915/ruby`,
 `114/c`, `114/javascript`, `114/python`, `498/java`, `597/java`, `190/csharp`, `190/go`,
-`190/java`, `134/php`, `328/csharp`, `328/go`, `328/javascript`, `476/c`, `476/cpp`, `476/java` -
-50 of 324 reviewed files (333 total, 9 not yet reviewed - see Sweep status), still consistent with
-"treat every unreviewed file as suspect by default."
+`190/java`, `134/php`, `328/csharp`, `328/go`, `328/javascript`, `476/c`, `476/cpp`, `476/java`,
+`501/go`, `501/java`, `501/javascript`, `501/python`, `643/java` - 55 of 333 reviewed files (all of
+them, as of batch 28), still consistent with "treat every unreviewed file as suspect by default,"
+now read as "every file not on this list."
 
 ## Findings not yet promoted to CLAUDE.md
 

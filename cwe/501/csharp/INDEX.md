@@ -20,9 +20,10 @@ storing a server-resolved identifier over the submitted value.
 - Call `SignInAsync` again after any trust-level change so the principal is reissued, and treat a
   long-lived cookie carrying a stale claim as part of this finding: a role revoked in the database is
   still present in an issued cookie until it expires or the security stamp is validated
-- ASP.NET Core Identity's security stamp is the mechanism for that - `SecurityStampValidationInterval`
-  controls how often a principal is revalidated, and lengthening it widens the window in which a
-  revoked authority still works
+- ASP.NET Core Identity's security stamp is the mechanism for that - `SecurityStampValidatorOptions`'s
+  `ValidationInterval` (configured via `services.Configure<SecurityStampValidatorOptions>(o => ...)`,
+  30 minutes by default) controls how often a principal is revalidated, and lengthening it widens the
+  window in which a revoked authority still works
 - `CookieTempDataProvider` is the framework default rather than a template choice, so `TempData` puts
   the value on the client unless `AddSessionStateTempDataProvider()` is registered. It is encrypted
   with `IDataProtector`, so the user cannot read or forge it; the reason to keep a trust decision out

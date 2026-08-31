@@ -28,10 +28,11 @@ and offers no variable binding at all, so a finding there is usually a reason to
 - A non-empty result list means the predicate matched, not that the credentials were right. For an
   authentication query read the matched element's fields and compare them in Python, and reject a
   result list longer than one rather than taking `[0]`
-- `lxml`'s parser resolves external entities by default in some configurations, and XPath binding does
-  nothing about that. Parse attacker-reachable XML with
-  `etree.XMLParser(resolve_entities=False, no_network=True)`, or use `defusedxml`, and treat the
-  entity question as the separate finding it is (CWE-611)
+- `lxml`'s parser resolves external entities by default, and XPath binding does nothing about that.
+  `no_network` already defaults to blocking network access, so the setting that actually needs
+  flipping is `resolve_entities`: parse attacker-reachable XML with
+  `etree.XMLParser(resolve_entities=False)`, or use `defusedxml`, and treat the entity question as
+  the separate finding it is (CWE-611)
 
 ## Taint Sinks
 
@@ -52,7 +53,7 @@ from a formatted string
 - Bind, encode, validate, or authorize - allowlist any structural fragment through a dict of permitted
   names and use the looked-up value; for an authentication query compare the matched element's fields
   explicitly rather than testing the result list for truthiness
-- Harden configuration - parse with `resolve_entities=False` and `no_network=True`, or use
-  `defusedxml`, where the document is attacker-reachable
+- Harden configuration - parse with `resolve_entities=False` (network access is already blocked by
+  `no_network`'s default), or use `defusedxml`, where the document is attacker-reachable
 - Test - submit `' or '1'='1`, `") or ("1"="1`, and a legitimate value containing an apostrophe, and
   confirm the first two return an empty result while the third still matches

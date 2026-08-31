@@ -31,9 +31,11 @@ compare the value in C#, or to move the query to LINQ to XML.
 - `XmlDocument.SelectSingleNode` returning non-null means a node matched the predicate, not that the
   credentials were correct; for an authentication query, read the matched node's fields and compare
   them explicitly
-- `XPathDocument` and `XmlDocument` both need `XmlResolver = null` (or a `XmlReaderSettings` with
-  `DtdProcessing.Prohibit`) where the XML is attacker-reachable - XPath binding does nothing about
-  external entities (CWE-611)
+- `XmlDocument` has its own `XmlResolver` property and needs it set to `null` where the XML is
+  attacker-reachable. `XPathDocument` has no `XmlResolver` property to set - it takes the mitigation
+  one level removed, by being constructed from an `XmlReader` that was itself created with an
+  `XmlReaderSettings` carrying `XmlResolver = null` or `DtdProcessing.Prohibit`. Either way, XPath
+  binding does nothing about external entities (CWE-611)
 
 ## Taint Sinks
 

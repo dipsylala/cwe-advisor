@@ -31,8 +31,10 @@ store to the client.
   itself - list the outgoing key in `APP_PREVIOUS_KEYS` to rotate without the mass logout
 - Laravel's `session()->regenerate()` is the framework equivalent of the id rotation above, and
   `Auth::login()` performs it; a hand-rolled elevation does not
-- `session.use_only_cookies` is likewise off by default in the raw configuration, which allows a
-  session id from a query string - a trivially shareable and log-visible credential. Set it on
+- `session.use_only_cookies` already defaults to on (unlike `use_strict_mode`), so it is not
+  itself a gap to close - but confirm nothing in the deployment has turned it off, since disabling
+  it allows a session id from a query string, a trivially shareable and log-visible credential.
+  Disabling it has been deprecated since PHP 8.4
 - `$_SESSION` values are serialised by the session handler and unserialised on read, so an
   attacker-influenced object graph stored there is a deserialization concern (CWE-502) reached through
   this weakness, particularly with a custom session handler backed by a shared store
@@ -56,7 +58,8 @@ value written into a container binding or config at runtime
   than resolved, or an `extract()` letting the request choose variable names
 - Replace the unsafe pattern - validate and authorize immediately before the write, and store a
   server-resolved identifier with the authority loaded on use
-- Harden configuration - set `session.use_strict_mode = 1` and `session.use_only_cookies = 1`, and
-  call `session_regenerate_id(true)` on every trust-level change
+- Harden configuration - set `session.use_strict_mode = 1` (the gap, since it defaults off),
+  confirm `session.use_only_cookies` hasn't been disabled from its default of on, and call
+  `session_regenerate_id(true)` on every trust-level change
 - Test - submit a modified role parameter and confirm it never reaches the session; present a
   self-chosen session id cookie and confirm the server issues a new one rather than adopting it
