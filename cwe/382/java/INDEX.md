@@ -11,7 +11,7 @@ Calling `System.exit()` inside a servlet, filter, listener, or EJB business meth
 - In EJBs, throw application exceptions so the container manages transaction rollback without destroying the bean instance
 - For initialization failures (`init()`, constructors), throw `ServletException` instead of exiting - this marks only that component unavailable rather than preventing the whole server from starting
 - For shutdown-path failures (`destroy()`, `@PreDestroy`), log the error and let the container continue its own shutdown sequence rather than forcing a harder exit
-- Do not rely on a `SecurityManager` to block `System.exit()` as the primary control - `SecurityManager` is deprecated for removal in modern Java; the fix is removing the call, not sandboxing it
+- Do not rely on a `SecurityManager` to block `System.exit()` as the primary control - `SecurityManager` has been deprecated for removal since JDK 17 (JEP 411) and is permanently disabled as of JDK 24 (JEP 486), so a `checkExit()` override no longer runs at all on current JDKs; the fix is removing the call, not sandboxing it
 
 ## Taint Sinks
 

@@ -10,7 +10,7 @@ PHP's loose equality operator (`==`) performs type juggling before comparison, c
 - Hash comparison for passwords must use `password_verify()`, never `==` or `===` directly on hashes
 - Use `hash_equals()` for comparing MAC tags, tokens, and other secrets to prevent timing attacks
 - Never compare user-supplied values with `==` against numeric-looking strings, booleans, or `null`
-- Enable strict types (`declare(strict_types=1)`) at the file level to surface type mismatches early
+- `declare(strict_types=1)` does not fix this CWE: it only governs type coercion for typed function/method parameters and return values, and has no documented effect on the `==`/`===` operators - use static analysis (PHPStan or Psalm with a strict-comparison ruleset) to catch new loose comparisons instead
 - `in_array()` and `array_search()` compare loosely unless the third argument is `true`, so an allowlist check with either is subject to the same coercion as `==`
 - The classic demonstration is two strings whose MD5 digests both begin `0e` (`md5('240610708')` and `md5('QNKCDZO')`), which `==` treats as equal because both parse as `0` in scientific notation - `===` and `hash_equals()` do not
 - Use `hash_equals()` for any secret comparison, which is both strict and constant-time
@@ -26,4 +26,4 @@ PHP's loose equality operator (`==`) performs type juggling before comparison, c
 - Replace direct hash comparisons with `password_verify($plaintext, $hash)` for password checks
 - Replace token comparisons with `hash_equals($knownGoodToken, $userToken)` to prevent timing attacks
 - Review comparisons involving values that could arrive as integers (`0`, `1`) alongside string role names
-- Enable `declare(strict_types=1)` and fix any resulting type errors to harden the codebase
+- Test the fixed comparison against type-juggling edge cases (`"0"`, empty string, boolean `false`, numeric-looking strings) to confirm the vulnerability is closed, not just the originally reported input

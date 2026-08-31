@@ -19,16 +19,14 @@ authored directly in this repo (rather than derived from `docs/`) has none.
 
 ## Sweep status
 
-**295 of 301 language files reviewed. 6 remain.** (The population was originally miscounted as
-287; a full directory diff against every batch's actual commits, not its self-reported count, found
-14 hidden gaps - see batch 19's commit for how. Root files are out of scope by default: they rarely
-carry falsifiable claims, but check before skipping if a root names specific APIs or versions -
-`cwe/88` and `cwe/113` both did, and both were wrong.)
+**All 301 language files reviewed. The initial pass is complete.** (The population was originally
+miscounted as 287; a full directory diff against every batch's actual commits, not its
+self-reported count, found 14 hidden gaps - see batch 19's commit for how. Root files are out of
+scope by default: they rarely carry falsifiable claims, but check before skipping if a root names
+specific APIs or versions - `cwe/88` and `cwe/113` both did, and both were wrong.)
 
-Remaining, grouped for batching at the ~9-12 entry size used throughout:
-
-- Small platform-specific leftovers, undersized alone (6): `382/java, 498/java, 597/csharp,
-  597/java, 597/php, 926/android` - merge into an adjacent batch if preferred
+Any future correctness work on language files is a fresh, targeted pass (e.g. re-verifying a
+specific claim, or sweeping a newly-added CWE), not a continuation of this batch queue.
 
 ## Per-batch method
 
@@ -101,14 +99,15 @@ memory/native-and-resource. Batches 19-20 closed gaps the 287-baseline miscount 
 | 23 | Config/allowlist/path-control injection: `15/csharp`, `15/java`, `15/javascript`, `15/python`, `183/java`, `183/javascript`, `183/python`, `73/csharp`, `73/java`, `73/python` | 10 | 8/10 (`73/csharp`, `73/python` clean on vendor facts) |
 | 24 | LLM/AI, timing, cert, multi-byte string: `1426/javascript`, `1426/python`, `1427/javascript`, `1427/python`, `208/csharp`, `208/java`, `208/javascript`, `208/python`, `299/java`, `135/c`, `135/php` | 11 | 6/11 (`208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php` clean on vendor facts; `208/java`'s "isEqual() returns early on unequal lengths" claim was true only through JDK 21 - JDK 22 removed the early return, caught only by reading OpenJDK's actual source after a reconciliation agent contradicted the file) |
 | 25 | Mass assignment and process control: `915/csharp`, `915/java`, `915/javascript`, `915/php`, `915/python`, `915/ruby`, `114/c`, `114/java`, `114/javascript`, `114/python` | 10 | 6/10 (`915/ruby`, `114/c`, `114/javascript`, `114/python` clean on vendor facts; `915/python` also got a substantial FastAPI/Pydantic expansion since the file previously covered Django/DRF only) |
+| 26 | Closeout: `382/java`, `498/java`, `597/csharp`, `597/java`, `597/php`, `926/android` | 6 | 4/6 (`498/java`, `597/java` clean on vendor facts; `597/java`'s `MessageDigest.isEqual()` constant-time claim was re-verified directly against tagged OpenJDK source for 8u/11u/17u/21u current branches, not just trusted from batch 24's finding on a different file) |
 
-Clean-language-file count so far: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
+Clean-language-file count: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
 `434/python`, `201/python`, `125/cpp`, `121/cpp`, `401/javascript`, `401/python`, `362/java`,
 `367/go`, `367/java`, `367/javascript`, `367/python`, `377/java`, `79/perl`, `170/cpp`, `195/c`,
 `195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python`, `73/csharp`,
 `73/python`, `208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php`, `915/ruby`,
-`114/c`, `114/javascript`, `114/python` - 38 of ~301 reviewed files, still consistent with "treat
-every unreviewed file as suspect by default."
+`114/c`, `114/javascript`, `114/python`, `498/java`, `597/java` - 40 of 301 reviewed files, still
+consistent with "treat every unreviewed file as suspect by default."
 
 ## Findings not yet promoted to CLAUDE.md
 
@@ -150,6 +149,16 @@ instance.
   threshold routed to human approval, independent of and in addition to ownership authorization.
   Ask whether an entry's authorization check would still block an attack that only asks for
   something the legitimate caller was already allowed to have.
+- **A language/runtime hardening feature can be named as a fix for a bug class it structurally
+  cannot touch.** `597/php` (batch 26) recommended `declare(strict_types=1)` as a fix for
+  loose-vs-strict string comparison bugs; php.net's own manual scopes `strict_types` to type
+  coercion for typed function/method parameters and return values only - it has no defined effect
+  on `==`/`===` at all, in the same file or any other. The claim read as plausible (it is a real,
+  security-adjacent hardening flag) and traced cleanly to a real API, which is what let it survive
+  a plausibility reread; only checking the vendor doc's stated *scope* of the feature (not just
+  whether the feature exists) caught it. Watch for a recommended flag/feature/mode that is real and
+  security-relevant but whose documented scope doesn't cover the specific operator or mechanism the
+  entry is trying to fix.
 - **A numeric identifier is not itself an identity.** `114/javascript` and `114/python` (batch
   25, same batch so far) both needed a correction that validating a PID against a format or
   allowlist proves nothing about *which* process it currently names, since PIDs are small and

@@ -12,7 +12,7 @@ Using reference equality on object-typed values instead of value equality can co
 - Never rely on string interning for security decisions
 - `StartsWith`, `EndsWith`, `IndexOf(string)` and `String.Compare` are culture-sensitive by default too, so an explicit `StringComparison` belongs on every one of them, not only on `Equals`
 - Do not normalize with `ToLower()`/`ToUpper()` before comparing - those use the current culture, and `ToUpperInvariant()`/`OrdinalIgnoreCase` are the culture-free forms; a request-localization pipeline (`UseRequestLocalization`, `SupportedCultures`) lets the caller choose the culture a comparison runs under
-- For a secret - a token, an API key, an HMAC - correcting the comparison mode is only half the fix: use `CryptographicOperations.FixedTimeEquals()` so the comparison is also constant-time
+- For a secret - a token, an API key, an HMAC - correcting the comparison mode is only half the fix: `CryptographicOperations.FixedTimeEquals()` takes two `ReadOnlySpan<byte>` arguments, not strings, so encode both values first (e.g. `Encoding.UTF8.GetBytes`) and compare the bytes for a constant-time result
 
 ## Taint Sinks
 
