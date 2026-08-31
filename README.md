@@ -55,3 +55,12 @@ submodule so a plain clone of this repo - which is what using the skill actually
 small. Using the skill needs nothing under `evals/`; only editing entries and wanting to validate a
 change against the harness does. To fetch it: `git submodule update --init` (or clone this repo with
 `--recurse-submodules`).
+
+Seven runs so far. On Sonnet 5, fix quality was saturated across a 79-case, 14-CWE, 7-language
+corpus - the model found and closed the reported vulnerability with or without guidance, and the
+knowledge base's measurable effect showed up only in `no_harm` (not silently breaking something the
+fix's caller depended on). Re-running the identical corpus with Haiku 4.5 overturned that: a real
+fix-quality gap appeared, because the ungoverned model called library functions that don't exist
+(verified directly against the real `ldap3` and `ldapjs` packages) and applied surface-level fixes
+that didn't actually close the vulnerability, while the guided model - reading the entry's named
+APIs - did neither. See `evals/README.md` and `evals/RESULTS-v7.md`.
