@@ -14,10 +14,12 @@ In C#, CWE-114 vulnerabilities occur when loading DLLs or executing processes wi
 - Apply least privilege principles when spawning child processes
 - Never concatenate user input directly into process arguments or DLL paths
 - `Assembly.LoadFrom()` with a path from configuration or a request loads and runs whatever is there - resolve to an absolute path under a directory the application account cannot write to, and verify the file's signature (`WinVerifyTrust`, or an Authenticode check) before loading
-- `AppDomain.CreateDomain()` and `PermissionSet`-based sandboxing are a .NET Framework-only boundary.
-  On .NET Core and later the API still compiles and throws `PlatformNotSupportedException` at runtime
-  rather than failing the build, so a ported codebase carries the sandbox in source while having none
-  in effect - isolate in a separate process instead
+- `PermissionSet`-based sandboxing via `AppDomain.CreateDomain(string, Evidence, AppDomainSetup,
+  PermissionSet, StrongName[])` is a .NET Framework-only API - that overload does not exist on .NET
+  Core/.NET 5+ at all, so a ported codebase fails to compile rather than silently losing the sandbox.
+  The parameterless `CreateDomain(string)` overload does exist on both, but is obsolete
+  (`SYSLIB0024`) and throws `PlatformNotSupportedException` at runtime on .NET Core/.NET 5+ - either
+  way, no app-domain sandbox is available; isolate in a separate process instead
 - Use `ProcessStartInfo.ArgumentList` rather than `Arguments` so each argument is escaped
   individually, and never launch through `cmd.exe`, whose parsing reintroduces shell semantics.
   `ArgumentList` exists only on .NET Core 2.1, .NET Standard 2.1 and later - it is absent from every

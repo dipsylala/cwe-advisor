@@ -31,8 +31,11 @@ salt-and-md5 scheme.
   `hash('xxh3', ...)` (PHP 8.1+) where a non-cryptographic digest is what is wanted
 - `hash('md5', ...)` and `md5()` are the same finding written two ways; a scanner rule matching only
   the function name misses the `hash()` form, so search for both
-- `crypt()` with a weak or missing salt format falls back to DES-based output that is limited to eight
-  significant characters; treat any surviving `crypt()` call as a finding in its own right
+- Before PHP 8.0, an omitted salt made `crypt()` auto-generate a weak DES (or MD5, depending on
+  availability) salt, and the DES form only uses the first eight significant characters of the
+  input; PHP 8.0 made the salt parameter required, so a modern call can't hit that fallback by
+  omission - but any surviving `crypt()` call is still worth treating as a finding in its own
+  right, since `password_hash()` covers the same need without the salt-format pitfalls
 
 ## Taint Sinks
 

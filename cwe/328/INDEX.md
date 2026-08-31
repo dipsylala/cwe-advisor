@@ -12,14 +12,16 @@ Weak cryptographic hashes (MD5, SHA-1) are broken and vulnerable to collision at
   that it is fast or unsalted - a plain SHA-256 password digest - CWE-916 is the closer entry, and the
   fix is a work factor rather than a different digest
 - Never use fast hashes (MD5, SHA-1, plain SHA-256) for password storage; use purpose-specific hashes for other security operations
-- Apply key derivation functions with sufficient iteration counts (bcrypt cost 12+, PBKDF2 600k+ iterations)
+- Apply key derivation functions with sufficient work factors: OWASP's current Password Storage
+  Cheat Sheet gives bcrypt a minimum cost of 10 and PBKDF2-HMAC-SHA256 a recommended 600,000
+  iterations - treat these as floors, and raise them where server performance allows
 - Upgrade legacy systems by rehashing on user login without forcing password resets
 - Use SHA-256 or SHA-3 for file integrity, digital signatures, and non-password use cases
 
 ## Remediation Steps
 
 - Identify weak hash usage - Review flaw details for file/line using MD5, SHA-1, or plain SHA-256; determine purpose (passwords, integrity, signatures)
-- Replace password hashing - Migrate to bcrypt (cost 12+), Argon2id, or PBKDF2-HMAC-SHA256 (600k+ iterations); never use fast hashes for passwords
+- Replace password hashing - Migrate to bcrypt (cost 10+), Argon2id, or PBKDF2-HMAC-SHA256 (600,000 iterations); never use fast hashes for passwords
 - Upgrade integrity checks - Replace MD5/SHA-1 with SHA-256, SHA-384, or SHA-3 for file verification and checksums
 - Update cryptographic operations - Use SHA-256+ for HMACs, digital signatures, and key derivations
 - Test thoroughly - Verify backward compatibility, test authentication flows, and validate integrity checks with new algorithms

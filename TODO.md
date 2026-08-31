@@ -19,7 +19,7 @@ authored directly in this repo (rather than derived from `docs/`) has none.
 
 ## Sweep status
 
-**310 of 333 language files reviewed. 23 remain, never yet swept.** A user review of batch 26's
+**324 of 333 language files reviewed. 9 remain, never yet swept.** A user review of batch 26's
 "301/301 complete" claim caught that the batch table's own Entries column sums to 304, not 301 -
 which prompted a fresh directory-diff recount (the same method batch 19 used after the
 287-baseline miscount, run again here because the same drift recurred). The recount found the
@@ -27,25 +27,22 @@ repo had grown past 301 with nobody updating this file: three entirely new CWEs 
 `501`, `643`, all added 2026-08-28) plus a handful of individual language files added to
 already-swept CWEs were never entered into the queue. Cross-checked by add-date against each
 CWE's batch commit date to rule out the same drift hiding inside an already-"reviewed" CWE
-directory - none found beyond the 23 below. Root files are out of scope by default: they rarely
-carry falsifiable claims, but check before skipping if a root names specific APIs or versions -
-`cwe/88` and `cwe/113` both did, and both were wrong.
+directory - none found beyond the 23 identified then. Root files are out of scope by default: they
+rarely carry falsifiable claims, but check before skipping if a root names specific APIs or
+versions - `cwe/88`, `cwe/113`, and `cwe/328` all did, and all three were wrong.
 
 **Lesson for next time:** re-run the directory-diff recount before declaring the sweep closed, not
 just when a miscount is suspected - the population moves while the sweep is in progress, since
 this repo keeps growing new CWE entries independent of the sweep's own commits.
 
-Remaining, grouped for batching:
+Batch 27 cleared 14 of the 23: `190/csharp`, `190/go`, `190/java`, `114/csharp`, `134/php`, and
+`328` (all 6 languages plus root). 5/14 defective (root, `114/csharp`, `328/java`, `328/php`,
+`328/python`); `190/csharp`, `190/go`, `190/java`, `134/php`, `328/csharp`, `328/go`,
+`328/javascript` clean on vendor facts. Also opened `476` (`c`, `cpp`, `java`) as part of the same
+batch, all 3 clean.
 
-- `190/csharp`, `190/go`, `190/java` - new language entries on an already-swept CWE (batch 20 only
-  covered `190/c`, `190/python`)
-- `114/csharp` - new language entry on an already-swept CWE (batch 25 covered `c`, `java`,
-  `javascript`, `python` only)
-- `134/php` - new language entry on an already-swept CWE (batch 22 covered `c`, `java`, `python`
-  only)
-- `328` (Use of Weak Hash), all 6 languages: `csharp`, `go`, `java`, `javascript`, `php`, `python`
-  - entirely new CWE, never swept
-- `476` (NULL Pointer Dereference), 3 languages: `c`, `cpp`, `java` - entirely new CWE, never swept
+Remaining, for the next batch:
+
 - `501` (Trust Boundary Violation), all 6 languages: `csharp`, `go`, `java`, `javascript`, `php`,
   `python` - entirely new CWE, never swept
 - `643` (XPath Injection), 3 languages: `csharp`, `java`, `python` - entirely new CWE, never swept
@@ -127,15 +124,17 @@ above tracks the language-file-only count separately and is the number to trust.
 | 24 | LLM/AI, timing, cert, multi-byte string: `1426/javascript`, `1426/python`, `1427/javascript`, `1427/python`, `208/csharp`, `208/java`, `208/javascript`, `208/python`, `299/java`, `135/c`, `135/php` | 11 | 6/11 (`208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php` clean on vendor facts; `208/java`'s "isEqual() returns early on unequal lengths" claim was true only through JDK 21 - JDK 22 removed the early return, caught only by reading OpenJDK's actual source after a reconciliation agent contradicted the file) |
 | 25 | Mass assignment and process control: `915/csharp`, `915/java`, `915/javascript`, `915/php`, `915/python`, `915/ruby`, `114/c`, `114/java`, `114/javascript`, `114/python` | 10 | 6/10 (`915/ruby`, `114/c`, `114/javascript`, `114/python` clean on vendor facts; `915/python` also got a substantial FastAPI/Pydantic expansion since the file previously covered Django/DRF only) |
 | 26 | `382/java`, `498/java`, `597/csharp`, `597/java`, `597/php`, `926/android` (queued as a "closeout" batch that turned out not to be one - see Sweep status) | 6 | 4/6 (`498/java`, `597/java` clean on vendor facts; `597/java`'s `MessageDigest.isEqual()` constant-time claim was re-verified directly against tagged OpenJDK source for 8u/11u/17u/21u current branches, not just trusted from batch 24's finding on a different file). User review of this batch's commit caught two agent-evidence errors the human judgment pass missed: `597/csharp`'s `FixedTimeEquals()` bullet omitted that it short-circuits on a length mismatch (needs hashing both sides to a fixed length first, not just byte-encoding), and `926/android`'s manifest-merger fix named the wrong marker (`tools:replace="android:exported"` at the attribute level, not `tools:node`) - both corrected in a follow-up commit. |
+| 27 | Newly-discovered files (see batch 26's recount): `190/csharp`, `190/go`, `190/java`, `114/csharp`, `134/php`, `328` root + 6 languages, `476` `c`/`cpp`/`java` | 14 | 5/14 (root's "bcrypt cost 12+" overstated OWASP's actual minimum of 10; `114/csharp` conflated two different `AppDomain.CreateDomain` overloads - one doesn't exist at all on .NET Core/5+, the other compiles and throws; `328/java`'s `BCryptPasswordEncoder` truncation claim was backwards for current/fixed versions - CVE-2025-22228 made it throw `IllegalArgumentException` instead of silently truncating, as of Spring Security 6.4.4/6.3.8 and other patched lines; `328/php`'s `crypt()` DES-fallback claim needed PHP-8.0 version scoping, since the salt parameter became required that release; `328/python`'s "OpenSSL hard requirement in 3.12" was wrong - PEP 644 raised the minimum OpenSSL version in 3.10, and neither version made OpenSSL mandatory for the whole build. `190/csharp`, `190/go`, `190/java`, `134/php`, `328/csharp`, `328/go`, `328/javascript`, `476/c`, `476/cpp`, `476/java` clean on vendor facts) |
 
 Clean-language-file count: `347/csharp`, `352/python`, `601/go`, `434/go`, `434/javascript`,
 `434/python`, `201/python`, `125/cpp`, `121/cpp`, `401/javascript`, `401/python`, `362/java`,
 `367/go`, `367/java`, `367/javascript`, `367/python`, `377/java`, `79/perl`, `170/cpp`, `195/c`,
 `195/cpp`, `197/java`, `243/c`, `477/python`, `676/python`, `134/java`, `134/python`, `73/csharp`,
 `73/python`, `208/csharp`, `208/javascript`, `208/python`, `299/java`, `135/php`, `915/ruby`,
-`114/c`, `114/javascript`, `114/python`, `498/java`, `597/java` - 40 of 310 reviewed files (333
-total, 23 not yet reviewed - see Sweep status), still consistent with "treat every unreviewed file
-as suspect by default."
+`114/c`, `114/javascript`, `114/python`, `498/java`, `597/java`, `190/csharp`, `190/go`,
+`190/java`, `134/php`, `328/csharp`, `328/go`, `328/javascript`, `476/c`, `476/cpp`, `476/java` -
+50 of 324 reviewed files (333 total, 9 not yet reviewed - see Sweep status), still consistent with
+"treat every unreviewed file as suspect by default."
 
 ## Findings not yet promoted to CLAUDE.md
 
@@ -143,6 +142,17 @@ Promote a shape to CLAUDE.md's "Remediation Claims" once it recurs in a second, 
 until then it stays here so the next batch can watch for it without over-generalizing from one
 instance.
 
+- **A library's documented quirk was itself the vulnerability, and a later release fixed it by
+  removing the quirk rather than just patching around it.** `328/java` (batch 27) described Spring
+  Security's `BCryptPasswordEncoder` as truncating at 72 bytes "like every bcrypt implementation" -
+  true historically, but that silent truncation was exactly what CVE-2025-22228 exploited
+  (`matches()` treated two different passwords sharing a 72-byte prefix as equal), and the fix
+  (6.4.4/6.3.8 and other patched lines) replaced the truncation with a thrown
+  `IllegalArgumentException`. An entry that states a library's quirky-but-longstanding behavior as
+  a stable fact, without checking whether that behavior has a CVE against it, can describe the
+  already-fixed vulnerable behavior as if it were still current. Worth checking, for any claim
+  about a library's "known" truncation/coercion/fallback quirk, whether that quirk has its own CVE
+  and a release that removed it rather than merely documenting it better.
 - **Two recommendations that are each correct and jointly fatal.** `cwe/330/java` (batch 14)
   prescribed `SecureRandom.getInstanceStrong()` for key generation and `secureRandom.nextInt(bound)`
   for OTP ranges in separate bullets; together they reproduce JDK-8240296's hang

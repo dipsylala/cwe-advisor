@@ -20,8 +20,12 @@ or bcrypt through a library, or `hashlib.scrypt`/`pbkdf2_hmac` from the standard
   string and both expose a check for whether a stored hash needs upgrading. Where a dependency is not
   acceptable, `hashlib.scrypt` (3.6+) and `hashlib.pbkdf2_hmac` are in the standard library
 - `pbkdf2_hmac` needs an explicit digest name and a current iteration count - `pbkdf2_hmac('sha256',
-  ...)` with hundreds of thousands of iterations. It is only available when Python is built against
-  OpenSSL, which became a hard requirement in 3.12 but is not guaranteed on an older custom build
+  ...)` with hundreds of thousands of iterations. Since Python 3.12 it requires an OpenSSL-linked
+  build (the pure-Python fallback was removed); on 3.11 and earlier a build without OpenSSL still
+  runs it, just slower. Separately, Python 3.10 (PEP 644) raised the minimum supported OpenSSL
+  version to 1.1.1 for the `ssl` and `hashlib` modules generally - neither version made OpenSSL a
+  hard requirement for the whole interpreter, since `hashlib`'s guaranteed algorithms still fall
+  back to bundled implementations when OpenSSL doesn't provide them
 - bcrypt silently truncates the password at 72 bytes. A passphrase longer than that has its tail
   ignored, and pre-hashing to work around it introduces a null-byte truncation problem of its own
   unless the pre-hash output is base64-encoded first

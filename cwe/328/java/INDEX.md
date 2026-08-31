@@ -21,8 +21,13 @@ the string you pass rather than by a default.
 - For passwords prefer Spring Security's `DelegatingPasswordEncoder`, which prefixes the stored value
   with the encoder id such as `{bcrypt}`. That prefix is what lets the application verify old formats
   and write new ones without a migration flag, and `upgradeEncoding()` tells you when to rehash
-- `BCryptPasswordEncoder` truncates at 72 bytes like every bcrypt implementation, so a passphrase
-  longer than that has its tail ignored
+- Older `BCryptPasswordEncoder` versions silently truncated at 72 bytes like most bcrypt
+  implementations - and `matches()` compared only the truncated prefix, so two different passwords
+  sharing the same first 72 bytes were treated as equal (CVE-2025-22228). Spring Security 6.4.4,
+  6.3.8, 6.2.10, 6.1.14, 6.0.16, and 5.8.18 fixed this by making `BCryptPasswordEncoder` throw
+  `IllegalArgumentException` for a password over 72 bytes instead of truncating it - so on a
+  current version, validate and reject an over-length password before it reaches the encoder rather
+  than relying on silent truncation
 - Compare digests and MACs with `MessageDigest.isEqual`, not `Arrays.equals` or `String.equals` -
   `isEqual` is the constant-time comparison. Note it must also cover any lookup that precedes the
   comparison, since selecting *which* stored hash to compare against with a variable-time string
