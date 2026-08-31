@@ -56,9 +56,14 @@ small. Using the skill needs nothing under `evals/`; only editing entries and wa
 change against the harness does. To fetch it: `git submodule update --init` (or clone this repo with
 `--recurse-submodules`).
 
+Every run scores each fix on two axes, 0-2, averaged across three independent blind judges:
+**fix_quality** - does the fix actually close the reported vulnerability with an appropriate API for
+the sink - and **no_harm** - does it do that without silently breaking or changing something else
+the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
+for legitimate use).
+
 Seven runs so far. The clearest comparison is the last two: the identical 79-case, 14-CWE,
-7-language corpus, run once per model, with and without the skill (scores are out of 2, averaged
-across three blind judges):
+7-language corpus, run once per model, with and without the skill:
 
 | Model | No guidance - fix quality | Guided - fix quality | No guidance - no_harm | Guided - no_harm |
 |---|---|---|---|---|
@@ -66,9 +71,8 @@ across three blind judges):
 | Haiku 4.5 (run 7) | 1.84 | 1.97 | 1.83 | 1.85 |
 
 On Sonnet 5, fix quality was saturated - the model found and closed the reported vulnerability with
-or without guidance, and the knowledge base's measurable effect showed up only in `no_harm` (not
-silently breaking something the fix's caller depended on). On Haiku 4.5 a real fix-quality gap
-opened up, concentrated in a few CWEs:
+or without guidance, and the knowledge base's measurable effect showed up only in `no_harm`. On
+Haiku 4.5 a real fix-quality gap opened up, concentrated in a few CWEs:
 
 | CWE / language | No guidance | Guided | Gap |
 |---|---|---|---|
