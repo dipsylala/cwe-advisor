@@ -256,6 +256,24 @@ instance.
   258 `(cwe, language)` slots remain - at the observed rate, finishing all of them is roughly a
   further 12.3M-token campaign; continue in similar-sized batches (~15 cases, one workflow run
   each), checking each batch's output before the next.
+- **Top-15 depth campaign started (2026-08-31), one batch so far.** Separate goal from the breadth
+  campaign above: for the CWEs this project's own MITRE Top-25 ranks-1-15 review covered (CWE-20,
+  22, 77, 78, 79, 89, 94, 125, 269, 287, 352, 416, 434, 787, 862 - 20 and 269 root-only, out of
+  scope), reach 3 cases per `(CWE, language)` slot rather than 1, mining `docs/CWE-{ID}/{language}
+  /index.md`'s "Common Vulnerable Patterns" section for distinct shapes (adapted into an original
+  scenario each time, not copied verbatim). Reaching 3-per-pair across the other 13 CWEs is roughly
+  155 more cases at this rate.
+  Batch 1 (19 cases) completed CWE-79 (XSS): 3 cases each for csharp, go, javascript, perl, php,
+  python (all previously at 0) plus one more for java (previously 2, from Benchmark) - all 7
+  languages now at the 3-case target. First use of `perl` in the eval corpus. Cost: ~1.09M subagent
+  tokens for 19 cases (~57.3k/case - higher than the breadth campaign's ~48k, likely the extra
+  `docs/` read step), 0 agent errors. Each of the 3 per-language cases was assigned a specific named
+  `docs/` pattern up front (e.g. csharp's "Raw String Concatenation in Razor" vs "HttpResponse.Write
+  Without Encoding" vs "JavaScript Context Without Encoding") so they don't converge on the same
+  shape - spot-checked several and confirmed genuine variety (e.g. the two Perl cases build the
+  tainted HTML differently: inline interpolation vs. assemble-then-print).
+  Remaining, in rank order: 77, 78 (already breadth-complete at 1/language, needs 2 more per slot to
+  reach 3), 89 (same), 94, 125, 287, 352, 416, 434 (same), 787, 862.
 - **Resolved (2026-08-31): JWT secret-strength and token-lifetime coverage.** `docs/CWE-522` covered
   this under Insufficiently Protected Credentials, but MITRE's own definitions say otherwise - 522
   is about an insecure transmission/storage *method*, not a value's strength or a token's lifetime.
