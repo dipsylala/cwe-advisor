@@ -256,13 +256,14 @@ instance.
   258 `(cwe, language)` slots remain - at the observed rate, finishing all of them is roughly a
   further 12.3M-token campaign; continue in similar-sized batches (~15 cases, one workflow run
   each), checking each batch's output before the next.
-- **Top-15 depth campaign started (2026-08-31), one batch so far.** Separate goal from the breadth
+- **Top-15 depth campaign started (2026-08-31), two batches so far.** Separate goal from the breadth
   campaign above: for the CWEs this project's own MITRE Top-25 ranks-1-15 review covered (CWE-20,
   22, 77, 78, 79, 89, 94, 125, 269, 287, 352, 416, 434, 787, 862 - 20 and 269 root-only, out of
   scope), reach 3 cases per `(CWE, language)` slot rather than 1, mining `docs/CWE-{ID}/{language}
   /index.md`'s "Common Vulnerable Patterns" section for distinct shapes (adapted into an original
-  scenario each time, not copied verbatim). Reaching 3-per-pair across the other 13 CWEs is roughly
-  155 more cases at this rate.
+  scenario each time, not copied verbatim). Reaching 3-per-pair across the remaining 11 CWEs is
+  roughly 128 more cases at this rate (counted directly against the corpus, not re-estimated from
+  batch 1's per-CWE rate).
   Batch 1 (19 cases) completed CWE-79 (XSS): 3 cases each for csharp, go, javascript, perl, php,
   python (all previously at 0) plus one more for java (previously 2, from Benchmark) - all 7
   languages now at the 3-case target. First use of `perl` in the eval corpus. Cost: ~1.09M subagent
@@ -272,8 +273,21 @@ instance.
   Without Encoding" vs "JavaScript Context Without Encoding") so they don't converge on the same
   shape - spot-checked several and confirmed genuine variety (e.g. the two Perl cases build the
   tainted HTML differently: inline interpolation vs. assemble-then-print).
-  Remaining, in rank order: 77, 78 (already breadth-complete at 1/language, needs 2 more per slot to
-  reach 3), 89 (same), 94, 125, 287, 352, 416, 434 (same), 787, 862.
+  Batch 2 (12 cases) completed CWE-77 (command injection, non-shell interpreters): 3 cases each for
+  csharp, java, php, python (its only 4 languages, all previously at 0) - all 4 now at the 3-case
+  target. CWE-77 is scoped in this repo to non-shell command interpreters only (`cwe/77/INDEX.md`
+  routes shell sinks to CWE-78), so each pattern was checked to avoid any `Process.Start`/
+  `Runtime.exec`/`subprocess`/`shell_exec` drift - verified by grepping every file in the batch for
+  those patterns after writing, none found. Patterns: csharp/python got Redis-inline-protocol and
+  Memcached/multi-arg raw-socket variants; java got SMTP/IMAP/FTP raw-socket command injection (one
+  protocol per case); php got the three distinct dynamic-dispatch forms its own entry names
+  (`call_user_func()`, `$$cmd()`, `$obj->$method()`). Cost: ~653k subagent tokens for 12 cases
+  (~54.4k/case), 0 agent errors. `sink_line`/`sink_code` verified programmatically against every
+  written file post-hoc (not just trusted from each agent's self-report) - all 12 correct once
+  compared with whitespace-trimming, matching this corpus's existing convention of storing
+  `sink_code` de-indented.
+  Remaining, in rank order: 78, 89 (both already breadth-complete at 1/language, need 2 more per
+  slot to reach 3), 94, 125, 287, 352, 416, 434 (same), 787, 862.
 - **Resolved (2026-08-31): JWT secret-strength and token-lifetime coverage.** `docs/CWE-522` covered
   this under Insufficiently Protected Credentials, but MITRE's own definitions say otherwise - 522
   is about an insecure transmission/storage *method*, not a value's strength or a token's lifetime.
