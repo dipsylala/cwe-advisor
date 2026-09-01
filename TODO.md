@@ -288,6 +288,64 @@ instance.
   `sink_code` de-indented.
   Remaining, in rank order: 78, 89 (both already breadth-complete at 1/language, need 2 more per
   slot to reach 3), 94, 125, 287, 352, 416, 434 (same), 787, 862.
+- **2025 Top 15 remediation-quality plan started (2026-08-31).** Separate from the older project
+  top-15 depth campaign above: the current MITRE 2025 Top 15 is CWE-79, 89, 352, 862, 787, 22, 416,
+  125, 78, 94, 120, 434, 476, 121, and 502. The design assumption for this track is that an upstream
+  scanner has already reported a confirmed true positive; the skill is being tested on fixing the
+  issue at the reported sink, not on finding or adjudicating it. A first fix-complexity batch added
+  one true-positive case each for the zero-coverage entries with local guidance: CWE-121, 125, 352,
+  416, 476, 787, 862, and 94. Each new case uses source `authored-top15-fix-complexity` and carries `trap`,
+  `must_preserve`, and `origin` metadata. Batch A added four more detailed remediation-pressure
+  cases for already-covered high-volume entries: CWE-79 URL-context XSS where HTML escaping does not
+  validate schemes, CWE-89 dynamic `ORDER BY` identifier interpolation despite value
+  parameterization, CWE-22 path containment based on `abspath()` plus string prefix checks, and
+  CWE-78 Go archive listing rewritten from the invalid `tar -tf <user>` option-injection premise to
+  a real `sh -c` command-string injection. Batch B started the
+  language-spread work with six more cases: CWE-352/Python Django `@csrf_exempt`, CWE-862/JavaScript
+  Express project export without ownership scoping, CWE-94/JavaScript `Function` formula preview,
+  CWE-94/PHP dynamic `require`, CWE-787/C++ `vector::reserve()` followed by unchecked indexing, and
+  CWE-416/C linked-list free-then-advance. Batch C expanded framework/datapath variety across eight
+  more language/CWE pairs: CWE-352/Java Spring CSRF matcher exclusion, CWE-862/C# ASP.NET Core bare
+  `[Authorize]`, CWE-434/Go multipart header content-type trust plus client filename storage,
+  CWE-502/PHP base64 cart cookie into `unserialize()`, CWE-89/Python SQLAlchemy `text()` dynamic
+  sort across controller/service/repository, CWE-79/C# Razor script-context output, CWE-125/C++
+  claimed telemetry-window read, and CWE-121/C helper that receives a stack buffer without capacity.
+  Batch D focused specifically on CWE-89 across all six supported languages: Dapper/C# sort flowing
+  controller -> service -> repository, GORM/Go `Order(sort)` after safe `Where()` placeholders,
+  MyBatis/Java `${sort}` in an annotation mapper, Prisma-style JavaScript `$queryRawUnsafe` with a
+  request-selected table, Laravel/PHP `orderByRaw($sort)`, and Django/Python raw SQL with a
+  request-selected search field. Batch E added five more C# CWE-89 cases with distinct sinks and
+  depths: EF Core `FromSqlRaw` product search, EF Core `ExecuteSqlRawAsync` archive update,
+  `SqlDataAdapter.Fill()` legacy reporting, `SqlCommand.ExecuteScalar()` metrics, and
+  `SqlCommand.ExecuteNonQuery()` cleanup delete. Batch F returned to the MITRE top five other than
+  already-expanded CWE-89: CWE-79 Java Thymeleaf `th:utext` and PHP Blade `{!! !!}` raw rendering,
+  CWE-352 Go secondary mux outside CSRF protection and C# Minimal API missing `UseAntiforgery()`,
+  CWE-862 Java Spring document delete with no resource authorization and PHP Laravel refund route
+  with only `auth:sanctum`, plus CWE-787 C offset/length `memcpy()` and C++ span write checked
+  against a claimed capacity rather than `span.size()`. Batch G filled weaker top-15 areas:
+  CWE-94 Java SpEL `StandardEvaluationContext` and C# Roslyn `CSharpScript.EvaluateAsync()`;
+  CWE-434 Java Spring `MultipartFile.getContentType()`/`getOriginalFilename()` trust; CWE-502 Java
+  base64 session token into `ObjectInputStream.readObject()`; CWE-476 C `getenv()` into `strcmp()`
+  and C++ unchecked `weak_ptr::lock()`; CWE-125 C non-NUL `strlen()` over-read; CWE-121 C++
+  `std::array` stack index write; CWE-416 C++ dangling `string_view` cache; and CWE-22 Java Zip Slip
+  extraction with `normalize()`/prefix checking.
+  CWE-120 remains uncovered because there is no `cwe/120` guidance directory; decide whether to add
+  a narrow entry or route concrete buffer-copy findings to CWE-121/125/787 before writing a fixture.
+  Next batches should hammer remediation quality rather than breadth alone:
+  Batch A follow-up - CWE-79/89/78/22: add traps for JavaScript-string/context escaping,
+  non-C# CWE-89 LIKE wildcard binding, hand-built `IN` lists, stored procedures with concatenated
+  dynamic SQL, one client-side escaping trap, shell removal that breaks required behaviour, and
+  archive extraction/path canonicalization mistakes.
+  Batch B follow-up - CWE-352/862/94/434/502: add Java/PHP list-vs-detail authorization and admin
+  branch drift, upload retrieval contracts, persisted-data migrations, Python import/AST-parser code
+  execution fixes, and DynamicExpresso/NCalc custom-function cases. CSRF top-five coverage now spans
+  JavaScript, Python, Java, Go, and C#, so add more only for a distinct token-header or migration trap.
+  Native/runtime follow-up - CWE-787/416/125/476/121: add off-by-one writes, size propagation across
+  helper functions, iterator invalidation after erase/reallocation, send/write length over-reads,
+  null producer contracts, `fgets` truncation, `scanf` width, and C++ stack-copy variants.
+  A top-15 CWE should count as "hammered" only when it has ordinary true positives plus at least one
+  case that combines two of: multi-file flow, existing partial mitigation, plausible wrong fix, and
+  explicit behaviour preservation.
 - **Multi-file depth pass (2026-08-31), one batch, first authored multi-file cases in the corpus.**
   Separate from the two campaigns above: every `authored` case so far was single-file (`depth: 1`);
   only `juliet` had multi-file chains, and only in Java. 11 cases, one per language slot across the
