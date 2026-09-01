@@ -28,7 +28,7 @@ LDAP Injection occurs when untrusted data is used to construct LDAP search filte
 ## Remediation Steps
 
 - Locate concatenated filter or DN strings feeding `DirContext.search()`, `InitialDirContext`, or similar JNDI calls
-- For search filters - replace concatenation with `{0}`-style placeholders and pass user input via the `filterArgs` parameter of `DirContext.search()`
+- For search filters - replace concatenation with `{0}`-style placeholders and pass user input via the `filterArgs` parameter of `DirContext.search(name, filterExpr, filterArgs, cons)` - every overload that accepts `filterArgs` also requires a trailing `SearchControls` argument, so there is no three-argument `search(name, filter, filterArgs)` overload; pass `new SearchControls()` for the default scope if the existing call does not already build one
 - For DN construction - encode user input with `ESAPI.encoder().encodeForDN(input)` before assembling the DN, or build it with Spring LDAP's `LdapNameBuilder`
 - Alternatively, migrate to Spring LDAP's `LdapQueryBuilder` for automatic protection on both filters and DNs
 - Add input validation to reject unexpected characters before encoding

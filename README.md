@@ -62,26 +62,21 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-Seven runs so far. The clearest comparison is the last two: the identical 79-case, 14-CWE,
-7-language corpus, run once per model, with and without the skill:
+Eight runs so far. Sonnet 5 saturates fix quality regardless of guidance (run 5, 79 cases); the
+current Haiku 4.5 result, on the full 203-case corpus, is close to a tie:
 
-| Model | No guidance - fix quality | Guided - fix quality | No guidance - no_harm | Guided - no_harm |
-|---|---|---|---|---|
-| Sonnet 5 (run 5) | 2.00 | 2.00 | 1.97 | 2.00 |
-| Haiku 4.5 (run 7) | 1.84 | 1.97 | 1.83 | 1.85 |
+| Model | Corpus | No guidance - fix quality | Guided - fix quality | No guidance - no_harm | Guided - no_harm |
+| --- | --- | --- | --- | --- | --- |
+| Sonnet 5 (run 5) | 79 cases | 2.00 | 2.00 | 1.97 | 2.00 |
+| Haiku 4.5 (run 8) | 203 cases | 1.86 | 1.86 | 1.86 | 1.80 |
 
-On Sonnet 5, fix quality was saturated - the model found and closed the reported vulnerability with
-or without guidance, and the knowledge base's measurable effect showed up only in `no_harm`. On
-Haiku 4.5 a real fix-quality gap opened up, concentrated in a few CWEs:
-
-| CWE / language | No guidance | Guided | Gap |
-|---|---|---|---|
-| CWE-90, LDAP injection | 1.11 | 2.00 | +0.89 |
-| CWE-117, log injection | 1.25 | 2.00 | +0.75 |
-| Python, all CWEs | 1.51 | 2.00 | +0.49 |
-
-The mechanism was checked directly, not taken from a judge's word: the ungoverned Haiku model
-called library functions that don't exist (verified against the real `ldap3` and `ldapjs`
-packages) and applied surface-level fixes that didn't actually close the vulnerability, while the
-guided model - reading the entry's named APIs - did neither. See `evals/README.md` and
-`evals/RESULTS-v7.md`.
+An earlier Haiku run (run 7, the same 79-case corpus as run 5) had found a real fix-quality gap
+(1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't exist - verified
+against the real `ldap3` and `ldapjs` packages, not taken from a judge's word. That gap did not hold
+once the corpus nearly tripled: guidance still helped on most of the added cases, but on three
+entries the guidance itself caused the kind of defect it exists to prevent - a Java API call missing
+a required argument the entry never stated, a JavaScript fix that embedded a raw Unicode character
+the entry never showed how to escape, and a C# CSRF fix that left a JSON endpoint unvalidated
+because the entry didn't say the middleware it named doesn't cover that case - all confirmed
+directly and now fixed. See
+`evals/README.md` and `evals/RESULTS-v8.md`.
