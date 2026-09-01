@@ -13,8 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # Numeric CWE directories live under cwe/ so the repo root stays readable.
 CWE_ROOT = ROOT / "cwe"
 
-# docs/ is a separate, gitignored human-facing tree - not part of the knowledge base spec.
-SKIP_DIRS = {".git", "docs", "evals"}
+SKIP_DIRS = {".git", "evals"}
 
 ROOT_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles"]
 LANG_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles", "## Taint Sinks"]
