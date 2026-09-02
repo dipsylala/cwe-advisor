@@ -113,13 +113,19 @@ until then it stays here so future work can watch for it without over-generalizi
     `eval()`-with-restricted-`__builtins__` trap whose plausible wrong fix is `ast.literal_eval()`
     plus string substitution; C# DynamicExpresso trap where a correctly locked-down interpreter
     still exposes a registered custom function that passes its string argument to
-    `File.ReadAllText()`). CWE-787, 416, 121, 862, and 94 have no open next-pressure item left in
-    the table below. See `evals/README.md`'s top-15 table for the per-CWE case lists.
+    `File.ReadAllText()`), CWE-434 (Java upload-retrieval-flow trap - an allowlisted-but-unsanitized
+    SVG is stored unmodified, then served back inline with no safe headers, so a caller that embeds
+    rather than downloads it still executes the payload), CWE-502 (Go multi-file job-queue trap -
+    `gob.Decode()` into a struct carrying a privileged `IsAdmin` field, with a trap covering why
+    swapping to `encoding/json` without splitting out a client-settable DTO leaves the same
+    privilege-escalation gap open). CWE-787, 416, 121, 862, and 94 have no open next-pressure item
+    left in the table below. See `evals/README.md`'s top-15 table for the per-CWE case lists.
   - CWE-79/89/78/22: JavaScript-string/context escaping, non-C# `LIKE` wildcard binding, hand-built
     `IN` lists, stored procedures with concatenated dynamic SQL, a client-side escaping trap, shell
     removal that breaks required behaviour, archive extraction/path canonicalization mistakes.
-  - CWE-434/502: upload retrieval contracts, persisted-data migrations, multi-file queue/cache/
-    session flows, allowlist filters that preserve legitimate types. CSRF (352) top-five coverage
+  - CWE-434/502: rename-read-path preservation, object storage metadata checks, persisted-data
+    migrations, allowlist filters that preserve legitimate types. Upload-retrieval-flow pressure
+    (434) and multi-file queue-flow pressure (502) are now covered. CSRF (352) top-five coverage
     already spans JavaScript, Python, Java, Go, and C#, so add more only for a distinct
     token-header or migration trap.
   - CWE-125's distinguishing-from-787 pressure, CWE-476's producer-contract pressure (now spanning
