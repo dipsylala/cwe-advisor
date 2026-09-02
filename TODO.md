@@ -100,26 +100,17 @@ until then it stays here so future work can watch for it without over-generalizi
   no longer part of this repo's source - pull patterns from OWASP cheat sheets, framework docs, or
   the language entry's own `Key Principles` instead.
 - 2025 Top 15 remediation-quality plan (current MITRE Top 15: CWE-79, 89, 352, 862, 787, 22, 416,
-  125, 78, 94, 120, 434, 476, 121, 502): next batches should add traps and remediation-pressure
-  cases rather than more plain true positives. Full per-CWE case lists and per-trap descriptions
-  live in `evals/README.md`'s top-15 table and its batch-by-batch prose above that table - this
-  file tracks only what is still open, not a repeated log of what shipped (see each `evals` commit
-  message for a batch's own detail).
-  - No open next-pressure item: CWE-787, 416, 121, 862, 94, 22, 78, 79 (deep already, add only for
-    a genuinely distinct sanitizer/framework-escape shape), 434 (rename-read-path preservation is
-    the one remaining item), 502 (persisted-data migrations that keep data readable is the one
-    remaining item).
-  - CWE-89: hand-built `IN` lists, stored procedures with concatenated dynamic SQL, one
-    client-side escaping trap (LIKE-wildcard binding is now covered).
-  - CWE-352: CSRF top-five coverage already spans JavaScript, Python, Java, Go, and C#; add more
-    only for a distinct token-header or migration trap.
-  - CWE-125's distinguishing-from-787 pressure and CWE-476's producer-contract pressure (now
-    spanning C, C++, and Java) are lower priority than the still-open rows above.
+  125, 78, 94, 120, 434, 476, 121, 502): every row now has no open next-pressure item. Full per-CWE
+  case lists and per-trap descriptions live in `evals/README.md`'s top-15 table and its
+  batch-by-batch prose above that table (see each `evals` commit message for a batch's own detail).
+  CWE-120's decision is resolved: `cwe/120/INDEX.md` routes a finding to CWE-121 (stack destination)
+  or CWE-787 (every other destination) rather than duplicating either entry's remediation, the same
+  pattern `cwe/77` already uses for `cwe/78` - no CWE-120-specific eval fixture was needed as a
+  result.
   - A top-15 CWE counts as "hammered" only once it has ordinary true positives plus at least one
     case combining two of: multi-file flow, existing partial mitigation, plausible wrong fix,
-    explicit behaviour preservation.
-  - CWE-120 has no `cwe/120` guidance directory - decide whether to add a narrow entry or route
-    concrete buffer-copy findings to CWE-121/125/787 before writing a fixture for it.
+    explicit behaviour preservation. Any future batch should still prefer a genuinely distinct
+    datapath over padding an already-hammered row.
 - Multi-file depth cases exist only for CWE-79 (7 languages) and CWE-77 (4 languages) at the
   3-case single-file target; not extended to other top-15 CWEs or applied as a default - decide if
   wanted.

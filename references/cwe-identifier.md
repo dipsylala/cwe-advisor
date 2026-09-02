@@ -39,6 +39,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 117 | Improper Output Neutralization for Logs | log injection, log forging |
 | 118 | Incorrect Access of Indexable Resource ('Range Error') | - |
 | 119 | Improper Restriction of Operations within the Bounds of a Memory Buffer | buffer overflow |
+| 120 | Buffer Copy without Checking Size of Input ('Classic Buffer Overflow') | classic buffer overflow |
 | 121 | Stack-based Buffer Overflow | stack overflow |
 | 125 | Out-of-bounds Read | buffer over-read, OOB read |
 | 129 | Improper Validation of Array Index | - |
