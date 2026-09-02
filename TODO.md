@@ -101,42 +101,20 @@ until then it stays here so future work can watch for it without over-generalizi
   the language entry's own `Key Principles` instead.
 - 2025 Top 15 remediation-quality plan (current MITRE Top 15: CWE-79, 89, 352, 862, 787, 22, 416,
   125, 78, 94, 120, 434, 476, 121, 502): next batches should add traps and remediation-pressure
-  cases rather than more plain true positives.
-  - Done: CWE-787 (C off-by-one loop-bound write; C multi-function stale-capacity-propagation
-    trap), CWE-125 (C paired offset/length `send()` over-read distinguishing CWE-125 from
-    CWE-787), CWE-416 (C++ multi-file owner/observer dangling-pointer case; C++ vector
-    erase-in-loop iterator-invalidation trap), CWE-476 (Java multi-file producer-contract
-    sibling-caller trap), CWE-121 (C `scanf` field-width off-by-one; C `gets()`-to-`fgets()`
-    truncation-handling trap; C++ stack `std::array` copy-loop overflow), CWE-862 (Java
-    list-vs-detail authorization-scoping trap; PHP admin-branch-swap trap where the admin and
-    owner-scoped returns sit on the wrong side of the `isAdmin()` check), CWE-94 (Python
-    `eval()`-with-restricted-`__builtins__` trap whose plausible wrong fix is `ast.literal_eval()`
-    plus string substitution; C# DynamicExpresso trap where a correctly locked-down interpreter
-    still exposes a registered custom function that passes its string argument to
-    `File.ReadAllText()`), CWE-434 (Java upload-retrieval-flow trap - an allowlisted-but-unsanitized
-    SVG is stored unmodified, then served back inline with no safe headers, so a caller that embeds
-    rather than downloads it still executes the payload), CWE-502 (Go multi-file job-queue trap -
-    `gob.Decode()` into a struct carrying a privileged `IsAdmin` field, with a trap covering why
-    swapping to `encoding/json` without splitting out a client-settable DTO leaves the same
-    privilege-escalation gap open), CWE-22 (Java normalize-before-join trap - `normalize()` on the
-    raw path before joining the base is a no-op for a leading `../../`; Go symlink-planted-upload
-    trap - correct join/clean/prefix containment still followed at open time because symlinks were
-    never resolved), CWE-78 (Python `tar` option-injection matching the entry's own documented
-    example; Go shell-removal-strips-environment trap - `cmd.Env = []string{}` replaces rather than
-    inherits the environment, breaking the replaced tool's `PATH`/config needs). CWE-787, 416, 121,
-    862, 94, 22, and 78 have no open next-pressure item left in the table below. See
-    `evals/README.md`'s top-15 table for the per-CWE case lists.
-  - CWE-79/89: JavaScript-string/context escaping (79); non-C# `LIKE` wildcard binding, hand-built
-    `IN` lists, stored procedures with concatenated dynamic SQL, a client-side escaping trap (89).
-  - CWE-434/502: rename-read-path preservation, object storage metadata checks, persisted-data
-    migrations, allowlist filters that preserve legitimate types. Upload-retrieval-flow pressure
-    (434) and multi-file queue-flow pressure (502) are now covered. CSRF (352) top-five coverage
-    already spans JavaScript, Python, Java, Go, and C#, so add more only for a distinct
-    token-header or migration trap.
-  - CWE-125's distinguishing-from-787 pressure, CWE-476's producer-contract pressure (now spanning
-    C, C++, and Java), CWE-862, and CWE-94 (NCalc is the one remaining distinct datapath there) are
-    all lower priority than the still-open rows above unless a genuinely distinct datapath comes
-    up.
+  cases rather than more plain true positives. Full per-CWE case lists and per-trap descriptions
+  live in `evals/README.md`'s top-15 table and its batch-by-batch prose above that table - this
+  file tracks only what is still open, not a repeated log of what shipped (see each `evals` commit
+  message for a batch's own detail).
+  - No open next-pressure item: CWE-787, 416, 121, 862, 94, 22, 78, 79 (deep already, add only for
+    a genuinely distinct sanitizer/framework-escape shape), 434 (rename-read-path preservation is
+    the one remaining item), 502 (persisted-data migrations that keep data readable is the one
+    remaining item).
+  - CWE-89: hand-built `IN` lists, stored procedures with concatenated dynamic SQL, one
+    client-side escaping trap (LIKE-wildcard binding is now covered).
+  - CWE-352: CSRF top-five coverage already spans JavaScript, Python, Java, Go, and C#; add more
+    only for a distinct token-header or migration trap.
+  - CWE-125's distinguishing-from-787 pressure and CWE-476's producer-contract pressure (now
+    spanning C, C++, and Java) are lower priority than the still-open rows above.
   - A top-15 CWE counts as "hammered" only once it has ordinary true positives plus at least one
     case combining two of: multi-file flow, existing partial mitigation, plausible wrong fix,
     explicit behaviour preservation.
