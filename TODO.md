@@ -102,13 +102,16 @@ until then it stays here so future work can watch for it without over-generalizi
 - 2025 Top 15 remediation-quality plan (current MITRE Top 15: CWE-79, 89, 352, 862, 787, 22, 416,
   125, 78, 94, 120, 434, 476, 121, 502): next batches should add traps and remediation-pressure
   cases rather than more plain true positives.
-  - Done: CWE-787 (C off-by-one loop-bound write), CWE-125 (C paired offset/length `send()`
-    over-read distinguishing CWE-125 from CWE-787), CWE-416 (C++ multi-file owner/observer
-    dangling-pointer case), CWE-476 (Java multi-file producer-contract sibling-caller trap),
-    CWE-121 (C `scanf` field-width off-by-one), CWE-862 (Java list-vs-detail authorization-scoping
-    trap), CWE-94 (Python `eval()`-with-restricted-`__builtins__` trap whose plausible wrong fix is
-    `ast.literal_eval()` plus string substitution). See `evals/README.md`'s top-15 table for the
-    per-CWE case lists.
+  - Done: CWE-787 (C off-by-one loop-bound write; C multi-function stale-capacity-propagation
+    trap), CWE-125 (C paired offset/length `send()` over-read distinguishing CWE-125 from
+    CWE-787), CWE-416 (C++ multi-file owner/observer dangling-pointer case; C++ vector
+    erase-in-loop iterator-invalidation trap), CWE-476 (Java multi-file producer-contract
+    sibling-caller trap), CWE-121 (C `scanf` field-width off-by-one; C `gets()`-to-`fgets()`
+    truncation-handling trap; C++ stack `std::array` copy-loop overflow), CWE-862 (Java
+    list-vs-detail authorization-scoping trap), CWE-94 (Python `eval()`-with-restricted-
+    `__builtins__` trap whose plausible wrong fix is `ast.literal_eval()` plus string
+    substitution). CWE-787, 416, and 121 have no open next-pressure item left in the table below.
+    See `evals/README.md`'s top-15 table for the per-CWE case lists.
   - CWE-79/89/78/22: JavaScript-string/context escaping, non-C# `LIKE` wildcard binding, hand-built
     `IN` lists, stored procedures with concatenated dynamic SQL, a client-side escaping trap, shell
     removal that breaks required behaviour, archive extraction/path canonicalization mistakes.
@@ -116,10 +119,9 @@ until then it stays here so future work can watch for it without over-generalizi
     upload retrieval contracts, persisted-data migrations, DynamicExpresso/NCalc (C#)
     custom-function cases. CSRF top-five coverage already spans JavaScript, Python, Java, Go, and
     C#, so add more only for a distinct token-header or migration trap.
-  - CWE-787/416/121: multi-function size propagation across helper functions, iterator invalidation
-    after erase/reallocation, `fgets` truncation, C++ stack-copy variants. CWE-125's
-    distinguishing-from-787 pressure is now covered; CWE-476's producer-contract pressure now spans
-    C, C++, and Java - both are lower priority than the still-open rows here.
+  - CWE-125's distinguishing-from-787 pressure and CWE-476's producer-contract pressure (now
+    spanning C, C++, and Java) are both lower priority than the still-open rows above unless a
+    genuinely distinct datapath comes up.
   - A top-15 CWE counts as "hammered" only once it has ordinary true positives plus at least one
     case combining two of: multi-file flow, existing partial mitigation, plausible wrong fix,
     explicit behaviour preservation.
