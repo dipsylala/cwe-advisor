@@ -118,11 +118,16 @@ until then it stays here so future work can watch for it without over-generalizi
     rather than downloads it still executes the payload), CWE-502 (Go multi-file job-queue trap -
     `gob.Decode()` into a struct carrying a privileged `IsAdmin` field, with a trap covering why
     swapping to `encoding/json` without splitting out a client-settable DTO leaves the same
-    privilege-escalation gap open). CWE-787, 416, 121, 862, and 94 have no open next-pressure item
-    left in the table below. See `evals/README.md`'s top-15 table for the per-CWE case lists.
-  - CWE-79/89/78/22: JavaScript-string/context escaping, non-C# `LIKE` wildcard binding, hand-built
-    `IN` lists, stored procedures with concatenated dynamic SQL, a client-side escaping trap, shell
-    removal that breaks required behaviour, archive extraction/path canonicalization mistakes.
+    privilege-escalation gap open), CWE-22 (Java normalize-before-join trap - `normalize()` on the
+    raw path before joining the base is a no-op for a leading `../../`; Go symlink-planted-upload
+    trap - correct join/clean/prefix containment still followed at open time because symlinks were
+    never resolved), CWE-78 (Python `tar` option-injection matching the entry's own documented
+    example; Go shell-removal-strips-environment trap - `cmd.Env = []string{}` replaces rather than
+    inherits the environment, breaking the replaced tool's `PATH`/config needs). CWE-787, 416, 121,
+    862, 94, 22, and 78 have no open next-pressure item left in the table below. See
+    `evals/README.md`'s top-15 table for the per-CWE case lists.
+  - CWE-79/89: JavaScript-string/context escaping (79); non-C# `LIKE` wildcard binding, hand-built
+    `IN` lists, stored procedures with concatenated dynamic SQL, a client-side escaping trap (89).
   - CWE-434/502: rename-read-path preservation, object storage metadata checks, persisted-data
     migrations, allowlist filters that preserve legitimate types. Upload-retrieval-flow pressure
     (434) and multi-file queue-flow pressure (502) are now covered. CSRF (352) top-five coverage
