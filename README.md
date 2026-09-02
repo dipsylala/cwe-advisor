@@ -62,21 +62,25 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-Eight runs so far. Sonnet 5 saturates fix quality regardless of guidance (run 5, 79 cases); the
-current Haiku 4.5 result, on the full 203-case corpus, is close to a tie:
+Ten runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
+79-case corpus (run 5) and the full 203-case one (run 9); the current Haiku 4.5 result, on the same
+full corpus, is a small edge for guidance:
 
-| Model | Corpus | No guidance - fix quality | Guided - fix quality | No guidance - no_harm | Guided - no_harm |
+| Model | Corpus | No guidance - fix_quality | Guided - fix_quality | No guidance - no_harm | Guided - no_harm |
 | --- | --- | --- | --- | --- | --- |
-| Sonnet 5 (run 5) | 79 cases | 2.00 | 2.00 | 1.97 | 2.00 |
-| Haiku 4.5 (run 8) | 203 cases | 1.86 | 1.86 | 1.86 | 1.80 |
+| Sonnet 5 (run 9) | 203 cases | 1.98 | 1.98 | 1.88 | 1.91 |
+| Haiku 4.5 (run 10) | 203 cases | 1.85 | 1.90 | 1.87 | 1.83 |
 
-An earlier Haiku run (run 7, the same 79-case corpus as run 5) had found a real fix-quality gap
+An earlier Haiku run (run 7, a smaller 79-case corpus) had found a larger fix-quality gap
 (1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't exist - verified
-against the real `ldap3` and `ldapjs` packages, not taken from a judge's word. That gap did not hold
-once the corpus nearly tripled: guidance still helped on most of the added cases, but on three
-entries the guidance itself caused the kind of defect it exists to prevent - a Java API call missing
-a required argument the entry never stated, a JavaScript fix that embedded a raw Unicode character
-the entry never showed how to escape, and a C# CSRF fix that left a JSON endpoint unvalidated
-because the entry didn't say the middleware it named doesn't cover that case - all confirmed
-directly and now fixed. See
-`evals/README.md` and `evals/RESULTS-v8.md`.
+against the real `ldap3` and `ldapjs` packages, not taken from a judge's word. That gap shrank to a
+near-tie once the corpus nearly tripled (run 8): guidance still helped on most of the added cases,
+but on three entries the guidance itself caused the kind of defect it exists to prevent - a Java API
+call missing a required argument the entry never stated, a JavaScript fix that embedded a raw
+Unicode character the entry never showed how to escape, and a C# CSRF fix that left a JSON endpoint
+unvalidated because the entry didn't say the middleware it named doesn't cover that case. All three
+are now fixed, and run 10 re-ran the identical corpus and model pairing to check: two of the three
+closed cleanly, verified case-by-case against the actual re-generated code (not just the aggregate
+number moving) - the third recovered partially, since Haiku independently made the same
+Unicode-escaping mistake again in fresh code even once the guidance text was already correct. See
+`evals/README.md`, `evals/RESULTS-v9.md`, and `evals/RESULTS-v10.md`.
