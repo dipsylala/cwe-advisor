@@ -108,20 +108,24 @@ until then it stays here so future work can watch for it without over-generalizi
     erase-in-loop iterator-invalidation trap), CWE-476 (Java multi-file producer-contract
     sibling-caller trap), CWE-121 (C `scanf` field-width off-by-one; C `gets()`-to-`fgets()`
     truncation-handling trap; C++ stack `std::array` copy-loop overflow), CWE-862 (Java
-    list-vs-detail authorization-scoping trap), CWE-94 (Python `eval()`-with-restricted-
-    `__builtins__` trap whose plausible wrong fix is `ast.literal_eval()` plus string
-    substitution). CWE-787, 416, and 121 have no open next-pressure item left in the table below.
-    See `evals/README.md`'s top-15 table for the per-CWE case lists.
+    list-vs-detail authorization-scoping trap; PHP admin-branch-swap trap where the admin and
+    owner-scoped returns sit on the wrong side of the `isAdmin()` check), CWE-94 (Python
+    `eval()`-with-restricted-`__builtins__` trap whose plausible wrong fix is `ast.literal_eval()`
+    plus string substitution; C# DynamicExpresso trap where a correctly locked-down interpreter
+    still exposes a registered custom function that passes its string argument to
+    `File.ReadAllText()`). CWE-787, 416, 121, 862, and 94 have no open next-pressure item left in
+    the table below. See `evals/README.md`'s top-15 table for the per-CWE case lists.
   - CWE-79/89/78/22: JavaScript-string/context escaping, non-C# `LIKE` wildcard binding, hand-built
     `IN` lists, stored procedures with concatenated dynamic SQL, a client-side escaping trap, shell
     removal that breaks required behaviour, archive extraction/path canonicalization mistakes.
-  - CWE-862/94/434/502: PHP list-vs-detail authorization and admin branch drift (any language),
-    upload retrieval contracts, persisted-data migrations, DynamicExpresso/NCalc (C#)
-    custom-function cases. CSRF top-five coverage already spans JavaScript, Python, Java, Go, and
-    C#, so add more only for a distinct token-header or migration trap.
-  - CWE-125's distinguishing-from-787 pressure and CWE-476's producer-contract pressure (now
-    spanning C, C++, and Java) are both lower priority than the still-open rows above unless a
-    genuinely distinct datapath comes up.
+  - CWE-434/502: upload retrieval contracts, persisted-data migrations, multi-file queue/cache/
+    session flows, allowlist filters that preserve legitimate types. CSRF (352) top-five coverage
+    already spans JavaScript, Python, Java, Go, and C#, so add more only for a distinct
+    token-header or migration trap.
+  - CWE-125's distinguishing-from-787 pressure, CWE-476's producer-contract pressure (now spanning
+    C, C++, and Java), CWE-862, and CWE-94 (NCalc is the one remaining distinct datapath there) are
+    all lower priority than the still-open rows above unless a genuinely distinct datapath comes
+    up.
   - A top-15 CWE counts as "hammered" only once it has ordinary true positives plus at least one
     case combining two of: multi-file flow, existing partial mitigation, plausible wrong fix,
     explicit behaviour preservation.
