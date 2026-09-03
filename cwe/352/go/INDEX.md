@@ -11,7 +11,7 @@ Go's `net/http` package has no built-in CSRF protection, so state-changing handl
 - Ensure every handler that mutates state is registered on the CSRF-wrapped router, not a separate `http.ServeMux` or parallel API mux
 - Set `SameSite: http.SameSiteStrictMode` or `SameSiteLaxMode` plus `Secure: true` and `HttpOnly: true` on session cookies as defense-in-depth, not as the sole control
 - If validating `Origin`/`Referer` as a supplementary check, compare against an explicit allowlist of hosts, not just non-empty presence
-- Never perform state changes on GET/HEAD requests; reserve them for safe, idempotent operations
+- Never perform state changes on GET/HEAD requests; reserve them for safe, idempotent operations. Where a GET exists so a link can reach the action, keep the GET as a confirmation page that POSTs through the protected handler rather than re-registering the route as `DELETE` and breaking the link (see the root entry)
 - Reject requests missing or failing the CSRF token check with `http.StatusForbidden` before any business logic runs
 
 ## Taint Sinks

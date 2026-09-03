@@ -6,7 +6,7 @@ Insecure Deserialization occurs when applications deserialize untrusted data wit
 
 ## Key Principles
 
-- Replace native deserialization with safe data formats (JSON, XML with schema validation)
+- Replace native deserialization with safe data formats (JSON, XML with schema validation) where every producer of the data changes in the same fix. Where a producer is outside the change - a peer service, a queue publisher, rows or cookies already written - a decoder-only format swap rejects or silently empties every legitimate value; keep the format there and disable object construction in the decoder instead (type or class allowlist, data-only mode), and state any format change as a breaking change rather than as part of the fix
 - Implement cryptographic integrity checks (HMAC signatures) on all serialized data
 - Enforce strict type whitelisting and class instantiation controls
 - Isolate deserialization operations in sandboxed, low-privilege environments
@@ -19,6 +19,6 @@ Insecure Deserialization occurs when applications deserialize untrusted data wit
 - Identify the deserialization call location, serialized data source, and format used
 - Trace complete data flow from origin to deserialization operation
 - Verify if attacker-controlled data reaches deserialization without integrity checks
-- Replace unsafe formats with JSON/XML and implement schema validation
+- Replace unsafe formats with JSON/XML and implement schema validation when the producers move with the consumer; otherwise restrict what the existing decoder may construct
 - Add HMAC signature verification before any deserialization attempts
 - Apply type whitelisting to restrict instantiable classes

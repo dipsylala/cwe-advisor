@@ -16,7 +16,7 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 
 ## Taint Sinks
 
-`app.post()`/`app.put()`/`app.delete()` routes not behind `doubleCsrfProtection` middleware
+`app.post()`/`app.put()`/`app.delete()` routes not behind `doubleCsrfProtection` middleware; `fastify.post()`/`put()`/`delete()` routes without `fastify.csrfProtection` in their hooks
 
 ## Remediation Steps
 
@@ -26,4 +26,4 @@ CSRF vulnerabilities occur when state-changing endpoints don't verify that reque
 - Configure client to send token in `x-csrf-token` header (AJAX/fetch) or `_csrf` body field (forms)
 - Set cookie SameSite attribute to `Strict` or `Lax` and verify implementation with security tests
 - Handle CSRF errors gracefully - catch `invalidCsrfTokenError` and return 403
-- For Fastify, the steps above are Express/`csrf-csrf`-specific; register `@fastify/csrf-protection` instead and use its own token-generation and verification hooks per its README - the field/header names differ from `csrf-csrf`'s
+- For Fastify, the steps above are Express/`csrf-csrf`-specific. Register `@fastify/cookie` (or the session plugin, passed as `sessionPlugin`) and then `@fastify/csrf-protection` (8.x) - but registration alone enforces nothing. The check runs only where `fastify.csrfProtection` is attached as a hook: `fastify.addHook('onRequest', fastify.csrfProtection)` for every route, or `{ onRequest: fastify.csrfProtection }` in the options of each state-changing route. A route left without the hook is exactly as unprotected as before the plugin was added, so the write-up has to show the hook on the reported route, not just the `register` call. Use `preValidation`/`preHandler` in place of `onRequest` when the token travels in the request body, which is not parsed yet at `onRequest`. Mint the token with `reply.generateCsrf()` in a GET route the client calls first; the field/header names differ from `csrf-csrf`'s
