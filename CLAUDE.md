@@ -217,6 +217,17 @@ defect. Each rule below is a shape that recurred, stated as the check that would
   marker, or constrain the value so it structurally cannot start with `-` (e.g. join it under a
   fixed directory first). When an entry's fix for command/process injection stops at "use an
   argument array, not a shell string," check whether it also covers this second, distinct gap.
+- **A fix that changes the wire format is a breaking change, and an entry that leads with it
+  produces silent data loss.** Every CWE-502 entry (root, java, php, go) led with "replace native
+  deserialization with JSON". Applied to a consumer whose producers are outside the change - a
+  queue publisher, cookies or rows already written - that swap rejects or empties every legitimate
+  value: `json_decode()` of a serialized string returns `null`, a JSON listener drops every
+  native-serialized message. Eval run 11 saw the guided arm ship exactly that in java, php and go,
+  and run 12 saw all five of those cases go clean once the entries said to keep the format and
+  disable object construction in the decoder instead (`ois.setObjectInputFilter()` per stream,
+  `unserialize(..., ['allowed_classes' => false])`, gob into a narrow DTO). When an entry's primary
+  fix replaces a format, protocol or API, ask who else speaks it; if they are not in the diff, the
+  format-preserving fix is the primary and the swap is a separately stated migration.
 
 ## Maintenance Workflow
 
