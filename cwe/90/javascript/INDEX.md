@@ -6,7 +6,7 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 
 ## Key Principles
 
-- Use libraries that support safe LDAP filter builders or prepared filters
+- Build the filter as an object, not a string. `ldapjs` 3.x exposes its filter classes - `new ldap.EqualityFilter({ attribute: 'uid', value: userInput })`, `AndFilter`, `SubstringFilter` and the rest from `@ldapjs/filter` 2.x - and their `toString()` escapes the value (`admin)(|(objectClass=*` becomes `admin\29\28|\28objectClass=\2a`); pass the object as `client.search(base, { filter })`. Where a filter must stay a string, `ldap-escape` 2.0.6 gives the same escaping as a tagged template, `` ldapEscape.filter`(uid=${userInput})` `` - it was last published in June 2022, so check it is still an acceptable dependency. There is no package named `ldapjs-escape`: a `require()` of one throws at load and takes the whole route down
 - Validate and sanitize all user inputs with strict allowlists before using in LDAP queries
 - Escape LDAP special characters: `*`, `(`, `)`, `\` and NUL as a backslash followed by the
   two-digit hex code per RFC 4515 - `\2a`, `\28`, `\29`, `\5c`, `\00`. RFC 4515 assigns no meaning
@@ -21,7 +21,7 @@ LDAP Injection occurs when untrusted user input is concatenated into LDAP querie
 ## Remediation Steps
 
 - Identify all LDAP query construction points that use user input
-- Replace string concatenation with escaped filter values or safe query builders
+- Replace string concatenation with a filter object (`EqualityFilter` and friends) passed to `client.search()`, or with `ldap-escape` where the filter has to remain a string
 - Apply LDAP escaping functions to all user-supplied values
 - Implement input validation with allowlists for username/search patterns
 - Add logging and monitoring for suspicious LDAP query patterns
