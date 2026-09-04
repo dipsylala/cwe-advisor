@@ -89,9 +89,10 @@ while the unguided control stayed flat, and on the 325 untouched cases both arms
 same amount - which is the noise floor, not guidance.
 
 Run 13 also changed the judging: judges now see each case's stated contract (`must_preserve`) and
-score no_harm against it. On the 98 cases that carry one, the unguided arm's no_harm fell from 1.83
+score no_harm against it. The table above is the whole corpus; the effect is concentrated in the
+98 cases (of 372) that carry a contract, where the unguided arm's no_harm fell from 1.83 in run 11
 to 1.56 - fixes that silently truncate or clamp where the contract says reject - while the guided
-arm held at 1.72. That is the first guided no_harm edge seen on Haiku, and it was being hidden by
+arm held at 1.72. Averaged over all 372 cases that becomes the 1.76 vs. 1.77 in the table. That is the first guided no_harm edge seen on Haiku, and it was being hidden by
 judges accepting silent truncation as clean. What remains is mostly model slips rather than entry
 gaps - invented API names, wrong method signatures, a caller not updated - and on Haiku a guidance
 bullet is a probability, not a switch: the same entry is followed in one sample and ignored in the
