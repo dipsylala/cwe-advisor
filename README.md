@@ -73,7 +73,7 @@ modest fix-quality edge for guidance and, for the first time on Haiku, a level n
 | Haiku 4.5 (run 10) | 203 cases | 1.85 | 1.90 | 1.87 | 1.83 |
 | Haiku 4.5 (run 11) | 372 cases | 1.82 | 1.89 | 1.81 | 1.79 |
 | Haiku 4.5 (run 13) | 372 cases | 1.79 | 1.88 | 1.76 | 1.77 |
-| Haiku 4.5 (run 14, targeted retest) | 14 cases in the 4 slots fixed after run 13 | 1.40 | 1.98 | 1.29 | 1.88 |
+| Haiku 4.5 (runs 13 + 14 composite) | 372 cases - run 13, with the 14 cases in the 4 slots fixed after it taken from run 14's post-edit sets | 1.79 | 1.90 | 1.75 | 1.78 |
 
 The Haiku history is a loop of measure, trace, fix, re-measure. Run 7 (79 cases) found a large
 fix-quality gap (1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't
