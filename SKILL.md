@@ -126,6 +126,12 @@ Before presenting the fix (interactive) or emitting the record (autonomous), com
 
 Then check the result against the sink contract from Step 4. Either the fix closes the weakness and leaves the rest of that contract intact, or it names what it could not preserve and why.
 
+#### Check every name the fix introduces exists
+
+A fix fails review more often on a name than on an approach: a package that is not on the registry, a method the class does not have, a function remembered from a different library or version. Before presenting or emitting the fix, list every API, function, method, class, package, and import the fixed code uses that the original did not, and for each say where it comes from - the loaded guidance names it, the codebase already defines it, or it is in the language's standard library and you can name the module. A name that fits none of those is unverified: replace it with what the guidance names, or, where the guidance names nothing, confirm it against the environment (the package registry, the installed dependency, a compiler) before keeping it, and record it as an assumption if you cannot.
+
+Then read the fixed code as a compiler would: every new symbol is imported or declared exactly once, every argument list matches the definition you found, and every caller in the Step 4 trace of anything whose name, parameters, or return type changed is updated in the fix as well.
+
 #### After the Fix (interactive mode only)
 
 After the fix is applied, suggest the developer:
