@@ -62,25 +62,37 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-Ten runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
-79-case corpus (run 5) and the full 203-case one (run 9); the current Haiku 4.5 result, on the same
-full corpus, is a small edge for guidance:
+Thirteen runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
+79-case corpus (run 5) and the 203-case one (run 9). The corpus has since grown to 372 cases, and
+on Haiku 4.5 the current result - run 13, after a round of guidance fixes traced from run 11 - is a
+modest fix-quality edge for guidance and, for the first time on Haiku, a level no_harm score:
 
 | Model | Corpus | No guidance - fix_quality | Guided - fix_quality | No guidance - no_harm | Guided - no_harm |
 | --- | --- | --- | --- | --- | --- |
 | Sonnet 5 (run 9) | 203 cases | 1.98 | 1.98 | 1.88 | 1.91 |
 | Haiku 4.5 (run 10) | 203 cases | 1.85 | 1.90 | 1.87 | 1.83 |
+| Haiku 4.5 (run 11) | 372 cases | 1.82 | 1.89 | 1.81 | 1.79 |
+| Haiku 4.5 (run 13) | 372 cases | 1.79 | 1.88 | 1.76 | 1.77 |
 
-An earlier Haiku run (run 7, a smaller 79-case corpus) had found a larger fix-quality gap
-(1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't exist - verified
-against the real `ldap3` and `ldapjs` packages, not taken from a judge's word. That gap shrank to a
-near-tie once the corpus nearly tripled (run 8): guidance still helped on most of the added cases,
-but on three entries the guidance itself caused the kind of defect it exists to prevent - a Java API
-call missing a required argument the entry never stated, a JavaScript fix that embedded a raw
-Unicode character the entry never showed how to escape, and a C# CSRF fix that left a JSON endpoint
-unvalidated because the entry didn't say the middleware it named doesn't cover that case. All three
-are now fixed, and run 10 re-ran the identical corpus and model pairing to check: two of the three
-closed cleanly, verified case-by-case against the actual re-generated code (not just the aggregate
-number moving) - the third recovered partially, since Haiku independently made the same
-Unicode-escaping mistake again in fresh code even once the guidance text was already correct. See
-`evals/README.md`, `evals/RESULTS-v9.md`, and `evals/RESULTS-v10.md`.
+The Haiku history is a loop of measure, trace, fix, re-measure. Run 7 (79 cases) found a large
+fix-quality gap (1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't
+exist - verified against the real `ldap3` and `ldapjs` packages. That shrank to a near-tie when the
+corpus nearly tripled (run 8), because on three entries the guidance itself caused the defect it
+exists to prevent; fixing them and re-running the identical corpus (run 10) recovered the cases
+they were written for, checked against the re-generated code rather than the aggregate. Run 11
+repeated the exercise on the 372-case corpus and traced the guided arm's remaining losses to eight
+entries - most notably every CWE-502 entry leading with a wire-format swap (native serialization to
+JSON) that silently empties existing data when the producers aren't in the change. Run 12 re-ran
+just the 47 affected cases after the fixes (9 of 13 targets went to a clean score), and run 13
+re-ran the whole corpus: on the 47 edited-slot cases the guided arm went 1.76/1.57 to 1.90/1.82
+while the unguided control stayed flat, and on the 325 untouched cases both arms drifted down by the
+same amount - which is the noise floor, not guidance.
+
+Run 13 also changed the judging: judges now see each case's stated contract (`must_preserve`) and
+score no_harm against it. On the 98 cases that carry one, the unguided arm's no_harm fell from 1.83
+to 1.56 - fixes that silently truncate or clamp where the contract says reject - while the guided
+arm held at 1.72. That is the first guided no_harm edge seen on Haiku, and it was being hidden by
+judges accepting silent truncation as clean. What remains is mostly model slips rather than entry
+gaps - invented API names, wrong method signatures, a caller not updated - and on Haiku a guidance
+bullet is a probability, not a switch: the same entry is followed in one sample and ignored in the
+next. See `evals/README.md` and `evals/RESULTS-v11.md` through `RESULTS-v13.md`.
