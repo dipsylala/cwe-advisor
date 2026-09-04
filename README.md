@@ -62,7 +62,7 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-Thirteen runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
+Fourteen runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
 79-case corpus (run 5) and the 203-case one (run 9). The corpus has since grown to 372 cases, and
 on Haiku 4.5 the current result - run 13, after a round of guidance fixes traced from run 11 - is a
 modest fix-quality edge for guidance and, for the first time on Haiku, a level no_harm score:
@@ -95,4 +95,8 @@ arm held at 1.72. That is the first guided no_harm edge seen on Haiku, and it wa
 judges accepting silent truncation as clean. What remains is mostly model slips rather than entry
 gaps - invented API names, wrong method signatures, a caller not updated - and on Haiku a guidance
 bullet is a probability, not a switch: the same entry is followed in one sample and ignored in the
-next. See `evals/README.md` and `evals/RESULTS-v11.md` through `RESULTS-v13.md`.
+next. Run 13 also turned up four entry gaps in slots nothing had touched (a non-existent npm
+package, a Flask import removed in 3.x, a missing AST node, a counter stored in the object it was
+meant to validate); run 14 re-ran those 14 cases after fixing them and three of the four went to a
+clean score, the fourth to 2.00/1.67. See `evals/README.md` and `evals/RESULTS-v11.md` through
+`RESULTS-v14.md`.
