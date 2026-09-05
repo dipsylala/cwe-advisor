@@ -62,10 +62,11 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-Fourteen runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
+Fifteen runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
 79-case corpus (run 5) and the 203-case one (run 9). The corpus has since grown to 372 cases, and
-on Haiku 4.5 the current result - run 13, after a round of guidance fixes traced from run 11 - is a
-modest fix-quality edge for guidance and, for the first time on Haiku, a level no_harm score:
+on Haiku 4.5 the current result - runs 13 to 15, after a round of guidance fixes traced from run
+11 - is a modest fix-quality edge for guidance and, for the first time on Haiku, a level no_harm
+score:
 
 | Model | Corpus | No guidance - fix_quality | Guided - fix_quality | No guidance - no_harm | Guided - no_harm |
 | --- | --- | --- | --- | --- | --- |
@@ -74,6 +75,7 @@ modest fix-quality edge for guidance and, for the first time on Haiku, a level n
 | Haiku 4.5 (run 11) | 372 cases | 1.82 | 1.89 | 1.81 | 1.79 |
 | Haiku 4.5 (run 13) | 372 cases | 1.79 | 1.88 | 1.76 | 1.77 |
 | Haiku 4.5 (runs 13 + 14 composite) | 372 cases - run 13, with the 14 cases in the 4 slots fixed after it taken from run 14's post-edit sets | 1.79 | 1.90 | 1.75 | 1.78 |
+| Haiku 4.5 (run 15) | 372 cases - the composite above re-judged as a frozen control beside a fresh guided sample, one panel | 1.75 | 1.89 | 1.72 | 1.73 |
 
 The Haiku history is a loop of measure, trace, fix, re-measure. Run 7 (79 cases) found a large
 fix-quality gap (1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't
@@ -100,5 +102,13 @@ bullet is a probability, not a switch: the same entry is followed in one sample 
 next. Run 13 also turned up four entry gaps in slots nothing had touched (a non-existent npm
 package, a Flask import removed in 3.x, a missing AST node, a counter stored in the object it was
 meant to validate); run 14 re-ran those 14 cases after fixing them and three of the four went to a
-clean score, the fourth to 2.00/1.67. See `evals/README.md` and `evals/RESULTS-v11.md` through
-`RESULTS-v14.md`.
+clean score, the fourth to 2.00/1.67.
+
+Run 15 tested the cheapest fix for the model-slip bucket - a SKILL.md step asking the model to
+source every name its fix introduces and reread the code as a compiler would - and found no effect:
+24 cases carry a judge note about a non-existent or non-compiling identifier in the unguided arm, in
+the guided arm before the step, and in the guided arm after it. That bucket needs a compile gate, not
+prose. Run 15 also changed the design: the unguided arm is now a frozen sample re-judged beside each
+new guided sample, so the row above differs from the composite row by the judge panel alone
+(-0.01 to -0.04), the first time that contribution has been isolated. See `evals/README.md` and
+`evals/RESULTS-v11.md` through `RESULTS-v15.md`.
