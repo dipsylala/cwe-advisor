@@ -15,6 +15,7 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Sanitize rich content with `nh3.clean()` and a strict tag/attribute allowlist; an existing `bleach.clean()` call is a dependency to replace, not a safe default to leave in place. An allowlist that permits `style` or event-handler attributes still lets CSS-based injection through even with `<script>` stripped
 - `json.dumps()` does not escape `</script>`, so its output embedded in a `<script>` block lets a string value close the block early - in Django render through `{{ value|json_script:"id" }}` and read it back with `JSON.parse`, and in Jinja2 use `|tojson`, which escapes `<`, `>`, `&`, and `'`
 - Validate input format: Reject unexpected formats early before rendering
+- When the reported sink is `render_template_string()` with the value concatenated into the source, escaping the value does not close it: `html.escape()` leaves `{{`, `}}` and `{%` untouched and the string is still compiled as a Jinja2 template, so `{{ 7*191 }}` in an escaped value renders as `1337` (reproduced on Flask 3.1.3). Keep the template source constant and pass the value through the context - `render_template_string('<p>{{ term }}</p>', term=value)` - where autoescaping renders it as text
 
 ## Taint Sinks
 
@@ -25,6 +26,7 @@ XSS occurs when untrusted data is included in web output without proper encoding
 - Replace the `mark_safe()` or `|safe` on the reported line with proper escaping - that marker is what disables escaping for that value, and it stays disabled however the template engine is configured
 - Confirm template auto-escaping is on (Django - `TEMPLATES['OPTIONS']['autoescape']`, true by default), so the rest of the template is covered
 - Use `html.escape()` when rendering user input in non-template contexts
+- Where user input is built into a `render_template_string()` source string, restructure so the source is a constant and the input arrives as a keyword argument; escaping the value is the wrong layer for that sink
 - For rich HTML, use `nh3.clean(user_input, tags={'b', 'i', 'u'}, attributes={})` with minimal allowlists - `nh3` takes sets where `bleach` took lists
 - Set `Content-Security-Policy` headers to restrict script execution
 - Audit all template rendering and ensure no raw user input reaches the DOM
