@@ -28,3 +28,5 @@ env/
 !.env.example
 
 FlawFixingGuidance
+# Claude Code local permissions (per machine)
+.claude/settings.local.json
