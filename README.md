@@ -62,7 +62,7 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-Fifteen runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
+Sixteen runs so far. Sonnet 5 saturates fix quality regardless of guidance, on both the original
 79-case corpus (run 5) and the 203-case one (run 9). The corpus has since grown to 372 cases, and
 on Haiku 4.5 the current result - runs 13 to 15, after a round of guidance fixes traced from run
 11 - is a modest fix-quality edge for guidance and, for the first time on Haiku, a level no_harm
@@ -76,6 +76,7 @@ score:
 | Haiku 4.5 (run 13) | 372 cases | 1.79 | 1.88 | 1.76 | 1.77 |
 | Haiku 4.5 (runs 13 + 14 composite) | 372 cases - run 13, with the 14 cases in the 4 slots fixed after it taken from run 14's post-edit sets | 1.79 | 1.90 | 1.75 | 1.78 |
 | Haiku 4.5 (run 15) | 372 cases - the composite above re-judged as a frozen control beside a fresh guided sample, one panel | 1.75 | 1.89 | 1.72 | 1.73 |
+| Haiku 4.5 (run 16) | 372 cases - same frozen control, fresh guided sample, scored by the new bundled judging protocol whose judges compile; comparable to the rows above only through the frozen sets | 1.74 | 1.84 | 1.67 | 1.66 |
 
 The Haiku history is a loop of measure, trace, fix, re-measure. Run 7 (79 cases) found a large
 fix-quality gap (1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't
@@ -110,5 +111,14 @@ source every name its fix introduces and reread the code as a compiler would - a
 the guided arm before the step, and in the guided arm after it. That bucket needs a compile gate, not
 prose. Run 15 also changed the design: the unguided arm is now a frozen sample re-judged beside each
 new guided sample, so the row above differs from the composite row by the judge panel alone
-(-0.01 to -0.04), the first time that contribution has been isolated. See `evals/README.md` and
-`evals/RESULTS-v11.md` through `RESULTS-v15.md`.
+(-0.01 to -0.04), the first time that contribution has been isolated.
+
+Run 16 tried the next cheapest thing - the step now tells the model to copy the fix to scratch and
+run the compiler - and found the same nothing: 68 of 372 agents ran any checker, the two inspected
+ran it on the wrong file, and the slip count went 24 to 25. What did change in run 16 is the judging.
+Judges now receive one prepared bundle per segment (write-ups plus case files), run as a restricted
+agent with no web or MCP surface, and verify claims by building; identical frozen text scored
+0.05 lower on no_harm under that panel because it catches compile errors the reading panel passed,
+at about a third of the cost per write-up. So the rows for run 16 sit on a stricter scale than the
+rows above it, and the frozen control is what makes them comparable. See `evals/README.md` and
+`evals/RESULTS-v11.md` through `RESULTS-v16.md`.
