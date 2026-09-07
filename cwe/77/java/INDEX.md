@@ -23,7 +23,7 @@ In Java, CWE-77 commonly appears where an application drives an SMTP (or IMAP/FT
 
 - Locate - find code that opens a `Socket` to an SMTP/IMAP/FTP port and writes command strings built via concatenation or `String.format`
 - Trace data flow - identify which fields (recipient address, filename, subject, custom headers) come from untrusted input and reach the command string or the message
-- Replace with the safe pattern - switch to Jakarta Mail's `Session`/`Transport`/`MimeMessage` API (or the equivalent maintained client library for IMAP/FTP)
+- Replace with the safe pattern - switch to Jakarta Mail's `Session`/`Transport`/`MimeMessage` API (or the equivalent maintained client library for IMAP/FTP) - `Session` and `Transport` live in `jakarta.mail`; `MimeMessage`, `InternetAddress` and `AddressException` in `jakarta.mail.internet`, which `import jakarta.mail.*` does not reach; the 1.6 line uses `javax.mail` and `javax.mail.internet`
 - Check the version before treating the library as the fix - below the floor above, the transport forwards CR/LF that address parsing let through
 - Validate as defence-in-depth - build with `new InternetAddress(address, true)` inside a try/catch, rejecting on `AddressException`
 - Break taint - use only the validated `InternetAddress` object for the sink, not the original raw string; strip CR and LF from any value written into a header

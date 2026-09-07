@@ -119,6 +119,15 @@ def parse_identifier_ids():
     return ids
 
 
+def iter_md_files(root):
+    for entry in sorted(root.iterdir()):
+        if entry.is_dir():
+            if entry.name not in SKIP_DIRS:
+                yield from iter_md_files(entry)
+        elif entry.suffix == ".md":
+            yield entry
+
+
 def main():
     cwe_dirs = sorted(
         (p for p in CWE_ROOT.iterdir() if p.is_dir() and p.name.isdigit()),
@@ -135,9 +144,9 @@ def main():
             if sub.is_dir():
                 check_language_file(sub, cwe_id)
 
-    for md_file in ROOT.rglob("*.md"):
-        if any(part in SKIP_DIRS for part in md_file.parts):
-            continue
+    # Prune the skipped directories while walking rather than filtering afterwards: rglob would
+    # otherwise descend into evals/ (node_modules, vendor, run records), which takes minutes.
+    for md_file in iter_md_files(ROOT):
         check_links(md_file)
 
     identifier_ids = parse_identifier_ids()
