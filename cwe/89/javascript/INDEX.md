@@ -34,7 +34,9 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
   takes `$1`/`$2` with an array, `knex.raw('... ?', [value])` takes an array, and TypeORM's
   `createQueryBuilder().where('x = :n', { n })` binds named parameters. In Sequelize,
   `query(sql, { bind })` uses real driver parameters while `{ replacements }` escapes and substitutes
-  client-side - prefer `bind`; `Sequelize.literal()` and a template literal handed to `knex.raw()`
+  client-side - prefer `bind`, and match the placeholder to it: `bind` takes `$1` with an array or
+  `$name` with an object, while `:name` is `replacements` syntax that `bind` leaves in the SQL
+  untouched, so the driver sees an unbound parameter and every call fails; `Sequelize.literal()` and a template literal handed to `knex.raw()`
   bind nothing at all
 - With `mysql2` the method matters as much as the placeholder: `connection.execute()` prepares the
   statement and sends the values separately, while `connection.query()` interpolates them client-side

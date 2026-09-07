@@ -9,7 +9,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Replace all subprocess, os.system(), and os.popen() calls with Python standard library alternatives
 - Use pathlib and shutil for file operations (copy, move, delete) instead of system commands
 - Use requests or urllib for HTTP requests instead of curl/wget
-- Use socket for network checks instead of ping commands
+- `socket` has no ping: ICMP means `SOCK_RAW` (root or `CAP_NET_RAW`) or, on Linux, `SOCK_DGRAM` with `IPPROTO_ICMP` where `net.ipv4.ping_group_range` admits the process's group, and then the echo, sequence and timing the tool did - a rewrite, not a library call; a `socket.create_connection()` probe is a TCP check with a different answer for a host that replies to ping with the probed port closed. Keep `ping` as the command: `subprocess.run(['ping', '-c', '4', host], ...)` with the host as its own list element, returning the output the caller had
 - Never concatenate user input into command strings
 - Default to `shell=False` with an argument list; where a shell is used it becomes the caller's job to
   quote every metacharacter, which is the actual source of the injection. Treat this as a strong
@@ -22,7 +22,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
   a shell is genuinely unavoidable, and only on POSIX. The `shlex` documentation states the module is
   designed only for Unix shells and that `quote()` is not guaranteed correct elsewhere, so on Windows
   it is not a mitigation at all
-- An argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
+- An argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; insert a literal `--` before user-controlled operands where the target program honours it, which rejects nothing; reject a leading `-` only where it does not, and say so in the write-up
 
 - Where an allowlist is used, anchor it with `re.fullmatch()`, not `re.match()` against `^...$`. In Python `$` also
   matches immediately before a trailing newline, so the anchored pattern accepts `report.csv\n` and
@@ -41,7 +41,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 - Locate command execution - Identify all subprocess, os.system(), os.popen() instances
 - Determine the operation's purpose - Understand what the command is trying to accomplish
-- Find the Python library alternative - Use pathlib/shutil for file ops, requests for HTTP, socket for network
+- Find the Python library alternative - Use pathlib/shutil for file ops, requests for HTTP; there is none for `ping`
 - Replace process execution - Delete subprocess/os.system code and use the appropriate Python library
 - For unavoidable commands - Use subprocess.run() with argument list and shell=False, validate all inputs
 - Test thoroughly - Verify the Python library replacement provides the same functionality

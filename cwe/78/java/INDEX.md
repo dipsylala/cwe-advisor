@@ -13,8 +13,8 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Never concatenate user input into command strings
 - Only use ProcessBuilder as a last resort with validated argument lists (no shell invocation)
 - `Runtime.exec(String)` tokenizes its argument with `StringTokenizer`, so one concatenated string becomes several arguments; use `Runtime.exec(String[])` or `ProcessBuilder` with a list - the single-string overloads are deprecated as of Java 18
-- On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself, so an argument list is not sufficient - launch the executable the batch file wraps. Set `jdk.lang.Process.allowAmbiguousCommands=false` explicitly: leaving it unset behaves the same as `true` and selects the lenient legacy encoding, so this is an opt-in to harden, not a default to preserve
-- A separate argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
+- On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself, so an argument list is not sufficient - launch the executable the batch file wraps. Set `jdk.lang.Process.allowAmbiguousCommands=false` explicitly: leaving it unset behaves the same as `true` and selects the lenient legacy encoding, so this is an opt-in to harden, not a default to preserve. It is a JVM-wide property - set it on the launch command line (`-Djdk.lang.Process.allowAmbiguousCommands=false`), not with `System.setProperty()` inside a request handler, and it is hardening beside the fix rather than the fix: a batch target is still re-parsed by `cmd.exe`
+- A separate argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; insert a literal `--` before user-controlled operands where the target program honours it, which rejects nothing; reject a leading `-` only where it does not, and say so in the write-up
 
 - Use `Matcher.matches()` over a `find()` with `^...$`, and prefer `\A`/`\z` where the pattern is
   reused - a `$` also matches before a trailing line terminator, so an anchored pattern can accept a
@@ -28,7 +28,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 - Locate command execution - Identify all Runtime.exec() and ProcessBuilder instances
 - Determine the operation's purpose - Understand what the command is trying to accomplish
-- Find the Java library alternative - Use Files API for file ops, HttpClient for HTTP, InetAddress for network checks
+- Find the Java library alternative - Use Files API for file ops, HttpClient for HTTP. There is none for `ping`: `InetAddress.isReachable()` sends ICMP only when the JVM holds the privilege and otherwise tries a TCP connection to port 7, which almost nothing answers, so it reports reachable hosts as unreachable - keep `ping` under `ProcessBuilder` with the host as its own list element
 - Replace process execution - Delete Runtime.exec()/ProcessBuilder code and use the appropriate Java library
 - For unavoidable commands - Use ProcessBuilder with separate arguments (never shell), validate all inputs
 - Test thoroughly - Verify the Java library replacement provides the same functionality

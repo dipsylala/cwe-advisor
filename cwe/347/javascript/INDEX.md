@@ -11,6 +11,7 @@ The `jsonwebtoken` npm package added an opt-in `algorithms` restriction in 4.2.2
 - Never use `jwt.decode()` in place of `jwt.verify()` - `decode()` returns the payload without checking the signature at all
 - Never write a key-resolution function (a `getKey` callback passed to `verify()`, or one built on `jwt.decode(token, { complete: true })`) that chooses between an RSA public key and an HMAC secret based on the token's own unverified header or `kid`
 - Keep RSA/EC public keys and HMAC secrets in separate variables and code paths; a public key must never be reachable as HMAC secret material
+- Do not introduce a fallback secret while fixing the call: `process.env.JWT_SECRET || 'your-secret-key'` makes every token forgeable wherever the variable is unset, which is a new weakness the original did not have - read the secret once at startup and fail there if it is missing
 - For `kid`-based key lookup (a `getKey` callback backed by `jwks-rsa` or similar), resolve the key from a trusted key store and still pass the same `algorithms` restriction to `verify()`
 - Use `crypto.timingSafeEqual()` for HMAC/signature comparisons, checking buffer lengths first since it throws on length mismatch instead of returning false
 

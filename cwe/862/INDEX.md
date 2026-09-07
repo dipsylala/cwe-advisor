@@ -13,6 +13,7 @@ Missing Authorization occurs when a code path performs a sensitive action or ret
 - Do not rely on hiding UI controls, client-side route guards, or trusting a role/permission value supplied by the client
 - Fail closed - if the authorization decision cannot be evaluated, deny the request rather than default to allow
 - Check ownership against a server-loaded copy of the resource, never a client-supplied flag - an authenticated caller with the right role still must not reach a record that is not theirs
+- The fix adds the check the finding says is missing; it does not redesign who may call what. Keep the roles and ownership rules the application already expresses (an admin-only endpoint stays admin-only), and do not invent new permissions such as a self-service path or a new prohibition alongside the fix - each is a behaviour change to state separately
 - Let the response code follow what the caller is entitled to know exists. A role or permission gate on an endpoint that is not itself a secret answers 403. An object-level ownership check on a guessable identifier should instead scope the lookup itself - `WHERE id = ? AND owner_id = ?` - and answer 404 identically, in status and body, for "not yours" and "does not exist"; a 403 there confirms the record exists and turns the identifier space into an enumeration oracle
 - Where the request carries an object identifier, CWE-639 usually gives the more concrete remediation; no identity check at all is CWE-306, and a check that runs with wrong logic is CWE-863
 

@@ -8,7 +8,7 @@ Encoding at the call site closes a reported finding regardless of formatter. Str
 
 ## Key Principles
 
-- Encode at the call site first: ASCII controls (0x00-0x1F), DEL (0x7F), U+0085, U+2028, U+2029, and the backslash itself, so a literal backslash-n and a real newline render differently. This closes the finding under any formatter, including Serilog's default JSON one
+- Encode at the call site first: ASCII controls (0x00-0x1F), DEL (0x7F), U+0085, U+2028, U+2029, and the backslash itself, so a literal backslash-n and a real newline render differently. This closes the finding under any formatter, including Serilog's default JSON one. The output is text: each matched character becomes the six characters `\u` plus its four-digit hex code (a newline becomes the text `\u000a`), for example `Regex.Replace(value, @"[\x00-\x1F\x7F\u0085\u2028\u2029\\]", m => $@"\u{(int)m.Value[0]:x4}")`. A `switch` whose cases append `"\n"` or `"\r"` appends the control character itself and neutralizes nothing, and `'\'` on its own is an unterminated character literal that does not compile
 - Never concatenate user input directly into log message strings
 - Structured JSON logging is a durable secondary control, not a substitute for the above: confirm which JSON path is configured, since `Microsoft.Extensions.Logging`'s `System.Text.Json`-based console formatter covers this entry's full range while Serilog's `JsonFormatter`/`CompactJsonFormatter` do not extend past 0x00-0x1F and `"`/`\`
 - Validate and sanitize log inputs at application boundaries

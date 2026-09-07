@@ -18,11 +18,11 @@ Path Traversal occurs when user input constructs file paths without validation, 
   and note `getCanonicalPath()` documents link resolution on UNIX platforms specifically, while
   `toRealPath()` stops following if `NOFOLLOW_LINKS` is passed, so neither is unconditional
 - `toRealPath()` fails when the target does not exist - the Javadoc specifies `IOException`, so catch
-  that rather than only `NoSuchFileException`, which is a subtype it does not contractually promise -, so it cannot validate an upload destination - canonicalize the parent directory instead, check that with `startsWith`, and require the supplied name to be a single component by rejecting anything where `Paths.get(name).getFileName().toString()` differs from `name`
-- Reject paths containing traversal sequences (`../`, `..\\`) or null bytes
+  that rather than only `NoSuchFileException`, which is a subtype it does not contractually promise -, so it cannot validate an upload destination - canonicalize the parent directory instead, check that with `startsWith`, and require the supplied name to be a single component by rejecting anything where `Paths.get(name).getFileName().toString()` differs from `name` - an upload-filename rule only, not one to apply to archive entries, which are nested by design
+- Reject null bytes. A `..` substring test belongs only where no containment check exists; beside `toRealPath()` plus `startsWith()` it is redundant and rejects a legitimate `notes..v2.txt`
 - Containment is the fix; add an extension or directory allowlist only where the application defines which files are legitimate, and say what it rejects
 - Avoid constructing paths from untrusted input when possible
-- Archive extraction (Zip Slip): treat `ZipEntry.getName()` from `java.util.zip.ZipInputStream` (or Apache Commons Compress) as untrusted - resolve it against the destination directory and verify containment with `Path.startsWith()` after `toRealPath()`, before extracting - not after `normalize()`, which is the weaker option this entry rules out above and which leaves a symlinked entry in place
+- Archive extraction (Zip Slip): treat `ZipEntry.getName()` from `java.util.zip.ZipInputStream` (or Apache Commons Compress) as untrusted - the target does not exist yet, so `toRealPath()` on it throws - contain it in two steps. First `destDir.resolve(name).normalize()` and `startsWith(destDir)` on the result, which rejects `..` and absolute names textually; then create the parent directories, `toRealPath()` the parent (which now exists) and check that against the destination's real path before writing, which catches a symlink an earlier entry planted. Skip or reject entries that are themselves symbolic links (`ZipEntry` cannot express them; Commons Compress's `ZipArchiveEntry.isUnixSymlink()` and `TarArchiveEntry.isSymbolicLink()` can). Entries such as `sub/dir/file.txt` are legitimate and must still extract; a rule requiring a single path component breaks every nested archive
 
 ## Taint Sinks
 
@@ -34,6 +34,6 @@ Path Traversal occurs when user input constructs file paths without validation, 
 - Validate the value the container already decoded - add no second `URLDecoder.decode()` pass, and do not rely on `Normalizer` to neutralise separators
 - Canonicalize with `Path.toRealPath()` or `File.getCanonicalFile()`, which follow symbolic links; `normalize()` only rewrites the string and leaves a planted link in place
 - Verify containment by comparing `Path` objects - `resolved.startsWith(base)` with `base` canonicalized the same way - never the two as strings
-- Reject requests with traversal sequences, absolute paths, or suspicious characters
+- Reject an absolute path and a null byte before resolving; do not add a `..` or character test on top of the containment check above
 - Where the application defines the permitted extensions, enforce that list and say so; do not invent one for the fix
 - Use OS/container sandboxing and filesystem permissions to restrict file access

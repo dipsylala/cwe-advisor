@@ -25,6 +25,6 @@ XXE injection occurs when XML parsers process external entity references, allowi
 - `xml2js` is built on `sax-js`, which never implemented DTD fetching at all, so external entities are
   absent rather than disabled and there is no option to set. Its 0.5.0 floor is real but belongs to a
   different weakness - prototype pollution, CVE-2023-0842 - so cite it there and not here
-- Set `fast-xml-parser` with `processEntities - false` option
+- Set `fast-xml-parser` with `processEntities: false`, and `parseTagValue: false` beside it when the parser replaces another one - `parseTagValue` defaults to `true` and turns a numeric-looking text node such as an id into a JavaScript number, changing the type the caller returned
 - Review all XML parsing code and apply secure configurations consistently
 - Add input validation to reject XML containing DOCTYPE declarations or entity references

@@ -62,9 +62,9 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-The current measurement is run 17 (September 2026): 372 cases across 27 CWEs and nine languages,
-both arms on Haiku 4.5, every fix applied to its fixture and built before judging, three blind
-Sonnet 5 judges per write-up.
+The baseline measurement is run 17 (September 2026): 372 cases across 27 CWEs and nine
+languages, both arms on Haiku 4.5, every fix applied to its fixture and built before judging,
+three blind Sonnet 5 judges per write-up.
 
 | Model | Corpus | No guidance - fix_quality | Guided - fix_quality | No guidance - no_harm | Guided - no_harm |
 | --- | --- | --- | --- | --- | --- |
@@ -78,36 +78,43 @@ rewrites that changed something beside the sink. The compile gate found 16 ungui
 fixes that do not build, caught eleven the judge panel had passed unanimously, and turned up two
 entries naming a class without its package (`cwe/94/java`, `cwe/79/java`), both fixed.
 
-By language, no guidance → guided (clean = all three judges gave 2 on both axes; "does not
-build" is the compile gate):
+Two targeted runs then edited the entries against the judge notes and re-sampled the guided arm
+on every case whose entry changed - 179 of the 372, with run 17's unguided text kept as the
+frozen control. Run 18 named the package of every third-party class the Java entries recommend
+and made allowlists conditional in the CWE-22, 77, 78 and 90 entries. Run 19 went through every
+remaining guided loss in the notes: the CWE-78 language files had prescribed a TCP probe "instead
+of ping", which changes what reachable means; the CWE-22 files still prescribed a `..` test
+beside a containment check; seven C# and JDK namespaces were missing; a dozen API shapes the
+judges had verified against real packages were absent. Each edit was verified against the
+library before it was written, and two more entry defects were found by the run's own notes
+(Commons Net's `FTPClient` frames nothing; `SimpleEvaluationContext` has no `setRootObject`).
+
+Taking each case's most recent guided text against the same control, by language (clean = all
+three judges gave 2 on both axes; "does not build" is the compile gate, unguided / guided):
 
 | Language | Cases | fix_quality | no_harm | Clean | Does not build |
 | --- | --- | --- | --- | --- | --- |
-| C | 22 | 1.92 → 1.97 | 1.79 → 1.91 | 18 → 18 | 0 / 0 |
+| C | 22 | 1.92 → 1.98 | 1.79 → 1.94 | 18 → 19 | 0 / 0 |
 | C++ | 19 | 1.88 → 2.00 | 1.84 → 1.91 | 16 → 18 | 1 / 1 |
-| C# | 54 | 1.73 → 1.93 | 1.68 → 1.72 | 34 → 35 | 2 / 6 |
-| Go | 43 | 1.79 → 1.93 | 1.67 → 1.78 | 28 → 34 | 6 / 0 |
-| Java | 86 | 1.78 → 1.83 | 1.80 → 1.63 | 56 → 54 | 4 / 10 |
-| JavaScript | 48 | 1.79 → 1.89 | 1.86 → 1.69 | 35 → 31 | 0 / 1 |
+| C# | 54 | 1.73 → 1.94 | 1.68 → 1.78 | 34 → 40 | 2 / 2 |
+| Go | 43 | 1.79 → 1.98 | 1.67 → 1.81 | 28 → 34 | 6 / 0 |
+| Java | 86 | 1.78 → 1.84 | 1.80 → 1.75 | 56 → 59 | 4 / 4 |
+| JavaScript | 48 | 1.79 → 1.89 | 1.86 → 1.85 | 35 → 38 | 0 / 0 |
 | Perl | 4 | 1.50 → 2.00 | 1.50 → 2.00 | 3 → 4 | 1 / 0 |
-| PHP | 44 | 1.92 → 1.98 | 1.80 → 1.84 | 35 → 34 | 2 / 0 |
-| Python | 52 | 1.79 → 1.92 | 1.72 → 1.74 | 31 → 35 | 0 / 1 |
+| PHP | 44 | 1.92 → 1.95 | 1.80 → 1.87 | 35 → 35 | 2 / 0 |
+| Python | 52 | 1.79 → 1.92 | 1.72 → 1.84 | 31 → 41 | 0 / 0 |
+| All | 372 | 1.80 → 1.92 | 1.76 → 1.82 | 256 → 288 | 16 / 7 |
 
-Fix quality is level or better with guidance in every language; no-harm moves within the judges'
-disagreement range either way. Where the guided arm does lose no-harm, the causes are the same
-across languages, in order of size: it reaches for the library or API the entry names and gets
-it wrong (the build failures above, four of them the two package defects); it adds the allowlists
-the CWE-22, 77, 78 and 90 entries prescribe, which the rubric scores as narrowing; and it rewrites
-more of the file, which is more places to change behaviour.
-
-Run 18 acted on the first two and re-ran the guided arm on the 115 affected cases beside run 17's
-frozen text. Naming the package of every third-party class the Java entries recommend took the
-guided arm on those 37 cases from 1.53 / 1.60 to 1.84 / 1.81 and its build failures from eight to
-three. Making allowlists conditional in the CWE-22, 77, 78 and 90 entries did what it said - the
-guided arm stopped adding them, and the judges' narrowing verdicts fell from twelve to two - but
-no-harm on those 78 cases stayed flat (1.66 to 1.68): the losses moved to behaviour changes made
-while replacing a shell call with a library, which the entries already warn against in prose.
-That bucket needs a mechanical check, not another bullet. See `evals/RESULTS-v18.md`.
+Guidance is now ahead on both axes overall: fix quality on 63 cases against 19 behind, no-harm on
+62 against 46. The no-harm gap it opened in run 17 closed on the cases whose entries were edited
+(1.64 to 1.78 against a 1.79 control on run 19's 138), and the guided arm's build failures fell
+from 18 to 7, below the control's 16. What moved was every loss an entry could name - a
+namespace, a placeholder syntax, "ping has no library equivalent" - and what did not was the arm
+inventing a member on the fixture's own type, swapping the language of stored rules (CWE-94), or
+changing a constructor's signature and saying so, which the rubric scores as a change all the
+same. Java is the one language still behind on no-harm, on the CWE-94 and CWE-434 cases. The
+composite mixes three judge panels; the control's drift across them is 0.03 or less. See
+`evals/RESULTS-v18.md` and `evals/RESULTS-v19.md`.
 
 Sixteen earlier runs shaped the harness - the frozen unguided control, the stated contract in the
 judge's header, bundled judging by a restricted agent, the compile gate - and were removed at the

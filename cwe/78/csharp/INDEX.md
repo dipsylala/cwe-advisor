@@ -9,7 +9,8 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Replace all Process.Start() and ProcessStartInfo calls with .NET Framework class alternatives
 - Use System.IO.File and System.IO.Directory for file operations instead of system commands
 - Use System.Net.Http.HttpClient for HTTP requests instead of curl/wget
-- Use System.Net.NetworkInformation.Ping for network checks instead of ping command
+- `System.Net.NetworkInformation.Ping` is ICMP, so it can replace the `ping` command - but `ping -n 4` sends four echoes and prints a per-reply table, while `Ping.Send()` sends one and returns a `PingReply`. Loop the count and keep the response shape the caller parsed; where the tool's output is itself the feature, keep the `ping` binary under `ArgumentList` instead
+- Inside a controller, a bare `File` resolves to the inherited `ControllerBase.File()` method (CS0119), so write `System.IO.File` in full when replacing a command with file I/O there
 - Use System.IO.Compression for archive operations instead of zip commands
 - Never concatenate user input into command strings
 - Only use `ProcessStartInfo` as a last resort, with `ArgumentList` and `UseShellExecute = false`. Two
@@ -22,7 +23,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
   shell is not naming one as the executable - so a fix that flips this flag while still launching
   `cmd.exe /c` has changed nothing
 - `ArgumentList` does not protect a `.bat`/`.cmd` target: Windows has no argv array at the system-call level, so `cmd.exe` re-parses the command line for a batch file and .NET leaves that to the caller. Launch the executable the batch file wraps instead. The same applies to `powershell.exe -Command`, which re-parses its argument as script - use `-File` with a fixed script path and `-NoProfile` where PowerShell is genuinely required, passing user data as declared script parameters - `-File` is what stops the value being re-parsed as script; signing governs which scripts may run at all, not how their arguments are parsed
-- ArgumentList prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
+- ArgumentList prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; insert a literal `--` before user-controlled operands where the target program honours it, which rejects nothing; reject a leading `-` only where it does not, and say so in the write-up
 
 - Where an allowlist is used, anchor it with `\A` and `\z`, not `^` and `$`. In .NET both `$` and `\Z` also match
   immediately before a trailing newline, so the anchored pattern accepts `report.csv\n`

@@ -13,6 +13,7 @@ Go has no single dominant web framework, so Missing Authorization commonly appea
 - gRPC has no HTTP status to return: every RPC answers `200` with the outcome in the `grpc-status` trailer. Enforce there with a `grpc.UnaryServerInterceptor`/`StreamServerInterceptor` installed via `grpc.ChainUnaryInterceptor`, denying with `status.Errorf(codes.PermissionDenied, ...)` - or `codes.Unauthenticated` where the caller could not be identified
 - Keep authorization logic in one reusable package so role and ownership rules are defined once and unit-testable independent of HTTP
 - Fail closed - if the authorization check errors or the required claim/role is absent, deny the request rather than defaulting to allow
+- A check that reads the caller's identity from `ctx.Value(...)` or `r.Context()` needs something earlier to put it there. If no middleware or interceptor already authenticates the request and sets that key, an added check reads nil and denies every legitimate caller too - trace where the identity is set, and if nowhere, the fix includes extracting it (from the session, a bearer token, or gRPC `metadata`) or states that it is a prerequisite
 
 ## Taint Sinks
 

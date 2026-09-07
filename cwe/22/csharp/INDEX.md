@@ -33,6 +33,6 @@ Path Traversal occurs when user-supplied input constructs file paths without val
   exist from .NET Core 2.1 and .NET Standard 2.1 and not on .NET Framework, where the containment
   check after `GetFullPath` has to carry the weight instead
 - Implement base directory validation after canonicalizing with `Path.GetFullPath()`
-- Reject, do not strip, traversal sequences (`..`, absolute paths) in user input - one non-recursive removal turns `....//` into `../`, and silently repairing the value hides the attempt from the log
+- Where the code tests the raw input, reject rather than strip traversal sequences (`..`, absolute paths) - one non-recursive removal turns `....//` into `../`, and silently repairing the value hides the attempt from the log. Beside the `GetFullPath()` containment check a separate `..` test is redundant and rejects a legitimate `notes..v2.txt`
 - Where the application defines the permitted filenames or extensions, enforce that list and say so; do not add one for the fix alone
 - Test with payloads - `../`, `..\\`, absolute paths, encoded variants (`%2e%2e%2f`, `%c0%ae`), full-width characters
