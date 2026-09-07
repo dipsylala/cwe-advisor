@@ -10,7 +10,7 @@
 - Never call `exec.Command("sh", "-c", ...)`, `"bash", "-c", ...`, or `"cmd", "/C", ...` with any untrusted string
 - Pass each argument as a separate `exec.Command` parameter; never build a single command string with `+` or `fmt.Sprintf`
 - Use `exec.CommandContext` with a timeout to bound any unavoidable process execution
-- A value that must reach `exec.Command` goes as its own argument; validate it only where the application defines its format (a map of known values, a hostname pattern) and say what it rejects
+- A value that must reach `exec.Command` goes as its own argument; validate it only where the application defines its format (a map of known values it already owns) and say what it rejects - a hostname is not such a value unless the application restricts hosts, and a pattern invented for the fix rejects IPv6 addresses
 - A separate argv prevents shell injection but not argument injection (CWE-88) - a value passed as its own argument can still be read as a flag by the target program; reject values starting with `-` or insert a literal `--` before user-controlled positional arguments where the target program supports it
 - Watch for the injection point moving downstream - a wrapper script invoked with safe argv that itself runs `sh -c` on one of the arguments reopens the same risk
 - On Windows every process receives the command line as one string and parses it itself. Go does quote

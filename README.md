@@ -100,6 +100,15 @@ it wrong (the build failures above, four of them the two package defects); it ad
 the CWE-22, 77, 78 and 90 entries prescribe, which the rubric scores as narrowing; and it rewrites
 more of the file, which is more places to change behaviour.
 
+Run 18 acted on the first two and re-ran the guided arm on the 115 affected cases beside run 17's
+frozen text. Naming the package of every third-party class the Java entries recommend took the
+guided arm on those 37 cases from 1.53 / 1.60 to 1.84 / 1.81 and its build failures from eight to
+three. Making allowlists conditional in the CWE-22, 77, 78 and 90 entries did what it said - the
+guided arm stopped adding them, and the judges' narrowing verdicts fell from twelve to two - but
+no-harm on those 78 cases stayed flat (1.66 to 1.68): the losses moved to behaviour changes made
+while replacing a shell call with a library, which the entries already warn against in prose.
+That bucket needs a mechanical check, not another bullet. See `evals/RESULTS-v18.md`.
+
 Sixteen earlier runs shaped the harness - the frozen unguided control, the stated contract in the
 judge's header, bundled judging by a restricted agent, the compile gate - and were removed at the
 run-17 boundary because the current corpus, format and judging no longer share a scale with them.
