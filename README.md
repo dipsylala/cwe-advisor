@@ -78,6 +78,28 @@ rewrites that changed something beside the sink. The compile gate found 16 ungui
 fixes that do not build, caught eleven the judge panel had passed unanimously, and turned up two
 entries naming a class without its package (`cwe/94/java`, `cwe/79/java`), both fixed.
 
+By language, no guidance → guided (clean = all three judges gave 2 on both axes; "does not
+build" is the compile gate):
+
+| Language | Cases | fix_quality | no_harm | Clean | Does not build |
+| --- | --- | --- | --- | --- | --- |
+| C | 22 | 1.92 → 1.97 | 1.79 → 1.91 | 18 → 18 | 0 / 0 |
+| C++ | 19 | 1.88 → 2.00 | 1.84 → 1.91 | 16 → 18 | 1 / 1 |
+| C# | 54 | 1.73 → 1.93 | 1.68 → 1.72 | 34 → 35 | 2 / 6 |
+| Go | 43 | 1.79 → 1.93 | 1.67 → 1.78 | 28 → 34 | 6 / 0 |
+| Java | 86 | 1.78 → 1.83 | 1.80 → 1.63 | 56 → 54 | 4 / 10 |
+| JavaScript | 48 | 1.79 → 1.89 | 1.86 → 1.69 | 35 → 31 | 0 / 1 |
+| Perl | 4 | 1.50 → 2.00 | 1.50 → 2.00 | 3 → 4 | 1 / 0 |
+| PHP | 44 | 1.92 → 1.98 | 1.80 → 1.84 | 35 → 34 | 2 / 0 |
+| Python | 52 | 1.79 → 1.92 | 1.72 → 1.74 | 31 → 35 | 0 / 1 |
+
+Fix quality is level or better with guidance in every language; no-harm moves within the judges'
+disagreement range either way. Where the guided arm does lose no-harm, the causes are the same
+across languages, in order of size: it reaches for the library or API the entry names and gets
+it wrong (the build failures above, four of them the two package defects); it adds the allowlists
+the CWE-22, 77, 78 and 90 entries prescribe, which the rubric scores as narrowing; and it rewrites
+more of the file, which is more places to change behaviour.
+
 Sixteen earlier runs shaped the harness - the frozen unguided control, the stated contract in the
 judge's header, bundled judging by a restricted agent, the compile gate - and were removed at the
 run-17 boundary because the current corpus, format and judging no longer share a scale with them.
