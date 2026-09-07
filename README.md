@@ -72,9 +72,10 @@ three blind Sonnet 5 judges per write-up.
 
 Guidance is ahead on fix quality for 64 cases and behind on 22, with the gain concentrated on the
 harder cases (the contract-carrying top-15 set goes 1.73 to 1.91) and on CWE-94 (1.38 to 1.83).
-No-harm is level. The guided arm's no-harm losses sit in allowlists the CWE-77, 78 and 90 entries
-prescribe and the rubric scores as narrowing - an open doctrine question - and in whole-file
-rewrites that changed something beside the sink. The compile gate found 16 unguided and 18 guided
+No-harm is level. The guided arm's no-harm losses sat in allowlists the CWE-77, 78 and 90 entries
+prescribed and the rubric scores as narrowing - resolved in run 18 by making allowlists a
+product decision rather than a default step - and in whole-file rewrites that changed something
+beside the sink. The compile gate found 16 unguided and 18 guided
 fixes that do not build, caught eleven the judge panel had passed unanimously, and turned up two
 entries naming a class without its package (`cwe/94/java`, `cwe/79/java`), both fixed.
 
