@@ -77,6 +77,7 @@ score:
 | Haiku 4.5 (runs 13 + 14 composite) | 372 cases - run 13, with the 14 cases in the 4 slots fixed after it taken from run 14's post-edit sets | 1.79 | 1.90 | 1.75 | 1.78 |
 | Haiku 4.5 (run 15) | 372 cases - the composite above re-judged as a frozen control beside a fresh guided sample, one panel | 1.75 | 1.89 | 1.72 | 1.73 |
 | Haiku 4.5 (run 16) | 372 cases - same frozen control, fresh guided sample, scored by the new bundled judging protocol whose judges compile; comparable to the rows above only through the frozen sets | 1.74 | 1.84 | 1.67 | 1.66 |
+| Haiku 4.5 (run 17) | 372 cases - fresh unguided and guided samples in the complete-file format, every fix compile-gated; a format boundary, so a new scale comparable to the rows above in direction only | 1.80 | 1.91 | 1.76 | 1.74 |
 
 The Haiku history is a loop of measure, trace, fix, re-measure. Run 7 (79 cases) found a large
 fix-quality gap (1.84 vs. 1.97), driven by the ungoverned model calling library functions that don't
@@ -130,4 +131,10 @@ same one in twenty either way, but in different shapes. The unguided arm invents
 leaves Go variables unused; the guided arm reaches for the library the entry names and mis-imports
 it, and four of its failures traced to two entries (`cwe/94/java`, `cwe/79/java`) naming a class
 without its package, the first entry defects found by a compiler rather than a judge. Both are
-fixed. Run 17's judged scores are not in yet; its compile table is in `evals/RESULTS-v17.md`.
+fixed. Judged on the same fresh samples, guidance lifts fix quality from 1.80 to 1.91 (ahead on 64
+cases, behind on 22) and leaves no-harm level at 1.76 against 1.74; the guided arm's no-harm losses
+sit in allowlists the CWE-77, 78 and 90 entries prescribe and the rubric scores as narrowing, an
+open doctrine question, and in whole-file rewrites that changed something beside the sink. The
+gate caught eleven non-compiling fixes the three-judge panel passed unanimously and missed
+nothing the judges caught, so from run 18 the judges take the gate's verdict and stop compiling.
+See `evals/RESULTS-v17.md`.
