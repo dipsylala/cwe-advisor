@@ -24,7 +24,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
   it is not a mitigation at all
 - An argument list prevents shell injection but not argument injection (CWE-88) - a value that becomes a full argument can still be read as a flag by the target program; reject values starting with `-` or use `--` to end option parsing where the target program supports it
 
-- Anchor the allowlist with `re.fullmatch()`, not `re.match()` against `^...$`. In Python `$` also
+- Where an allowlist is used, anchor it with `re.fullmatch()`, not `re.match()` against `^...$`. In Python `$` also
   matches immediately before a trailing newline, so the anchored pattern accepts `report.csv\n` and
   the value reaches the command with a newline attached
 

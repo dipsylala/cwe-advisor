@@ -7,7 +7,7 @@ Path Traversal occurs when user-supplied input constructs file paths without val
 ## Key Principles
 
 - Never directly concatenate user input into file paths
-- Use allowlists for filenames, not denylists for patterns
+- Containment - canonicalise, then a component-aware check against the root - is the fix; a filename or extension allowlist is added only where the application defines which files are legitimate, and the write-up says what it rejects
 - Do not re-decode: ASP.NET model binding and `Request.Query` already return decoded values, so a further `Uri.UnescapeDataString()` manufactures `../` from the inert literal `%2e%2e%2f`; U+FF0F is not a separator to the filesystem, so normalisation is not the control
 - Canonicalize paths with `Path.GetFullPath()` before validation
 - Compare with `Path.GetRelativePath()` (.NET Core 2.0 and .NET Standard 2.1 onward - it does not
@@ -34,5 +34,5 @@ Path Traversal occurs when user-supplied input constructs file paths without val
   check after `GetFullPath` has to carry the weight instead
 - Implement base directory validation after canonicalizing with `Path.GetFullPath()`
 - Reject, do not strip, traversal sequences (`..`, absolute paths) in user input - one non-recursive removal turns `....//` into `../`, and silently repairing the value hides the attempt from the log
-- Use allowlist validation for permitted filenames or extensions
+- Where the application defines the permitted filenames or extensions, enforce that list and say so; do not add one for the fix alone
 - Test with payloads - `../`, `..\\`, absolute paths, encoded variants (`%2e%2e%2f`, `%c0%ae`), full-width characters

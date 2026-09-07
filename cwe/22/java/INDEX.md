@@ -20,7 +20,7 @@ Path Traversal occurs when user input constructs file paths without validation, 
 - `toRealPath()` fails when the target does not exist - the Javadoc specifies `IOException`, so catch
   that rather than only `NoSuchFileException`, which is a subtype it does not contractually promise -, so it cannot validate an upload destination - canonicalize the parent directory instead, check that with `startsWith`, and require the supplied name to be a single component by rejecting anything where `Paths.get(name).getFileName().toString()` differs from `name`
 - Reject paths containing traversal sequences (`../`, `..\\`) or null bytes
-- Use allowlists for permitted file extensions and directories
+- Containment is the fix; add an extension or directory allowlist only where the application defines which files are legitimate, and say what it rejects
 - Avoid constructing paths from untrusted input when possible
 - Archive extraction (Zip Slip): treat `ZipEntry.getName()` from `java.util.zip.ZipInputStream` (or Apache Commons Compress) as untrusted - resolve it against the destination directory and verify containment with `Path.startsWith()` after `toRealPath()`, before extracting - not after `normalize()`, which is the weaker option this entry rules out above and which leaves a symlinked entry in place
 
@@ -35,5 +35,5 @@ Path Traversal occurs when user input constructs file paths without validation, 
 - Canonicalize with `Path.toRealPath()` or `File.getCanonicalFile()`, which follow symbolic links; `normalize()` only rewrites the string and leaves a planted link in place
 - Verify containment by comparing `Path` objects - `resolved.startsWith(base)` with `base` canonicalized the same way - never the two as strings
 - Reject requests with traversal sequences, absolute paths, or suspicious characters
-- Apply allowlist validation for file extensions if direct input is unavoidable
+- Where the application defines the permitted extensions, enforce that list and say so; do not invent one for the fix
 - Use OS/container sandboxing and filesystem permissions to restrict file access

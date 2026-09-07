@@ -25,5 +25,5 @@ Where executing a command is the purpose of the code rather than a means to an e
 - Replace system commands with appropriate language-native APIs
 - For truly unavoidable commands, use parameterized execution APIs with separate argument arrays (never shell invocation)
 - Remove all shell patterns and string concatenation in command construction
-- Add input validation as a secondary defence layer using strict allowlists
+- Add validation only where the value has a format the application owns (a hostname, an interface name, a report id); enforce that format and say what it rejects. A pattern chosen for security alone rejects legitimate values (an IPv6 address, a filename with a space) and is a regression, not a defence
 - Apply least privilege principles to any remaining process execution

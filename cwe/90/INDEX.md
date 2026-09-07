@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-LDAP Injection occurs when untrusted user input is used to construct LDAP queries without proper validation or escaping, allowing attackers to modify queries and access or manipulate directory data. Never concatenate untrusted input into LDAP filters; use safe LDAP APIs and strict allowlists. The filter is parsed as an expression tree, so an injected `)` ends the term the value was interpolated into and `(` starts another, while a bare `*` turns an equality test into a match-everything wildcard. CWE-90 is a child of CWE-943; use that entry for the general structured-query defence and this one for the LDAP-specific rules.
+LDAP Injection occurs when untrusted user input is used to construct LDAP queries without proper validation or escaping, allowing attackers to modify queries and access or manipulate directory data. Never concatenate untrusted input into LDAP filters; use safe LDAP APIs and escaping. The filter is parsed as an expression tree, so an injected `)` ends the term the value was interpolated into and `(` starts another, while a bare `*` turns an equality test into a match-everything wildcard. CWE-90 is a child of CWE-943; use that entry for the general structured-query defence and this one for the LDAP-specific rules.
 
 ## Key Principles
 
@@ -10,9 +10,9 @@ LDAP Injection occurs when untrusted user input is used to construct LDAP querie
 - Filter escaping (RFC 4515) and DN escaping (RFC 4514) cover different character sets - a value escaped for one context still carries unescaped metacharacters for the other, so never reuse one escaping for the other
 - Prefer search-then-use-the-returned-DN over building a DN from input: escaping reduces the risk, but letting the directory hand you the DN removes the injection point
 - Escape special LDAP characters using framework-specific encoding functions, covering the whole set (`*`, `(`, `)`, backslash, NUL) - a partial denylist still leaves enough syntax to close one clause and open another
-- Apply strict allowlist validation for filter components
+- Escaping closes the injection; an allowlist is a separate decision. Add one only where the application defines the value's format (a username policy, a fixed set of attribute names) and say in the write-up what it rejects - a pattern chosen for security alone rejects legitimate values (an apostrophe in a surname, a plus sign in an email local part) and is a regression, not a defence
 - Minimize search scope and restrict returned attributes
-- Implement defence-in-depth with input validation, output encoding, and least privilege
+- Implement defence-in-depth with a read-only, narrowly scoped bind account and a minimal search base
 
 ## Remediation Steps
 
@@ -22,7 +22,7 @@ LDAP Injection occurs when untrusted user input is used to construct LDAP querie
   filter: `*`, `(`, `)`, `\` and NUL. `/` is not among them - escaping it is not required and mangles
   legitimate values. A distinguished name is a different rule set (RFC 4514) with a different
   character list
-- Validate with allowlists - Restrict input to known-safe patterns using allowlists for attribute names and values
+- Validate where a format exists - attribute names come from a fixed set the code owns, so look them up in a map; values are escaped, and constrained further only where the application already defines their format
 - Limit query scope - Use specific base DNs and restrict search depth to minimize exposure
 - Apply least privilege to the bind account - escaping is the control, but a read-only, narrowly scoped bind account limits what any missed field can reach
 - Test thoroughly - note that `*)(objectClass=*)` is the wrong probe: it yields two top-level filters,

@@ -162,6 +162,15 @@ defect. Each rule below is a shape that recurred, stated as the check that would
 - **Prefer rejecting a bad value to stripping it.** Stripping turns the value into a different
   valid one: Nodemailer's CRLF-to-space rewrite produces RFC 5322 group syntax, so the injected
   recipient survives sanitization.
+- **An allowlist is a product decision, not a default defence.** Eval run 17 found the guided
+  arm adding `^[a-zA-Z0-9._-]+$` beside a fix that had already closed the sink - on an LDAP
+  value next to `escape_filter_chars()`, on a filename next to a containment check - because
+  the CWE-22, 77, 78 and 90 entries said "validate with a strict allowlist" as a step, and
+  `cwe/90/csharp` supplied the regex. Judges scored each as a behaviour change, and they were
+  right: a pattern chosen for security alone rejects legitimate values (an IPv6 host, a name
+  with an apostrophe, a filename with a space) and is a regression. The API fix closes the
+  injection; an entry prescribes an allowlist only where the application defines the value's
+  format, and says the write-up must state what it rejects.
 - **A named library can stop.** `bleach` ended maintenance in June 2026 with an open advisory
   that will never be fixed. "Use a sanitization library" needs the library checked for
   maintenance status, not just named.

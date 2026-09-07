@@ -28,6 +28,6 @@ Path Traversal in Go usually appears when request or config data reaches `os.Ope
 - Trace data flow - identify where request, query, or header data reaches path construction (`filepath.Join`, string concatenation)
 - Replace the unsafe pattern - use an indirect lookup where feasible, otherwise `filepath.Clean` plus `filepath.Join` against a fixed base directory, making the base absolute with `filepath.Abs` first - an absolute candidate compared against a relative base never matches
 - Bind, encode, validate, or authorize - reject absolute paths (`filepath.IsAbs`) and inputs starting with `..` before joining
-- Break taint after allowlist validation - after the boundary check passes, use only the canonicalized path variable for the file operation, never the original input
+- Break taint after the containment check - after the boundary check passes, use only the canonicalized path variable for the file operation, never the original input
 - Harden configuration - use `os.Lstat` plus `IsRegular()`, or `os.OpenRoot`/`os.Root`/`os.OpenInRoot` (Go 1.24+), to avoid symlink-based escapes; restrict filesystem permissions on the served directory
 - Test - verify with `../` sequences, absolute paths, encoded traversal, and symlink escape attempts

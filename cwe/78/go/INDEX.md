@@ -10,7 +10,7 @@
 - Never call `exec.Command("sh", "-c", ...)`, `"bash", "-c", ...`, or `"cmd", "/C", ...` with any untrusted string
 - Pass each argument as a separate `exec.Command` parameter; never build a single command string with `+` or `fmt.Sprintf`
 - Use `exec.CommandContext` with a timeout to bound any unavoidable process execution
-- Validate any value that must reach `exec.Command` against a strict allowlist (regexp or map) before use
+- A value that must reach `exec.Command` goes as its own argument; validate it only where the application defines its format (a map of known values, a hostname pattern) and say what it rejects
 - A separate argv prevents shell injection but not argument injection (CWE-88) - a value passed as its own argument can still be read as a flag by the target program; reject values starting with `-` or insert a literal `--` before user-controlled positional arguments where the target program supports it
 - Watch for the injection point moving downstream - a wrapper script invoked with safe argv that itself runs `sh -c` on one of the arguments reopens the same risk
 - On Windows every process receives the command line as one string and parses it itself. Go does quote
@@ -29,7 +29,7 @@
 - Locate - find `os/exec` usage: `exec.Command`, `exec.CommandContext`, `cmd.Run`/`Output`/`CombinedOutput`
 - Trace data flow - identify request or config data reaching the command name or its arguments
 - Replace the unsafe pattern - substitute the Go standard library API that performs the same operation (file, network, archive) instead of shelling out
-- Bind, encode, validate, or authorize - if exec is unavoidable, pass each user-controlled value as its own `exec.Command` argument and validate it against an allowlist
-- Break taint after allowlist validation - use only the allowlist-approved value (for example, a resolved map value) as the argument, never the raw input
+- Bind, encode, validate, or authorize - if exec is unavoidable, pass each user-controlled value as its own `exec.Command` argument, and validate it only where the application defines its format
+- Break taint - where a map lookup or validation exists, use its result (for example, a resolved map value) as the argument, never the raw input
 - Harden configuration - run with a least-privilege OS account, apply `exec.CommandContext` timeouts, and pass absolute binary paths to avoid `PATH` ambiguity - note Go 1.19 already stopped resolving a program to a path relative to the current directory, returning an error satisfying `errors.Is(err, exec.ErrDot)` instead, so on older toolchains this is a live risk rather than belt-and-braces
 - Test - verify with shell metacharacters (`;`, `|`, `&&`, `$()`) and confirm they are treated as literal argument data, not command syntax

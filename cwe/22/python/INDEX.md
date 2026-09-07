@@ -29,6 +29,6 @@ Path Traversal in Python starts with a request value reaching `open()`, `send_fi
 - Trace data flow - follow the value through every `os.path.join()`/`/` operation and helper function; the value that was checked must be the value that is opened
 - Replace the unsafe pattern - resolve the joined path once into a variable with `Path.resolve()`, verify `candidate.is_relative_to(BASE_DIR)`, confirm `is_file()`, and pass that variable to `open()`
 - Bind, encode, validate, or authorize - for writes, validate the filename is a single component and resolve the parent instead of the destination; add an ownership check where files belong to accounts
-- Break taint after allowlist validation - use the resolved path or the map's value at the sink, never the raw request value
+- Break taint after the containment check - use the resolved path or the map's value at the sink, never the raw request value
 - Harden configuration - extract tar archives with `tarfile.extractall(dest, filter='data')` (available 3.12+, default from 3.14); on 3.11 and earlier, filter members individually against a resolved destination. `ZipFile.extractall()` already sanitizes member names - the exposure there is code that reads `namelist()` and joins the names itself
 - Test - assert a legitimate subdirectory read still succeeds, that both `../../etc/passwd` and `/etc/passwd` raise (they take different routes through the code), that a sibling directory such as `../documents-archive/notes.txt` raises, and that a traversing upload name raises rather than being silently reduced

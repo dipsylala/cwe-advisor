@@ -11,7 +11,7 @@ LDAP Injection occurs when untrusted data is used to construct LDAP search filte
 - Prefer JNDI's parameterized search filter overload over building filter strings by concatenation - the JDK escapes each argument for you
 - DNs have no parameterized construction API - encode user input with ESAPI's `encodeForDN()` or assemble DNs with Spring LDAP's `LdapNameBuilder` (`org.springframework.ldap.support`)
 - Use Spring LDAP's `LdapQueryBuilder` (artifact `org.springframework.ldap:spring-ldap-core`, package `org.springframework.ldap.query`) instead of raw JNDI when the framework is already a dependency - it applies safe encoding automatically
-- Validate input against allowlists for expected characters and patterns
+- Add an allowlist only where the application defines the value's format (a username policy), and state what it rejects; the parameterized search or `LdapEncoder` closes the injection without it
 - Apply principle of least privilege to LDAP service accounts
 - Use the framework's own encoders rather than a hand-written escape: Spring LDAP's `LdapEncoder.filterEncode()` (`org.springframework.ldap.support.LdapEncoder`) for a filter value and `LdapEncoder.nameEncode()`/`javax.naming.ldap.Rdn` for a DN component, or ESAPI's `encodeForLDAP()`/`encodeForDN()` where ESAPI is already present - and keep the two rule sets straight, because they are different: a search filter escapes per RFC 4515 and a distinguished name per RFC 4514, so a filter escaper applied to a DN is not a fix. Note OWASP now describes ESAPI as maintenance-only and steers new work elsewhere, while the encoder it recommends instead has no DN method - which is why `LdapEncoder.nameEncode()` or `javax.naming.ldap.Rdn` is the better default
 - Prefer the query builder (`LdapQueryBuilder.query().where(attr).is(value)`), which applies
@@ -31,6 +31,6 @@ LDAP Injection occurs when untrusted data is used to construct LDAP search filte
 - For search filters - replace concatenation with `{0}`-style placeholders and pass user input via the `filterArgs` parameter of `DirContext.search(name, filterExpr, filterArgs, cons)` - every overload that accepts `filterArgs` also requires a trailing `SearchControls` argument, so there is no three-argument `search(name, filter, filterArgs)` overload; pass `new SearchControls()` for the default scope if the existing call does not already build one
 - For DN construction - encode user input with `ESAPI.encoder().encodeForDN(input)` before assembling the DN, or build it with Spring LDAP's `LdapNameBuilder`
 - Alternatively, migrate to Spring LDAP's `LdapQueryBuilder` for automatic protection on both filters and DNs
-- Add input validation to reject unexpected characters before encoding
+- Where the application defines the value's format, enforce it before encoding and say what it rejects
 - Test with a bare `*`, which is valid filter syntax and reaches the server; `*)(uid=*))(|(uid=*` is
   rejected by JNDI's own parser first, so it proves nothing about the fix

@@ -4,12 +4,12 @@
 
 Path Traversal in JavaScript/Node.js occurs when applications use unsanitized user input to construct file paths, allowing attackers to access files outside intended directories using sequences like `../`.
 
-**Primary Defence:** Use indirect reference mapping (mapping user IDs to files) rather than accepting direct file paths. When direct paths are necessary, validate against an allowlist and resolve paths to ensure they remain within the intended directory.
+**Primary Defence:** Use indirect reference mapping (mapping user IDs to files) rather than accepting direct file paths. When direct paths are necessary, resolve them and check they remain within the intended directory; an allowlist of names or extensions is added only where the application defines which files are legitimate.
 
 ## Key Principles
 
 - Use indirect reference mapping with IDs/tokens instead of accepting file paths from users
-- Validate all path inputs against strict allowlists of permitted files/directories
+- Resolve and contain every path input; an allowlist of permitted files or directories is a separate decision, for where the application defines them, and the write-up says what it rejects
 - Resolve and normalize paths, then compare real paths so symlinks cannot escape the base directory
 - Reject inputs containing path traversal sequences (`../`, `..\\`, encoded variants)
 - Apply principle of least privilege to file system permissions
@@ -26,7 +26,7 @@ Path Traversal in JavaScript/Node.js occurs when applications use unsanitized us
 - Validate the value the framework already decoded - Express populates `req.params`/`req.query` decoded, so a further `decodeURIComponent()` manufactures `../` and throws `URIError` on a malformed sequence such as `%c0%ae`
 - Use `fs.realpathSync.native()` (Node 9.2 and later) on both the candidate and the base before containment checks. Take care with `path.resolve()` for the construction itself: it processes segments right to left until it has an absolute path, so a user segment of `/etc/passwd` discards the base entirely - `path.join()` does not, which makes join the safer constructor and resolve the one needing a prior absolute-path rejection; `realpathSync` throws `ENOENT` for a destination that does not exist yet, so for an upload resolve the parent directory instead, check that, and require the supplied name to satisfy `path.basename(name) === name`
 - Verify the real requested path stays inside the real base directory using `path.relative()` - reject when the result is exactly `..`, starts with `'..' + path.sep`, or satisfies `path.isAbsolute()` - noting Node's documentation says of that function "it's not safe for mitigating path traversals", so it earns its place here only as a check on `path.relative`'s output after both sides have been resolved, never as a test on raw input; testing for a bare leading `..` also rejects a legitimate file named `..foo`
-- Implement allowlist validation for permitted file extensions and names
+- Where the application defines the permitted extensions or names, enforce that list and say so; do not add one for the fix alone
 - Sanitize input by rejecting `..`, null bytes, and encoded traversal attempts
 - Pass the `root` option to `res.sendFile()` and `res.download()`. Express documents that with `root`
   set the path may be relative and even contain `..`, and Express validates that it resolves inside
