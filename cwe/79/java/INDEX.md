@@ -7,7 +7,9 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 ## Key Principles
 
 - Always encode output based on context (HTML entity encoding for HTML content, JavaScript encoding for JS contexts, URL encoding for URLs)
-- Use the OWASP Java Encoder rather than custom sanitization, choosing the method for the context:
+- Use the OWASP Java Encoder (artifact `org.owasp.encoder:encoder`, class `org.owasp.encoder.Encode` -
+  not `org.owasp.html`, which is the sanitizer's package) rather than custom sanitization, choosing the
+  method for the context:
   `Encode.forHtml()`, `Encode.forHtmlAttribute()`, `Encode.forJavaScript()`, `Encode.forCssString()`,
   `Encode.forUriComponent()`. Spring's `HtmlUtils` is not an equivalent - it does HTML entity escaping
   only and has no attribute, JavaScript, URL or CSS method, so it cannot satisfy the context rule

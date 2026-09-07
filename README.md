@@ -121,4 +121,13 @@ agent with no web or MCP surface, and verify claims by building; identical froze
 0.05 lower on no_harm under that panel because it catches compile errors the reading panel passed,
 at about a third of the cost per write-up. So the rows for run 16 sit on a stricter scale than the
 rows above it, and the frozen control is what makes them comparable. See `evals/README.md` and
-`evals/RESULTS-v11.md` through `RESULTS-v16.md`.
+`evals/RESULTS-v11.md` through `RESULTS-v17.md`.
+
+Run 17 built the gate that prose could not: write-ups now carry every changed file in full, and a
+script applies them to the fixture and runs the language's compiler or type checker. On fresh
+Haiku 4.5 samples of both arms, 16 of 372 unguided and 18 of 372 guided fixes do not build - the
+same one in twenty either way, but in different shapes. The unguided arm invents helper methods and
+leaves Go variables unused; the guided arm reaches for the library the entry names and mis-imports
+it, and four of its failures traced to two entries (`cwe/94/java`, `cwe/79/java`) naming a class
+without its package, the first entry defects found by a compiler rather than a judge. Both are
+fixed. Run 17's judged scores are not in yet; its compile table is in `evals/RESULTS-v17.md`.
