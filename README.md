@@ -113,10 +113,17 @@ Haiku's fix-quality gains are largest where a language has a lot of library surf
 PHP 1.77 to 1.98, Go 1.58 to 1.78, Python 1.75 to 1.94, Java 1.73 to 1.87. Sonnet starts near the
 ceiling in those same languages and gains little, taking its improvement on no-harm in C# and
 JavaScript instead. C and C++ are near the ceiling for both models unguided, so guidance has
-almost nothing to add. Two languages lose ground and both are worth naming: Haiku's JavaScript
-no-harm falls 1.64 to 1.56, and Sonnet's Go no-harm falls 1.76 to 1.71, in each case on fixes that
-swap a library and change what the caller receives. Perl is four cases and moves on one write-up,
-so read it as noise. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
+almost nothing to add. Three cells lose ground and all are worth naming. Haiku's JavaScript no-harm
+falls 1.64 to 1.56 and Sonnet's Go no-harm falls 1.76 to 1.71, in each case on fixes that swap a
+library and change what the caller receives. Perl's fix quality falls for both models, 2.00 to
+1.83 and 2.00 to 1.75, and that one is a defect rather than sampling noise: all four Perl cases
+are CWE-79, and on one of them every guided write-up produced
+`encode_entities($cgi->param('note'))`. Perl's `param()` returns every value of a repeated
+parameter in list context, so `?note=<payload>&note=q` calls `encode_entities('<payload>', 'q')`,
+where the second value becomes the unsafe-character set and the payload is emitted unescaped -
+confirmed here against real HTML::Entities. The entry named list context and the second argument
+separately without ever connecting them, and prescribed the vulnerable shape; it now prescribes
+forcing scalar context. Unmeasured, since it postdates the run. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
 
 ### How the entries got here: runs 17 to 19
 
