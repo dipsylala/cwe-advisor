@@ -50,9 +50,7 @@ that `references/cwe-identifier.md` stays in sync with the CWE directories under
 ## Validation harness
 
 `evals/` (the case corpus, harness runbook, and past run results) is a separate repo,
-[cwe-advisor-evals](https://github.com/dipsylala/cwe-advisor-evals), linked in here as a git
-submodule so a plain clone of this repo - which is what using the skill actually requires - stays
-small. Using the skill needs nothing under `evals/`; only editing entries and wanting to validate a
+[cwe-advisor-evals](https://github.com/dipsylala/cwe-advisor-evals). Using the skill needs nothing under `evals/`; only editing entries and wanting to validate a
 change against the harness does. To fetch it: `git submodule update --init` (or clone this repo with
 `--recurse-submodules`).
 
