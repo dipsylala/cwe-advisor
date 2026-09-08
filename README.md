@@ -63,8 +63,8 @@ the caller depended on (a dropped argument, a changed return value, an endpoint 
 for legitimate use).
 
 Scores are only comparable within a run. Each run fixes one arm model and one judge panel, and a
-number from one run should not be read against a number from another - the sections below say
-which panel produced each table.
+number from one run should not be read against a number from another, including the earlier runs
+recorded in `evals/`.
 
 ### Current measurement: runs 20 and 21
 
@@ -131,42 +131,9 @@ HTML::Entities. The entry named list context and the second argument separately 
 connecting them, and prescribed the vulnerable shape; it now prescribes forcing scalar context.
 Unmeasured, since it postdates the run. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
 
-### How the entries got here: runs 17 to 19
-
-These runs used Haiku 4.5 arms and Sonnet 5 judges. That panel scores no-harm more leniently than
-the current one, so these numbers sit higher than run 21's and the two sets are not comparable;
-what they show is movement within a fixed panel.
-
-Run 17 is the baseline the entries were shaped against: guidance took fix quality
-from 1.80 to 1.91 with no-harm level at 1.76 against 1.74. The compile gate found 16 unguided and
-18 guided fixes that do not build, caught eleven the judge panel had passed unanimously, and turned
-up two entries naming a class without its package (`cwe/94/java`, `cwe/79/java`), both fixed.
-
-Two targeted runs then edited the entries against the judge notes and re-sampled the guided arm on
-every case whose entry changed - 179 of the 372, with run 17's unguided text kept as the frozen
-control. Run 18 named the package of every third-party class the Java entries recommend and made
-allowlists conditional in the CWE-22, 77, 78 and 90 entries. Run 19 went through every remaining
-guided loss in the notes: the CWE-78 language files had prescribed a TCP probe "instead of ping",
-which changes what reachable means; the CWE-22 files still prescribed a `..` test beside a
-containment check; seven C# and JDK namespaces were missing; a dozen API shapes the judges had
-verified against real packages were absent. Each edit was verified against the library before it
-was written, and two more entry defects were found by the run's own notes (Commons Net's
-`FTPClient` frames nothing; `SimpleEvaluationContext` has no `setRootObject`).
-
-Taking each case's most recent guided text against run 17's control, those edits moved fix quality
-from 1.80 to 1.92 and no-harm from 1.76 to 1.82, with clean write-ups going 256 to 288 and guided
-build failures 18 to 7. The per-language detail is in `evals/RESULTS-v19.md`; the table above is
-the one to read for current per-language figures, since these runs used the older judge panel.
-
-What moved was every loss an entry could name - a namespace, a placeholder syntax, "ping has no
-library equivalent" - and what did not was the arm inventing a member on the fixture's own type,
-swapping the language of stored rules (CWE-94), or changing a constructor's signature and saying
-so, which the rubric scores as a change all the same. The composite mixes three judge panels; the
-control's drift across them is 0.03 or less. See `evals/RESULTS-v18.md` and
-`evals/RESULTS-v19.md`.
-
-Sixteen earlier runs shaped the harness - the frozen unguided control, the stated contract in the
-judge's header, bundled judging by a restricted agent, the compile gate - and were removed at the
-run-17 boundary because the current corpus, format and judging no longer share a scale with them.
-They remain in the evals repository's git history, and `evals/HARNESS.md` keeps what they taught.
-See `evals/README.md` and `evals/RESULTS-v17.md`.
+Nineteen earlier runs built the harness and shaped the entries: the frozen unguided control, the
+stated contract in the judge's header, bundled judging by a restricted agent, the compile gate, and
+the entry sweeps that runs 18 and 19 measured. Runs 17 to 19 are recorded in the evals repository;
+runs 1 to 16 were removed at the run-17 boundary, where the corpus and format stopped sharing a
+scale with them, and remain in its git history. `evals/HARNESS.md` keeps what they all taught, and
+`evals/README.md` carries the per-run table.
