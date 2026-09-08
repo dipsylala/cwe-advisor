@@ -50,15 +50,23 @@ that `references/cwe-identifier.md` stays in sync with the CWE directories under
 ## Validation harness
 
 `evals/` (the case corpus, harness runbook, and past run results) is a separate repo,
-[cwe-advisor-evals](https://github.com/dipsylala/cwe-advisor-evals). Using the skill needs nothing under `evals/`; only editing entries and wanting to validate a
-change against the harness does. To fetch it: `git submodule update --init` (or clone this repo with
+[cwe-advisor-evals](https://github.com/dipsylala/cwe-advisor-evals). Using the skill needs
+nothing under `evals/`; only editing entries and wanting to validate a change against the
+harness does. To fetch it: `git submodule update --init` (or clone this repo with
 `--recurse-submodules`).
 
 Every run scores each fix on two axes, 0-2, averaged across three independent blind judges:
-**fix_quality** - does the fix actually close the reported vulnerability with an appropriate API for
-the sink - and **no_harm** - does it do that without silently breaking or changing something else
-the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
-for legitimate use).
+
+- **fix_quality** - does the fix actually close the reported vulnerability, using an API appropriate
+  to that sink? A fix that does not build scores 0, as does one that leaves the vector open. A fix
+  that closes it awkwardly, or with the wrong mechanism for the sink, scores 1.
+- **no_harm** - does it do that without breaking or changing anything else the caller depended on?
+  A dropped argument, a changed return value or response shape, an endpoint that stops working for
+  legitimate input, or a fix that closes one weakness and opens another. Two rules carry most of
+  the weight. Adding a restriction the contract never asked for - an allowlist, a length bound, a
+  newly required parameter - scores 1 even when the write-up states it. And stating a change that
+  stops legitimate use moves it from 0 to 1, never to 2: disclosure earns a point because a
+  reviewer or a gate can catch it before it ships, but it does not make the change harmless.
 
 Scores are only comparable within a run. Each run fixes one arm model and one judge panel, and a
 number from one run should not be read against a number from another, including the earlier runs
