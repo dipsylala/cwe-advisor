@@ -92,7 +92,31 @@ No-harm is the axis neither model handles well, guided or not, and the cause is 
 across three judge models: both models add a restriction the sink's contract never asked for - a
 hostname allowlist, a timeout, a size cap - and the rubric counts that as a change. The entries
 stopped prescribing that in run 18, and the arms supply it from their own priors, so editing the
-entries further will not move it. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
+entries further will not move it.
+
+By language, unguided to guided within each run:
+
+| Language | Cases | Sonnet fix_quality | Sonnet no_harm | Haiku fix_quality | Haiku no_harm |
+| --- | --- | --- | --- | --- | --- |
+| C | 22 | 1.95 → 2.00 | 1.86 → 1.95 | 1.91 → 1.89 | 1.77 → 1.74 |
+| C++ | 19 | 1.98 → 2.00 | 1.84 → 1.91 | 1.95 → 1.95 | 1.89 → 1.95 |
+| C# | 54 | 1.85 → 1.94 | 1.54 → 1.73 | 1.66 → 1.79 | 1.61 → 1.64 |
+| Go | 43 | 1.93 → 1.98 | 1.76 → 1.71 | 1.58 → 1.78 | 1.65 → 1.70 |
+| Java | 86 | 1.84 → 1.85 | 1.71 → 1.72 | 1.73 → 1.87 | 1.66 → 1.68 |
+| JavaScript | 48 | 1.91 → 1.99 | 1.59 → 1.75 | 1.78 → 1.88 | 1.64 → 1.56 |
+| Perl | 4 | 2.00 → 1.83 | 1.92 → 2.00 | 2.00 → 1.75 | 2.00 → 1.92 |
+| PHP | 44 | 2.00 → 1.95 | 1.77 → 1.76 | 1.77 → 1.98 | 1.68 → 1.76 |
+| Python | 52 | 2.00 → 1.96 | 1.69 → 1.74 | 1.75 → 1.94 | 1.62 → 1.71 |
+| All | 372 | 1.92 → 1.94 | 1.70 → 1.76 | 1.74 → 1.88 | 1.67 → 1.69 |
+
+Haiku's fix-quality gains are largest where a language has a lot of library surface to get wrong:
+PHP 1.77 to 1.98, Go 1.58 to 1.78, Python 1.75 to 1.94, Java 1.73 to 1.87. Sonnet starts near the
+ceiling in those same languages and gains little, taking its improvement on no-harm in C# and
+JavaScript instead. C and C++ are near the ceiling for both models unguided, so guidance has
+almost nothing to add. Two languages lose ground and both are worth naming: Haiku's JavaScript
+no-harm falls 1.64 to 1.56, and Sonnet's Go no-harm falls 1.76 to 1.71, in each case on fixes that
+swap a library and change what the caller receives. Perl is four cases and moves on one write-up,
+so read it as noise. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
 
 ### How the entries got here: runs 17 to 19
 
@@ -116,23 +140,10 @@ verified against real packages were absent. Each edit was verified against the l
 was written, and two more entry defects were found by the run's own notes (Commons Net's
 `FTPClient` frames nothing; `SimpleEvaluationContext` has no `setRootObject`).
 
-Taking each case's most recent guided text against the same control, by language - still Haiku 4.5
-arms and Sonnet 5 judges, so not comparable with the run 20 and 21 table above (clean = all three
-judges gave 2 on both axes; "does not build" is the compile gate; every column reads unguided
-to guided):
-
-| Language | Cases | fix_quality | no_harm | Clean | Does not build |
-| --- | --- | --- | --- | --- | --- |
-| C | 22 | 1.92 → 1.98 | 1.79 → 1.94 | 18 → 19 | 0 → 0 |
-| C++ | 19 | 1.88 → 2.00 | 1.84 → 1.91 | 16 → 18 | 1 → 1 |
-| C# | 54 | 1.73 → 1.94 | 1.68 → 1.78 | 34 → 40 | 2 → 2 |
-| Go | 43 | 1.79 → 1.98 | 1.67 → 1.81 | 28 → 34 | 6 → 0 |
-| Java | 86 | 1.78 → 1.84 | 1.80 → 1.75 | 56 → 59 | 4 → 4 |
-| JavaScript | 48 | 1.79 → 1.89 | 1.86 → 1.85 | 35 → 38 | 0 → 0 |
-| Perl | 4 | 1.50 → 2.00 | 1.50 → 2.00 | 3 → 4 | 1 → 0 |
-| PHP | 44 | 1.92 → 1.95 | 1.80 → 1.87 | 35 → 35 | 2 → 0 |
-| Python | 52 | 1.79 → 1.92 | 1.72 → 1.84 | 31 → 41 | 0 → 0 |
-| All | 372 | 1.80 → 1.92 | 1.76 → 1.82 | 256 → 288 | 16 → 7 |
+Taking each case's most recent guided text against run 17's control, those edits moved fix quality
+from 1.80 to 1.92 and no-harm from 1.76 to 1.82, with clean write-ups going 256 to 288 and guided
+build failures 18 to 7. The per-language detail is in `evals/RESULTS-v19.md`; the table above is
+the one to read for current per-language figures, since these runs used the older judge panel.
 
 What moved was every loss an entry could name - a namespace, a placeholder syntax, "ping has no
 library equivalent" - and what did not was the arm inventing a member on the fixture's own type,
