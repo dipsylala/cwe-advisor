@@ -117,9 +117,25 @@ same. Java is the one language still behind on no-harm, on the CWE-94 and CWE-43
 composite mixes three judge panels; the control's drift across them is 0.03 or less. See
 `evals/RESULTS-v18.md` and `evals/RESULTS-v19.md`.
 
+Runs 20 and 21 then measured a second model. Two fresh arm pairs on the same 372 cases, the same
+prompts and the same rubric, differing only in the arm model, so guidance and model strength can be
+read against each other:
+
+| Arm model | Unguided | Guided | fix_quality | no_harm | Does not build |
+| --- | --- | --- | --- | --- | --- |
+| Sonnet 5 (run 20) | 1.92 / 1.70 | 1.94 / 1.76 | +0.02 | +0.06 | 7 → 3 |
+| Haiku 4.5 (run 21) | 1.74 / 1.67 | 1.88 / 1.69 | +0.14 | +0.02 | 16 → 10 |
+
+Guidance recovers most of the distance between the two model tiers on fix quality. Unguided, Haiku
+trails Sonnet by 0.18; guided, by 0.06. Where the help lands depends on how much headroom the model
+has: Sonnet's fix quality is already saturated, with 343 of 372 cases tied between its arms, so its
+gain shows up on no-harm and on the compile gate instead, while Haiku takes it on fix quality. No-harm
+is the axis neither model handles well, guided or not, and the reason is consistent across three
+judge models now - both models add a restriction the sink's contract never asked for, and the rubric
+counts that as a change. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
+
 Sixteen earlier runs shaped the harness - the frozen unguided control, the stated contract in the
 judge's header, bundled judging by a restricted agent, the compile gate - and were removed at the
 run-17 boundary because the current corpus, format and judging no longer share a scale with them.
 They remain in the evals repository's git history, and `evals/HARNESS.md` keeps what they taught.
-Sonnet 5, on earlier corpora, saturated fix quality regardless of guidance and has not been
-measured on the current setup. See `evals/README.md` and `evals/RESULTS-v17.md`.
+See `evals/README.md` and `evals/RESULTS-v17.md`.
