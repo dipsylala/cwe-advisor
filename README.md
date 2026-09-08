@@ -62,77 +62,84 @@ the sink - and **no_harm** - does it do that without silently breaking or changi
 the caller depended on (a dropped argument, a changed return value, an endpoint that stops working
 for legitimate use).
 
-The baseline measurement is run 17 (September 2026): 372 cases across 27 CWEs and nine
-languages, both arms on Haiku 4.5, every fix applied to its fixture and built before judging,
-three blind Sonnet 5 judges per write-up.
+Scores are only comparable within a run. Each run fixes one arm model and one judge panel, and a
+number from one run should not be read against a number from another - the sections below say
+which panel produced each table.
 
-| Model | Corpus | No guidance - fix_quality | Guided - fix_quality | No guidance - no_harm | Guided - no_harm |
-| --- | --- | --- | --- | --- | --- |
-| Haiku 4.5 (run 17) | 372 cases | 1.80 | 1.91 | 1.76 | 1.74 |
+### Current measurement: runs 20 and 21
 
-Guidance is ahead on fix quality for 64 cases and behind on 22, with the gain concentrated on the
-harder cases (the contract-carrying top-15 set goes 1.73 to 1.91) and on CWE-94 (1.38 to 1.83).
-No-harm is level. The guided arm's no-harm losses sat in allowlists the CWE-77, 78 and 90 entries
-prescribed and the rubric scores as narrowing - resolved in run 18 by making allowlists a
-product decision rather than a default step - and in whole-file rewrites that changed something
-beside the sink. The compile gate found 16 unguided and 18 guided
-fixes that do not build, caught eleven the judge panel had passed unanimously, and turned up two
-entries naming a class without its package (`cwe/94/java`, `cwe/79/java`), both fixed.
+Two fresh arm pairs on the same 372 cases across 27 CWEs and nine languages, the same prompts and
+the same rubric, differing only in the arm model, so guidance and model strength can be read
+against each other. Every fix is applied to its fixture and built before judging. Judged off
+Sonnet, because a model scoring its own output has an obvious problem: Fable throughout run 20,
+and Fable plus Opus 5 in run 21 on a measured offset of 0.03.
 
-Two targeted runs then edited the entries against the judge notes and re-sampled the guided arm
-on every case whose entry changed - 179 of the 372, with run 17's unguided text kept as the
-frozen control. Run 18 named the package of every third-party class the Java entries recommend
-and made allowlists conditional in the CWE-22, 77, 78 and 90 entries. Run 19 went through every
-remaining guided loss in the notes: the CWE-78 language files had prescribed a TCP probe "instead
-of ping", which changes what reachable means; the CWE-22 files still prescribed a `..` test
-beside a containment check; seven C# and JDK namespaces were missing; a dozen API shapes the
-judges had verified against real packages were absent. Each edit was verified against the
-library before it was written, and two more entry defects were found by the run's own notes
-(Commons Net's `FTPClient` frames nothing; `SimpleEvaluationContext` has no `setRootObject`).
+| Arm model | fix_quality | no_harm | Does not build |
+| --- | --- | --- | --- |
+| Sonnet 5 (run 20) | 1.92 → 1.94 | 1.70 → 1.76 | 7 → 3 |
+| Haiku 4.5 (run 21) | 1.74 → 1.88 | 1.67 → 1.69 | 16 → 10 |
 
-Taking each case's most recent guided text against the same control, by language (clean = all
-three judges gave 2 on both axes; "does not build" is the compile gate, unguided / guided):
+Guidance recovers most of the distance between the two model tiers on fix quality. Unguided, Haiku
+trails Sonnet by 0.18; guided, by 0.06.
+
+Where the help lands depends on how much headroom the model has. Sonnet's fix quality is already
+saturated, with 343 of 372 cases tied between its arms, so its gain shows up on no-harm and on the
+compile gate instead, while Haiku takes it on fix quality. The two readings agree rather than
+conflict: the entries supply the right API for the sink, which a weaker model needs and a stronger
+one mostly knows, and contract discipline, which neither has by default.
+
+No-harm is the axis neither model handles well, guided or not, and the cause is now consistent
+across three judge models: both models add a restriction the sink's contract never asked for - a
+hostname allowlist, a timeout, a size cap - and the rubric counts that as a change. The entries
+stopped prescribing that in run 18, and the arms supply it from their own priors, so editing the
+entries further will not move it. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
+
+### How the entries got here: runs 17 to 19
+
+These runs used Haiku 4.5 arms and Sonnet 5 judges. That panel scores no-harm more leniently than
+the current one, so these numbers sit higher than run 21's and the two sets are not comparable;
+what they show is movement within a fixed panel.
+
+Run 17 is the baseline the entries were shaped against: guidance took fix quality
+from 1.80 to 1.91 with no-harm level at 1.76 against 1.74. The compile gate found 16 unguided and
+18 guided fixes that do not build, caught eleven the judge panel had passed unanimously, and turned
+up two entries naming a class without its package (`cwe/94/java`, `cwe/79/java`), both fixed.
+
+Two targeted runs then edited the entries against the judge notes and re-sampled the guided arm on
+every case whose entry changed - 179 of the 372, with run 17's unguided text kept as the frozen
+control. Run 18 named the package of every third-party class the Java entries recommend and made
+allowlists conditional in the CWE-22, 77, 78 and 90 entries. Run 19 went through every remaining
+guided loss in the notes: the CWE-78 language files had prescribed a TCP probe "instead of ping",
+which changes what reachable means; the CWE-22 files still prescribed a `..` test beside a
+containment check; seven C# and JDK namespaces were missing; a dozen API shapes the judges had
+verified against real packages were absent. Each edit was verified against the library before it
+was written, and two more entry defects were found by the run's own notes (Commons Net's
+`FTPClient` frames nothing; `SimpleEvaluationContext` has no `setRootObject`).
+
+Taking each case's most recent guided text against the same control, by language - still Haiku 4.5
+arms and Sonnet 5 judges, so not comparable with the run 20 and 21 table above (clean = all three
+judges gave 2 on both axes; "does not build" is the compile gate; every column reads unguided
+to guided):
 
 | Language | Cases | fix_quality | no_harm | Clean | Does not build |
 | --- | --- | --- | --- | --- | --- |
-| C | 22 | 1.92 → 1.98 | 1.79 → 1.94 | 18 → 19 | 0 / 0 |
-| C++ | 19 | 1.88 → 2.00 | 1.84 → 1.91 | 16 → 18 | 1 / 1 |
-| C# | 54 | 1.73 → 1.94 | 1.68 → 1.78 | 34 → 40 | 2 / 2 |
-| Go | 43 | 1.79 → 1.98 | 1.67 → 1.81 | 28 → 34 | 6 / 0 |
-| Java | 86 | 1.78 → 1.84 | 1.80 → 1.75 | 56 → 59 | 4 / 4 |
-| JavaScript | 48 | 1.79 → 1.89 | 1.86 → 1.85 | 35 → 38 | 0 / 0 |
-| Perl | 4 | 1.50 → 2.00 | 1.50 → 2.00 | 3 → 4 | 1 / 0 |
-| PHP | 44 | 1.92 → 1.95 | 1.80 → 1.87 | 35 → 35 | 2 / 0 |
-| Python | 52 | 1.79 → 1.92 | 1.72 → 1.84 | 31 → 41 | 0 / 0 |
-| All | 372 | 1.80 → 1.92 | 1.76 → 1.82 | 256 → 288 | 16 / 7 |
+| C | 22 | 1.92 → 1.98 | 1.79 → 1.94 | 18 → 19 | 0 → 0 |
+| C++ | 19 | 1.88 → 2.00 | 1.84 → 1.91 | 16 → 18 | 1 → 1 |
+| C# | 54 | 1.73 → 1.94 | 1.68 → 1.78 | 34 → 40 | 2 → 2 |
+| Go | 43 | 1.79 → 1.98 | 1.67 → 1.81 | 28 → 34 | 6 → 0 |
+| Java | 86 | 1.78 → 1.84 | 1.80 → 1.75 | 56 → 59 | 4 → 4 |
+| JavaScript | 48 | 1.79 → 1.89 | 1.86 → 1.85 | 35 → 38 | 0 → 0 |
+| Perl | 4 | 1.50 → 2.00 | 1.50 → 2.00 | 3 → 4 | 1 → 0 |
+| PHP | 44 | 1.92 → 1.95 | 1.80 → 1.87 | 35 → 35 | 2 → 0 |
+| Python | 52 | 1.79 → 1.92 | 1.72 → 1.84 | 31 → 41 | 0 → 0 |
+| All | 372 | 1.80 → 1.92 | 1.76 → 1.82 | 256 → 288 | 16 → 7 |
 
-Guidance is now ahead on both axes overall: fix quality on 63 cases against 19 behind, no-harm on
-62 against 46. The no-harm gap it opened in run 17 closed on the cases whose entries were edited
-(1.64 to 1.78 against a 1.79 control on run 19's 138), and the guided arm's build failures fell
-from 18 to 7, below the control's 16. What moved was every loss an entry could name - a
-namespace, a placeholder syntax, "ping has no library equivalent" - and what did not was the arm
-inventing a member on the fixture's own type, swapping the language of stored rules (CWE-94), or
-changing a constructor's signature and saying so, which the rubric scores as a change all the
-same. Java is the one language still behind on no-harm, on the CWE-94 and CWE-434 cases. The
-composite mixes three judge panels; the control's drift across them is 0.03 or less. See
-`evals/RESULTS-v18.md` and `evals/RESULTS-v19.md`.
-
-Runs 20 and 21 then measured a second model. Two fresh arm pairs on the same 372 cases, the same
-prompts and the same rubric, differing only in the arm model, so guidance and model strength can be
-read against each other:
-
-| Arm model | Unguided | Guided | fix_quality | no_harm | Does not build |
-| --- | --- | --- | --- | --- | --- |
-| Sonnet 5 (run 20) | 1.92 / 1.70 | 1.94 / 1.76 | +0.02 | +0.06 | 7 → 3 |
-| Haiku 4.5 (run 21) | 1.74 / 1.67 | 1.88 / 1.69 | +0.14 | +0.02 | 16 → 10 |
-
-Guidance recovers most of the distance between the two model tiers on fix quality. Unguided, Haiku
-trails Sonnet by 0.18; guided, by 0.06. Where the help lands depends on how much headroom the model
-has: Sonnet's fix quality is already saturated, with 343 of 372 cases tied between its arms, so its
-gain shows up on no-harm and on the compile gate instead, while Haiku takes it on fix quality. No-harm
-is the axis neither model handles well, guided or not, and the reason is consistent across three
-judge models now - both models add a restriction the sink's contract never asked for, and the rubric
-counts that as a change. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
+What moved was every loss an entry could name - a namespace, a placeholder syntax, "ping has no
+library equivalent" - and what did not was the arm inventing a member on the fixture's own type,
+swapping the language of stored rules (CWE-94), or changing a constructor's signature and saying
+so, which the rubric scores as a change all the same. The composite mixes three judge panels; the
+control's drift across them is 0.03 or less. See `evals/RESULTS-v18.md` and
+`evals/RESULTS-v19.md`.
 
 Sixteen earlier runs shaped the harness - the frozen unguided control, the stated contract in the
 judge's header, bundled judging by a restricted agent, the compile gate - and were removed at the
