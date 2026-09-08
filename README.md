@@ -113,17 +113,23 @@ Haiku's fix-quality gains are largest where a language has a lot of library surf
 PHP 1.77 to 1.98, Go 1.58 to 1.78, Python 1.75 to 1.94, Java 1.73 to 1.87. Sonnet starts near the
 ceiling in those same languages and gains little, taking its improvement on no-harm in C# and
 JavaScript instead. C and C++ are near the ceiling for both models unguided, so guidance has
-almost nothing to add. Three cells lose ground and all are worth naming. Haiku's JavaScript no-harm
-falls 1.64 to 1.56 and Sonnet's Go no-harm falls 1.76 to 1.71, in each case on fixes that swap a
-library and change what the caller receives. Perl's fix quality falls for both models, 2.00 to
-1.83 and 2.00 to 1.75, and that one is a defect rather than sampling noise: all four Perl cases
+almost nothing to add.
+
+Ten of the 36 cells lose ground, and the size separates them. Six move by 0.05 or less, among them
+Sonnet's PHP and Python fix quality, which start at exactly 2.00 unguided and so have nowhere to
+go but down; the largest of that group is Sonnet's Go no-harm, 1.76 to 1.71, on fixes that swap a
+library and change what the caller receives. Four moves are bigger, and one of those is Haiku's
+JavaScript no-harm, 1.64 to 1.56, the same library-swap shape.
+
+The other three are all Perl, and Perl is a defect rather than sampling noise. All four Perl cases
 are CWE-79, and on one of them every guided write-up produced
-`encode_entities($cgi->param('note'))`. Perl's `param()` returns every value of a repeated
-parameter in list context, so `?note=<payload>&note=q` calls `encode_entities('<payload>', 'q')`,
-where the second value becomes the unsafe-character set and the payload is emitted unescaped -
-confirmed here against real HTML::Entities. The entry named list context and the second argument
-separately without ever connecting them, and prescribed the vulnerable shape; it now prescribes
-forcing scalar context. Unmeasured, since it postdates the run. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
+`encode_entities($cgi->param('note'))`, which takes fix quality to 1.83 for Sonnet and 1.75 for
+Haiku. `param()` returns every value of a repeated parameter in list context, so
+`?note=<payload>&note=q` calls `encode_entities('<payload>', 'q')`, where the second value becomes
+the unsafe-character set and the payload is emitted unescaped - confirmed here against real
+HTML::Entities. The entry named list context and the second argument separately without ever
+connecting them, and prescribed the vulnerable shape; it now prescribes forcing scalar context.
+Unmeasured, since it postdates the run. See `evals/RESULTS-v20.md` and `evals/RESULTS-v21.md`.
 
 ### How the entries got here: runs 17 to 19
 
