@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Missing Authorization occurs when a code path performs a sensitive action or returns sensitive data without any check on whether the authenticated caller is permitted to do so - the check is absent, not wrong. The usual cause is an endpoint that verifies the caller is logged in but never checks role, permission, or resource ownership, or a new route never wired into the shared authorization middleware used by comparable routes. Remediate by adding an explicit check - role, permission, or ownership - on every sensitive path, through the same centralized mechanism used elsewhere.
+The check is absent, not wrong - where a check runs but its logic is flawed, CWE-863 is the entry. The two shapes are an endpoint that confirms the caller is logged in but never checks role, permission or ownership, and a new route never wired into the shared authorization mechanism its siblings use.
 
 ## Key Principles
 

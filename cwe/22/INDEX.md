@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Path Traversal occurs when applications use user-supplied input to construct file paths without proper validation, allowing attackers to access files outside the intended directory using sequences like `../`. The core fix is to never allow untrusted input to directly control filesystem paths; always canonicalize paths and enforce containment within an allowlisted root directory. Where the weakness is which file the user may select rather than escaping the directory, use CWE-73; where validation is bypassed by equivalent spellings of the same path, use CWE-41.
+Canonicalize first and then enforce containment within an allowlisted root; the order is what makes it work. Where the weakness is which file the user may select rather than escaping the directory, use CWE-73; where validation is bypassed by equivalent spellings of the same path, use CWE-41.
 
 ## Key Principles
 

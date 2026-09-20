@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-284 is the broad parent weakness for any failure to properly restrict access to a resource: authentication gaps, authorization logic errors, misconfigured access control lists (ACLs), leaked or over-broad capabilities, and resource-level permission models that don't map correctly to who should be allowed to do what. Where a finding names a more specific mechanism, remediate with that entry's targeted guidance instead: a missing or incorrect authorization check is CWE-285/862/863, missing authentication is CWE-306/287, and an object-reference bypass is CWE-639. MITRE marks CWE-284 Discouraged for mapping - it is a Pillar - so re-file the finding under the descendant the fix lands in rather than reporting this ID. Use this entry's guidance when the access-control failure doesn't fit a narrower category - for example, an ACL or capability model that grants access along the wrong dimension (by resource type instead of a specific resource, or via a capability the actor should no longer hold).
+Where a finding names a more specific mechanism, remediate with that entry's targeted guidance instead: a missing or incorrect authorization check is CWE-285/862/863, missing authentication is CWE-306/287, and an object-reference bypass is CWE-639. MITRE marks CWE-284 Discouraged for mapping - it is a Pillar - so re-file the finding under the descendant the fix lands in rather than reporting this ID. Use this entry's guidance when the access-control failure doesn't fit a narrower category - for example, an ACL or capability model that grants access along the wrong dimension (by resource type instead of a specific resource, or via a capability the actor should no longer hold).
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when an application accepts uploaded files without validating their type, content, or storage location, allowing an attacker to upload an executable script, a web shell, or a file with active content (such as HTML or SVG carrying script). It is especially severe when uploads land inside the webroot where the server will execute or directly serve them. The core fix is to allowlist permitted file types by inspecting actual content, store files outside the webroot under a generated name, and never execute uploaded content.
+The severity turns on two things the finding will not state: where the file lands - inside the webroot the server may execute or serve it directly - and whether the type check reads the bytes or trusts what the client declared.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-An out-of-bounds read happens when a program reads data past the end, or before the beginning, of an allocated buffer or array, typically from a missing bounds check, an off-by-one condition, or a length or offset value taken from untrusted input without validation. It is almost exclusive to languages without automatic bounds checking, such as C and C++; managed languages instead throw an exception on out-of-range access. The fix is to validate the index, offset, and length against the buffer's actual size, checking both directions, before every read.
+Validate the index, offset and length against the buffer's actual size, checking both directions, before every read. Managed languages throw on an out-of-range access, so this is a C and C++ concern.
 
 ## Key Principles
 

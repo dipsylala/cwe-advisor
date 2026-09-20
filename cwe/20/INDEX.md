@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper Input Validation occurs when applications fail to enforce constraints on externally supplied data before use. While validation alone doesn't prevent all vulnerabilities, its absence allows unexpected or malformed values to reach security-sensitive logic, enabling SQL injection, XSS, command injection, and other attacks. Static analysis flags CWE-20 when code accepts external input without clear type, range, format, or semantic constraints. MITRE marks CWE-20 Discouraged for mapping, so treat the finding as a pointer to the lower-level weakness that actually applies rather than as the finding itself.
+MITRE marks CWE-20 Discouraged for mapping, so treat the finding as a pointer to the lower-level weakness that actually applies rather than as the finding itself.
 
 ## Key Principles
 

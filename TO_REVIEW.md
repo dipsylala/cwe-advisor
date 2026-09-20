@@ -151,6 +151,41 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
   different job and was not attempted here. The remaining wave-2 CWEs (94, 434, 502, 22) will make
   this worse before it gets better.
 
+## Redundancy pass
+
+Started 2026-09-20 on the `LLM Guidance` section of the top-20 roots. The measurement that prompted
+it: across all 192 roots that section is 15,826 words, 18% of all root-file text, mean 82 each - and
+only 35% of it carries anything repo-specific. Three separate entries open by restating their own
+title in the same words (`cwe/321`, `cwe/259`, `cwe/798` on hard-coded secrets), and in each the
+actionable form is already Key Principle 1.
+
+**The argument is not context economy.** SKILL.md Step 2 loads one root file, so cutting 82 words
+saves about 110 tokens per invocation against a language file of 600-900. The argument is
+contradiction surface: every instance of the "steps argue with the sections above them" shape this
+campaign found was a contradiction *from* `LLM Guidance` or `Key Principles` - `94/java` recommending
+SpEL that its principles reject, `434/csharp` prescribing `Path.GetRandomFileName()` that its
+principles forbid, `352/go` still adding `gorilla/csrf`, `78` in five files. Prose that restates what
+the model already knows earns nothing and can still go stale and contradict.
+
+**Rule applied**: keep routing, scope boundaries, mapping status, and the one decision that frames
+the fix; delete the definition of the weakness and anything `Key Principles` already states. Nothing
+was added except where an entry's siblings already routed to it and it did not route back.
+
+Top 20 done: 2143 -> 1259 words, 41% cut. The entries that barely moved are the ones earning their
+length - `cwe/78` (the incidental-versus-feature decision and the `ping` example, which is the most
+valuable content in that entry), `cwe/120`, `cwe/122`, `cwe/284` and `cwe/200`, all of which are
+mostly routing already.
+
+One correction made mid-pass worth recording: the first draft for `cwe/79` swapped a definition for a
+restatement of its own Key Principle 2, which is not a win. What was actually missing there was the
+routing - `cwe/80` and `cwe/83` both route *up* to 79 and 79 routed nowhere - so it now names the
+tag-injection and attribute cases. Check the replacement against the rest of the file, not only
+against what it replaced.
+
+Not yet done: the remaining 172 roots, and the eight over-length language files. The next eval run is
+the check on whether any of this moved fix quality; the prediction is that it did not, since the
+language file does that work.
+
 ## Findings log
 
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth

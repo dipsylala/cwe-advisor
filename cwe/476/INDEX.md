@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A null pointer dereference happens when code reads, writes, or calls through a pointer, reference, or object handle that turns out to be null, nil, or None, causing a crash or, in unmanaged languages, undefined behavior. It typically stems from a value that can legitimately be null - a failed lookup, an uninitialized field, an optional return, an unchecked external response - being used without first confirming it is present. The fix is not just a check at the crash site; trace the value back to where it can become null and decide whether to fix the producer's contract or handle the absence at every call site that can receive it. Where the language has null-safety features (non-nullable types, optional/option wrappers, compiler-enforced nil checks), prefer those over manual runtime checks.
+The fix is not a check at the crash site. Trace the value back to where it can become null and decide whether to correct the producer's contract or handle the absence at every call site that can receive it; where the language has non-nullable types or optional wrappers, prefer those over a manual runtime check.
 
 ## Key Principles
 

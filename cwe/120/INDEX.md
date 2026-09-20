@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-120 is the general, classic form of a buffer overflow: a copy or format operation writes data into a fixed-size buffer with no check that the source fits the destination's real capacity. MITRE scopes this ID broadly, and in practice most scanners and CWE Top 25 tallies report the more specific consequence weakness instead - CWE-787 (Out-of-bounds Write) for the write itself, CWE-121 (Stack-based Buffer Overflow) when the destination is confirmed to be a local/stack variable, or CWE-122 (Heap-based Buffer Overflow) when it is an allocation. This entry does not duplicate that remediation guidance; it routes a finding reported directly against CWE-120 to whichever of those entries matches the destination's actual storage location.
+MITRE scopes this ID broadly, and in practice most scanners and CWE Top 25 tallies report the more specific consequence weakness instead - CWE-787 (Out-of-bounds Write) for the write itself, CWE-121 (Stack-based Buffer Overflow) when the destination is confirmed to be a local/stack variable, or CWE-122 (Heap-based Buffer Overflow) when it is an allocation. This entry does not duplicate that remediation guidance; it routes a finding reported directly against CWE-120 to whichever of those entries matches the destination's actual storage location.
 
 ## Key Principles
 

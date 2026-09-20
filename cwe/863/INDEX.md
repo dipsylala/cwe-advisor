@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Incorrect Authorization occurs when an authorization check exists but its logic is flawed, letting an attacker satisfy a condition the developer did not intend. Common causes are denylist role checks that fail open on unexpected values, checks that validate resource type but not resource ownership, inverted or short-circuited boolean logic, and checks applied on some code paths but not others (an alternate HTTP method, a bulk endpoint, or a client-only check the server never repeats). This differs from CWE-862 (Missing Authorization), where no check exists at all - here the fix is to correct the logic, not add a missing check. It also overlaps with but is broader than CWE-639/IDOR: CWE-639 is specifically a user-controlled object identifier selecting another user's data, while CWE-863 covers the wider class of flawed authorization logic, including role and permission checks, control-flow gaps, and boolean errors.
+A check exists and its logic is wrong - where no check exists at all, CWE-862 is the entry, and the fix there is to add one rather than to correct one. This is broader than CWE-639/IDOR, which is specifically a user-controlled object identifier selecting another user's data; CWE-863 also covers role and permission logic, control-flow gaps, and boolean errors.
 
 ## Key Principles
 

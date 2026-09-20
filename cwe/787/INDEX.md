@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Out-of-bounds write occurs when a program writes data past the end, or before the start, of its allocated buffer, corrupting adjacent memory instead of failing safely. It typically stems from a missing bounds check, an incorrect size calculation, or a copy or format function that is not told the destination's real capacity. This is primarily a manual-memory-management issue in languages that allow raw pointer or unchecked array access; the fix is to validate every write against the destination's actual capacity and prefer bounds-checked abstractions over raw pointer or index arithmetic.
+Validate every write against the destination's real allocated capacity, never against a length the input supplied - the two are equal only when nobody is trying.
 
 ## Key Principles
 

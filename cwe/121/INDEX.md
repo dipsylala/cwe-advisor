@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A stack-based buffer overflow happens when more data is written into a fixed-size, stack-allocated buffer than it was declared to hold, corrupting adjacent stack memory including, potentially, the saved return address. It is specific to languages without automatic bounds checking on buffer writes, primarily C and C++. The fix is to validate the incoming data's length against the destination buffer's actual capacity before every copy, and to prefer copy or format functions that enforce a size limit over ones that do not.
+Validate the incoming length against the destination buffer's declared capacity before every copy, and prefer copy or format functions that enforce a size limit. Specific to C and C++, where buffer writes carry no bounds check.
 
 ## Key Principles
 

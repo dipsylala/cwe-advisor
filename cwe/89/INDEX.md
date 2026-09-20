@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-SQL Injection occurs when untrusted data is incorporated into SQL queries without proper sanitization, allowing attackers to manipulate query logic, access unauthorized data, or execute administrative operations. The core fix is to use parameterized queries (prepared statements) so user input is always treated as data, not query structure. For NoSQL or document-store query injection (operator injection, filter object manipulation), use CWE-943 instead.
+The fix is a parameterized query, so that input is data rather than query structure. For NoSQL or document-store query injection (operator injection, filter object manipulation), use CWE-943 instead.
 
 ## Key Principles
 

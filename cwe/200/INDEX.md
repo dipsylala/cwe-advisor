@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Information exposure occurs when applications reveal sensitive data to unauthorized users through error messages, APIs, configuration files, or exposed resources. Information that appears harmless individually (user enumeration, timing differences, stack traces) can be combined to enable sophisticated attacks like account compromise. Never return sensitive or internal information to clients unless explicitly required for their authorized function. MITRE marks CWE-200 Discouraged for mapping, because confidentiality loss is an impact rather than a root cause, so re-file the finding under whatever error disclosed the data. Treat this entry as a router: where the finding names a mechanism, use that page instead - response or API payload (CWE-201), error message or stack trace (CWE-209), debugging code (CWE-215), personal information (CWE-359), system information (CWE-497), log file (CWE-532), or a backup/config/VCS file reachable in the webroot (CWE-538).
+MITRE marks CWE-200 Discouraged for mapping, because confidentiality loss is an impact rather than a root cause, so re-file the finding under whatever error disclosed the data. Treat this entry as a router: where the finding names a mechanism, use that page instead - response or API payload (CWE-201), error message or stack trace (CWE-209), debugging code (CWE-215), personal information (CWE-359), system information (CWE-497), log file (CWE-532), or a backup/config/VCS file reachable in the webroot (CWE-538).
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Cross-Site Scripting (XSS) occurs when untrusted data is included in web pages without proper validation or encoding, allowing attackers to inject malicious scripts that execute in victims' browsers. The vulnerability can appear in various contexts including HTML content, attributes, JavaScript, CSS, or URLs.
+Encode at each output sink for the context the value lands in; one stored value is often rendered into several. Where the finding is narrower, a sibling carries it: plain tag injection into element content is CWE-80, and a value landing in an attribute - especially an `on*` handler or a URI-valued `href`/`src` - is CWE-83, where the attribute is parsed twice and body encoding is not enough. Use this entry for everything else.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insecure Deserialization occurs when applications deserialize untrusted data without validation, allowing attackers to manipulate serialized objects to execute arbitrary code, modify logic, or access unauthorized data. Formats like Java ObjectInputStream, Python pickle, PHP serialize(), and .NET BinaryFormatter can instantiate arbitrary classes during deserialization. Never allow untrusted data to be deserialized into executable objects; enforce integrity and type safety before object creation.
+Ask who else speaks the format before changing it - the decoder is rarely the only party. The fix that preserves the wire format is disabling object construction in the decoder; a format swap is a separate, breaking migration.
 
 ## Key Principles
 

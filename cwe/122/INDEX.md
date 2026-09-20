@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A heap-based buffer overflow writes past the end of a buffer obtained from an allocator - `malloc`, `calloc`, `realloc`, `new[]`, or a container's internal storage - rather than one living in a stack frame. The missing check and the fix are the same as any other out-of-bounds write, so the remediation, taint sinks and safe replacement APIs are CWE-787's and this entry does not repeat them. What differs is what gets corrupted and therefore what finds the bug: there is no saved return address or stack canary next to the buffer, so the damage lands in allocator metadata or in a neighbouring allocation, and a build that would have aborted on a stack smash runs on quietly. Use this entry for the heap-specific part - the allocation size calculation and the detection strategy - and CWE-787 for the fix itself.
+The missing check and the fix are the same as any other out-of-bounds write, so the remediation, taint sinks and safe replacement APIs are CWE-787's and this entry does not repeat them. What differs is what gets corrupted and therefore what finds the bug: there is no saved return address or stack canary next to the buffer, so the damage lands in allocator metadata or in a neighbouring allocation, and a build that would have aborted on a stack smash runs on quietly. Use this entry for the heap-specific part - the allocation size calculation and the detection strategy - and CWE-787 for the fix itself.
 
 ## Key Principles
 

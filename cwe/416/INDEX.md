@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A use-after-free occurs when a program continues to access memory or a handle-like reference after the underlying allocation has been released, potentially reading or writing memory that has since been reallocated for an unrelated object - which can corrupt data, crash the process, or be exploited for arbitrary code execution. It commonly arises from a stale pointer left after a free, a resource freed while another component still holds and later dereferences it, or a callback or asynchronous operation that outlives the object it references. The fix is to guarantee no reference to a released allocation is ever dereferenced, primarily by giving each allocation a single owner whose lifetime bounds every use of it. Nulling the pointer after release is a secondary measure - it turns a stray later use into an immediate fault, but it reaches only the one variable that was nulled.
+Give each allocation a single owner whose lifetime bounds every use of it. Nulling the pointer after release is a secondary measure - it turns a stray later use into an immediate fault, but it reaches only the one variable that was nulled.
 
 ## Key Principles
 

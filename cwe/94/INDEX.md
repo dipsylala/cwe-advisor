@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Code injection occurs when applications dynamically generate and execute code using untrusted input, allowing attackers to inject arbitrary code that executes within the application's runtime with full access to internals, variables, functions, database connections, and secrets. Unlike command injection, which executes OS commands, code injection executes in the application's own language context. The question that separates this from its neighbours: is the attacker supplying *source text to be evaluated* (CWE-94), *a serialized object graph* (CWE-502, where the fix is a data-only format or a restricted loader), or *a format string* (CWE-134, which reads state rather than executing)? Common vulnerable patterns include eval-style dynamic code evaluation functions, embedded scripting-engine invocation, and unsafe template rendering.
+The question that separates this from its neighbours: is the attacker supplying *source text to be evaluated* (CWE-94), *a serialized object graph* (CWE-502, where the fix is a data-only format or a restricted loader), or *a format string* (CWE-134, which reads state rather than executing)? Unlike command injection, the execution happens in the application's own language context rather than a shell.
 
 ## Key Principles
 
