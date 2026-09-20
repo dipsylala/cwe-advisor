@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A C stack buffer is a local array with no runtime awareness of its own size: `char buffer[64]` tells the compiler how much space to reserve, and nothing stops `strcpy(buffer, input)` writing 200 bytes into it. The causes are copy and format functions with no destination-size parameter (`gets`, `strcpy`, `strcat`, `sprintf`) and manual loops with an off-by-one or an unchecked source length. Replace the unbounded call with a size-aware equivalent (`fgets`, `snprintf`, `strlcpy`/`strlcat` where available) and validate the input length against the destination's real declared size before copying.
+A C stack buffer is a local array with no runtime awareness of its own size: `char buffer[64]` tells the compiler how much space to reserve, and nothing stops `strcpy(buffer, input)` writing 200 bytes into it. The causes are copy and format functions with no destination-size parameter (`gets`, `strcpy`, `strcat`, `sprintf`) and manual loops with an off-by-one or an unchecked source length. Replace the unbounded call with a size-aware equivalent (`fgets`, `snprintf`, `strlcpy`/`strlcat` on BSD, macOS and glibc 2.38+) and validate the input length against the destination's real declared size before copying.
 
 ## Key Principles
 
@@ -28,5 +28,5 @@ A C stack buffer is a local array with no runtime awareness of its own size: `ch
 - Identify the unsafe pattern - a copy or format whose size is determined by the source rather than the destination, or a loop bound with `<=`
 - Replace with the safe pattern - `fgets` for line input, `snprintf` for formatting and concatenation, `memcpy` after an explicit length check
 - Bind, encode, validate, or authorize - reject input where `len >= sizeof(dest)` instead of truncating, and report the rejection
-- Harden configuration - build with `-fstack-protector-strong` and `-D_FORTIFY_SOURCE=3` at `-O1` or higher (glibc activates it only when `__OPTIMIZE__` is set, so at `-O0` it silently does nothing; needs GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+, fall back to `=2` on older toolchains)
+- Harden configuration - build with `-fstack-protector-strong` and `-D_FORTIFY_SOURCE=3` at `-O1` or higher: glibc activates fortification only when `__OPTIMIZE__` is set and otherwise emits `#warning _FORTIFY_SOURCE requires compiling with optimization (-O)`, so a `-O0` build is checking nothing. Level 3 also covers sizes known only at run time and wants GCC 12+ with glibc 2.35+ or Clang 9+ with glibc 2.33+; glibc degrades `=3` to level 2 with a warning where that is not met, so set `=3` unconditionally
 - Test - run under `-fsanitize=address,undefined` with normal, exactly-capacity, and oversized input, and confirm from the sanitizer output that no out-of-bounds write occurred rather than that nothing visibly crashed

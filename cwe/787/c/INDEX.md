@@ -14,7 +14,7 @@ C performs no bounds checking on array access or pointer arithmetic, so a write 
 - Validate `offset <= buf_len` first and then `length <= buf_len - offset`, in that order, so the subtraction cannot underflow
 - Valid indices are `0` to `size - 1`: a loop written `i <= size` writes one element past the end of every buffer it touches
 - `sizeof(dest)` gives the capacity only where `dest` is an array in the current scope. Once the buffer arrives as a `char *` parameter, `sizeof` yields the pointer's own size - typically 8 - so an `snprintf`/`strlcpy` written that way silently truncates to seven characters while looking correct; pass the capacity as its own parameter alongside the pointer
-- `_FORTIFY_SOURCE` and stack canaries are hardening layers that catch mistakes where the size is statically known; they are not a substitute for the check
+- `_FORTIFY_SOURCE` and stack canaries are hardening layers, not a substitute for the check; a canary aborts at return, after the write has already happened
 
 ## Taint Sinks
 
@@ -27,5 +27,5 @@ C performs no bounds checking on array access or pointer arithmetic, so a write 
 - Identify the unsafe pattern - a write whose size comes from the source or from a length field in the data, an `i <= size` loop bound, or an unchecked `count * sizeof(T)` before allocation
 - Replace with the safe pattern - `snprintf`/`strlcpy` with `sizeof(dest)`, an explicit length check before `memcpy`, and `calloc`/`reallocarray` for element-count allocations
 - Bind, encode, validate, or authorize - clamp the length to the smaller of the source's available bytes and the destination's capacity, and reject rather than truncate when it does not fit. The exception is a log or audit record: discarding the whole entry because a username was long loses the event, so write the truncated line with a marker or enlarge the buffer, and return the `snprintf` result so the caller can tell
-- Harden configuration - build with `-Wall -Wextra -Wformat-security -D_FORTIFY_SOURCE=3` at `-O1` or higher (glibc activates it only when `__OPTIMIZE__` is set, so at `-O0` it silently adds nothing); level 3 also checks sizes known only at run time, and needs GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+, so fall back to `=2` on older toolchains
+- Harden configuration - build with `-Wall -Wextra -Wformat-security -D_FORTIFY_SOURCE=3` at `-O1` or higher: glibc activates fortification only when `__OPTIMIZE__` is set and otherwise emits `#warning _FORTIFY_SOURCE requires compiling with optimization (-O)`, so a `-O0` build is checking nothing. Level 3 also covers sizes known only at run time and wants GCC 12+ with glibc 2.35+ or Clang 9+ with glibc 2.33+; glibc degrades `=3` to level 2 with a warning where that is not met, so set `=3` unconditionally
 - Test - run under `-fsanitize=address,undefined` and Valgrind with normal, exactly-capacity, and oversized inputs, and fuzz any parser of untrusted input; confirm from the sanitizer output that no out-of-bounds write occurred

@@ -26,5 +26,5 @@
 - Identify the unsafe pattern - a non-literal format argument, or a format built by concatenation
 - Replace with the safe pattern - move the data to the argument list behind a literal `"%s"`
 - Bind, encode, validate, or authorize - where the format must vary, look it up from a fixed allowlist of literals by an enum or key
-- Harden configuration - build with `-Wformat -Wformat-security -Wformat-nonliteral -Werror` and `-D_FORTIFY_SOURCE=3` at `-O2` or higher (GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; fall back to `=2` on older toolchains, which still catches `%n` in writable memory), and annotate variadic wrappers with the `format` attribute
+- Harden configuration - build with `-Wformat -Wformat-security -Wformat-nonliteral -Werror` and `-D_FORTIFY_SOURCE=3` at `-O2` or higher (GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; an unsupported toolchain degrades it to level 2 with a `#warning _FORTIFY_SOURCE > 2 is treated like 2 on this platform`, so `=3` is safe to set unconditionally, which still catches `%n` in writable memory), and annotate variadic wrappers with the `format` attribute
 - Test - pass `%x%x%x%x`, `%7$x`, `%n`, and `%2000000000s` through every logging and message path and confirm they are printed literally rather than interpreted

@@ -26,5 +26,5 @@
 - Identify the unsafe pattern - a call whose signature has no way to receive the destination's size
 - Replace with the safe pattern - `fgets` for line input, `snprintf` for formatting, and an explicit length check before `memcpy`
 - Bind, encode, validate, or authorize - treat a truncated read as invalid input: drain the rest of the line and reject, rather than processing the fragment
-- Harden configuration - add a lint or compiler-diagnostic rule so a new call fails the build, and enable `-Wall -Wextra -D_FORTIFY_SOURCE=3` at `-O2` or higher (GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; fall back to `=2` on older toolchains)
+- Harden configuration - add a lint or compiler-diagnostic rule so a new call fails the build, and enable `-Wall -Wextra -D_FORTIFY_SOURCE=3` at `-O2` or higher (GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; an unsupported toolchain degrades it to level 2 with a `#warning _FORTIFY_SOURCE > 2 is treated like 2 on this platform`, so `=3` is safe to set unconditionally)
 - Test - under `-fsanitize=address`, feed a line longer than the buffer and assert the input is rejected and the remainder is not parsed as a second line; feed EOF with no data and assert the failure path is taken

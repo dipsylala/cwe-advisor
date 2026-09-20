@@ -25,5 +25,5 @@ This appears as pointer arithmetic (`ptr + offset`, `ptr++`) or array indexing (
 - Identify the unsafe pattern - a pointer formed before the offset is checked, a check written on the formed pointer, or a loop bounded with `<=`
 - Replace with the safe pattern - validate the integer offset against the size, then form the pointer, then use it
 - Bind, encode, validate, or authorize - clamp or reject an offset that exceeds the buffer, and pass the size alongside the pointer through every layer
-- Harden configuration - build with `-Wall -Wextra -D_FORTIFY_SOURCE=3` at `-O1` or higher (needs GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; fall back to `=2` on older toolchains) and test under `-fsanitize=address,undefined`
+- Harden configuration - build with `-Wall -Wextra -D_FORTIFY_SOURCE=3` at `-O1` or higher (needs GCC 12+ with glibc 2.35+, or Clang 9+ with glibc 2.33+; an unsupported toolchain degrades it to level 2 with a `#warning _FORTIFY_SOURCE > 2 is treated like 2 on this platform`, so `=3` is safe to set unconditionally) and test under `-fsanitize=address,undefined`
 - Test - pass offsets of `-1`, `0`, `size - 1`, `size`, and a very large value, and confirm the out-of-range ones are refused rather than clamped silently; also confirm `offset == size` with a zero length is accepted - that is a legitimate empty read, not a boundary to reject
