@@ -66,14 +66,14 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 6 | 22 | Path Traversal | csharp, go, java, javascript, php, python | same | - | - | - |
 | 7 | 416 | Use After Free | c, cpp | same | - | - | - |
 | 8 | 125 | Out-of-bounds Read | c, cpp | same | done (3/3 read) | 2026-09-20 | 1 found, 1 fixed |
-| 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | - | - | - |
+| 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 7 found, 0 fixed |
 | 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 22 found, 0 fixed |
 | 11 | 120 | Classic Buffer Overflow | none (router to 121/787) | no FFG page | done (1/1 read) | 2026-09-20 | 0 findings |
 | 12 | 434 | Unrestricted File Upload | csharp, go, java, javascript, php, python | same | - | - | - |
 | 13 | 476 | NULL Pointer Dereference | c, cpp, java | none (root page only) | done (4/4 read) | 2026-09-20 | 5 found, 5 fixed |
 | 14 | 121 | Stack-based Buffer Overflow | c, cpp | same | done (3/3 read) | 2026-09-20 | 3 found, 3 fixed |
 | 15 | 502 | Deserialization of Untrusted Data | csharp, go, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 13 found, 0 fixed |
-| 16 | 122 | Heap-based Buffer Overflow | no entry | no FFG page | resolved | 2026-09-20 | absence deliberate; see log |
+| 16 | 122 | Heap-based Buffer Overflow | router entry, added | no FFG page | done (1/1) | 2026-09-20 | entry created |
 | 17 | 863 | Incorrect Authorization | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 9 found, 6 fixed |
 | 18 | 20 | Improper Input Validation | none | none | done (1/1 read) | 2026-09-20 | 3 found, 3 fixed |
 | 19 | 284 | Improper Access Control | none | none | done (1/1 read) | 2026-09-20 | 1 found, 1 fixed |
@@ -95,18 +95,26 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
   the unnamed children including the heap variant `122`, so `122` having no entry is deliberate and
   nothing routes to a missing file. `_FORTIFY_SOURCE` is `=3` everywhere with the right toolchain
   caveat. One divergence remains open, below.
+- **Taint Sinks naming the framework's own fix APIs** - DONE 2026-09-20 for the `862`/`863` family
+  (12 files). `CLAUDE.md` allows the names to stay, because grepping for them is how the routes that
+  *do* carry a check get found, but requires the entry to say what a hit is not. Only `863/csharp`
+  did, for one name. Each list now ends with a sentence separating the sinks proper (route and
+  handler registrations; the sources) from the fix APIs and the values correct code returns. The same
+  audit has not been run on any other family.
 - **79 vs 80 vs 83** share an XSS sink vocabulary; 80 and 83 are out of scope by rank but a change
   to 79's sink list has to stay consistent with them.
 - **22 vs 41 vs 73** likewise for path handling.
 
 ## Open questions
 
-- CWE-122 (rank 16) has no entry in either corpus, and `cwe/787/INDEX.md` deliberately covers the
-  heap variant, so nothing is missing for a developer who already knows to read 787. What is missing
-  is the way in: `references/cwe-identifier.md` has no CWE-122 row, because `scripts/lint.py` errors
-  on a row with no matching `cwe/` directory, so SKILL.md Step 1 cannot resolve "CWE-122" or
-  "heap overflow" at all. A router entry the shape of `cwe/120/INDEX.md` (~200 words) would close
-  that. Decision needed; not taken.
+- ~~CWE-122 router entry~~ - DONE 2026-09-20. `cwe/122/INDEX.md` written on `cwe/120`'s routing model:
+  it defers the write itself to CWE-787 and carries only what is specific to a heap destination - the
+  allocation arithmetic, `realloc`'s shrink-and-invalidate behaviour, and the detection point that
+  matters (`-fstack-protector-strong` guards a frame, so it does nothing here; ASan's redzones are
+  what find it). MITRE has CWE-122 as ALLOWED at Variant level, unlike its Discouraged ancestors, so
+  the entry says a finding filed there stays there. `references/cwe-identifier.md` now has the row,
+  and `cwe/120` and `cwe/787` were updated to route to it rather than around it - including `120`'s
+  LLM Guidance and its last Key Principle, which my own first edit left naming only 121/787.
 - **`-O1` vs `-O2` for `_FORTIFY_SOURCE`, across the whole C family.** `121/c`, `125/c`, `787/c` and
   `823/c` say `-O1` or higher; `134/c`, `170/c`, `242/c` and `477/c` say `-O2` or higher. glibc's
   `features.h` gates only on `__OPTIMIZE__ > 0`, which `-O1` satisfies, so activation is settled -
@@ -115,6 +123,14 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
   normalised on an unverified claim.
 - CWE-20, 284 and 200 (ranks 18-20) are root-only in both corpora. Confirm that is deliberate
   before treating the missing language files as a gap.
+
+## Known debt from this campaign
+
+- **Three language files are over the ~800 word guideline and this campaign put them there**:
+  `cwe/862/java` 909 (was 821), `cwe/863/java` 863 (was 728), `cwe/862/csharp` 838 (was 740). The
+  linter does not fail until 950, so nothing is broken, but the additions were correctness fixes
+  applied on top of files that were already dense. They want a trim pass by someone reading for
+  redundancy rather than for defects - which is a different job and was not attempted here.
 
 ## Findings log
 
@@ -160,10 +176,30 @@ Other applied findings worth carrying:
   cwe.mitre.org). Both entries routed correctly but never said the ID should not be the reported one,
   so an autonomous write-up would keep it.
 
-**Not applied, and the reason: volume.** `cwe/94` came back with 22 confirmed defects and `cwe/502`
-with 13, each traced to a runtime or a vendor source. Those are remediation jobs in their own right,
-not a triage pass - see the wave-1 files. Four agents (22, 78, 434, and one still running) had not
-reported when this was written.
+**Not applied, and the reason is volume.** `cwe/94` returned 22 confirmed defects, `cwe/434` 17,
+`cwe/502` 13, `cwe/22` 8 and `cwe/78` 7, each traced to a runtime or a vendor source. Those are five
+remediation jobs, not a triage pass - see the wave-1 files.
+
+One of them is worth pulling out here because it is a new shape rather than a new instance.
+`cwe/78/python` tells the model that CPython's security-considerations section advises passing
+`shell=True` for a Windows batch file with untrusted arguments "so Python can escape the special
+characters". The docs do say exactly that ("consider passing shell=True to allow Python to escape
+special characters", citing gh-114539). It does not work. Reproduced on 3.13.12 against a `.bat`
+echoing `%1`, with the payload `x"&echo INJECTED&"`:
+
+```text
+shell=False   ARG IS: "x\"     INJECTED      <- the injected echo ran
+shell=True    ARG IS: "x\"     INJECTED      <- byte-identical
+```
+
+`list2cmdline` escapes the quote as `\"`, which `cmd.exe` does not honour, and `shell=True` adds a
+`cmd.exe /c` wrapper over the same escaping rather than any additional quoting. So the entry is
+faithfully relaying its vendor's own incorrect advice, and it licenses the `shell=True` the root
+entry forbids - while the same file's next-but-one bullet states the correct position (a `.bat`
+re-enters `cmd.exe`, so an argument list gives no protection; invoke the wrapped executable instead).
+CLAUDE.md's rule already covers this - a vendor doc establishes that a rule exists, not that it
+produces the claimed result - but every instance so far has been a *paraphrase* going wrong. This one
+is accurate to the source and still false, which is the case that rule does not yet name.
 
 Process note for the next wave: the agents were substantially right. Every claim spot-checked here -
 the Java reproductions, the aspnetcore source, the Spring Security jar diff, the Python regex, the

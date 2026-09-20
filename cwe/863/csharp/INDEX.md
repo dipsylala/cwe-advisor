@@ -17,6 +17,8 @@ In ASP.NET Core, Incorrect Authorization usually shows up as a check that valida
 
 `[Authorize(Roles = "...")]`, `ClaimsPrincipal.IsInRole()`, `User.FindFirstValue()`, `IAuthorizationService.AuthorizeAsync()`, `AuthorizationHandlerContext.Succeed()`
 
+Every name here is a supported ASP.NET Core API, and `IsInRole` appears in Microsoft's own resource-based handler sample. They are listed because the flawed decision lives inside one of them, so a hit is a place to read the logic, never a finding on its own.
+
 ## Remediation Steps
 
 - Locate - Find role or permission checks using string comparison (`user.IsInRole(...)`, `role != "Admin"`, custom `if` blocks) and any resource lookups that never check an owner/tenant field. `IsInRole` is the supported claims-based check and appears in Microsoft's own handler samples, so its presence is not itself the finding - the missing ownership comparison beside it is

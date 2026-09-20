@@ -14,7 +14,7 @@ Out-of-bounds write occurs when a program writes data past the end, or before th
 - Use sanitizers and fuzzing during development to catch bounds violations before release
 - The inversion is the weakness: a length arriving in a packet header, a file field, or a protocol frame is a claim about how much data was *sent*, never a statement about how much room there is to put it, and the two are equal only when nobody is trying
 - Report at this level rather than the Discouraged parent CWE-119 once the direction of the access is known - and where the corrupted memory is a stack buffer, CWE-121 is the closer fit
-- The unnamed children are the shapes to recognize: an unbounded copy into a fixed destination (CWE-120), the same overflow on the heap (CWE-122), write-what-where (CWE-123), and a write *before* the start of the buffer (CWE-124)
+- The children are the shapes to recognize: an unbounded copy into a fixed destination (CWE-120) and the same overflow on the heap (CWE-122), both of which have their own entries routing back here for the fix; write-what-where (CWE-123) and a write *before* the start of the buffer (CWE-124), which do not and are covered by this one
 
 ## Remediation Steps
 

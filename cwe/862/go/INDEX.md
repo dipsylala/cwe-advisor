@@ -19,6 +19,8 @@ Go has no single dominant web framework, so Missing Authorization commonly appea
 
 `http.HandleFunc()`, `http.Handle()`, `ServeMux.HandleFunc()`, `grpc.ChainUnaryInterceptor()`, `status.Errorf()`, `codes.PermissionDenied`, `sql.ErrNoRows`
 
+The handler registrations are the sinks. The rest are the fix and its results - `ChainUnaryInterceptor` installs the check, and `status.Errorf`, `codes.PermissionDenied` and `sql.ErrNoRows` are values correct code returns - so they are listed to locate the routes that already deny, not as findings.
+
 ## Remediation Steps
 
 - Locate - Identify HTTP handlers, gRPC service methods, and background job entry points that perform sensitive actions or return sensitive data

@@ -19,6 +19,8 @@ In Laravel and similar PHP frameworks, Incorrect Authorization commonly appears 
 
 `Gate::authorize()`, `Gate::allows()`, `Gate::policy()`, `$user->can()`, `middleware('can:...')`, `$request->input()`
 
+`$request->input()` is the source; the rest are Laravel's own authorization API and this entry's fix, so a hit is a place to read the Policy method rather than a finding.
+
 ## Remediation Steps
 
 - Locate - Find Policy methods or inline controller checks using loose `!=`/`!==` role comparisons, and Policy calls that pass a class name where the ability expects a loaded instance

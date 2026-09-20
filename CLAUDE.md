@@ -214,7 +214,15 @@ defect. Each rule below is a shape that recurred, stated as the check that would
   on deserialization and only hides it from the response, while `READ_ONLY` is the one that blocks
   incoming writes; confirmed by compiling and running both against real Jackson jars, only after a
   second opinion flagged it. A name that sounds intuitively right for the desired behavior is not
-  evidence for it.
+  evidence for it. And the doc itself can be wrong: `cwe/78/python` relayed CPython's
+  security-considerations section accurately - "consider passing `shell=True` to allow Python to
+  escape special characters" for a Windows batch file with untrusted arguments, citing gh-114539 -
+  and on 3.13.12 `shell=True` is byte-identical to `shell=False`, injection and all, because
+  `list2cmdline` escapes a quote as `\"` which `cmd.exe` does not honour and `shell=True` only adds a
+  `cmd.exe /c` wrapper over the same escaping. Every earlier instance of this rule was a paraphrase
+  going wrong; this one was faithful to its source and still false. Where a runtime is reachable, the
+  reproduction outranks the vendor, and a doc that survives the reproduction is worth citing *as* the
+  reproduction rather than instead of it.
 - **An argument array closes shell-metacharacter injection but not option/flag injection.**
   Recurred across four instances in three separate batches: `676/c` (`execve` with an argument
   array still lets a leading `-` be read as a flag by the target program); `1426/python`
@@ -237,6 +245,19 @@ defect. Each rule below is a shape that recurred, stated as the check that would
   `unserialize(..., ['allowed_classes' => false])`, gob into a narrow DTO). When an entry's primary
   fix replaces a format, protocol or API, ask who else speaks it; if they are not in the diff, the
   format-preserving fix is the primary and the swap is a separately stated migration.
+- **Read the `Remediation Steps` against the `Key Principles` and against the entry's own `Test`
+  bullet, not each on its own.** This is now the most productive single check in the corpus: three
+  instances across fourteen files, each internally plausible, none findable by a grep. `cwe/352/go`
+  had moved its guidance to `net/http.CrossOriginProtection` while its steps still said to add
+  `csrf.Protect(...)` from the library the same file calls unfixable, and its test still probed for
+  tokens the new fix does not use. Six files across the `cwe/862` and `cwe/863` pair prescribed a
+  load-then-compare authorization check, which answers 403, under a test bullet asserting the 404 of
+  an owner-scoped lookup no step prescribed - so the prescribed fix ships the existence oracle the
+  root forbids and then fails the entry's own test. All seven `cwe/78` files carry the `--` /
+  cannot-start-with-dash half of the option-injection fix in `Key Principles` and in none of their
+  `Remediation Steps`. The asymmetry is consistent: principles get updated, steps do not, and the
+  steps are the half an LLM executes. When a primary defence changes, the edit is not finished until
+  the steps and the test name the same mechanism.
 
 ## Maintenance Workflow
 

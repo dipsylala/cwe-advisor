@@ -21,6 +21,8 @@ In Django REST Framework, Incorrect Authorization commonly appears as a `permiss
 
 `has_permission()`, `has_object_permission()`, `check_object_permissions()`, `get_object()`, `get_queryset()`, `perform_create()`, `permission_classes`, `request.data`, `request.user`
 
+`request.data` is the source and `request.user` the trusted identity this entry tells you to read instead. The DRF permission methods are where the flawed decision lives, so a hit is a place to read the comparison, not a finding on its own.
+
 ## Remediation Steps
 
 - Locate - Find `BasePermission` subclasses that implement `has_permission` only, and any inline `!=` role comparisons in views

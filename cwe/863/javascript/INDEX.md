@@ -18,6 +18,8 @@ In Express and similar Node.js frameworks, Incorrect Authorization commonly appe
 
 `req.body`, `req.query`, `req.user`, `jwt.decode()`, `jwt.verify()`, `Array.prototype.includes()`, `router.use()`
 
+`req.body` and `req.query` are sources. `jwt.decode()` is a genuine sink where it stands in for verification. `jwt.verify()`, `req.user` and `Array.prototype.includes()` are the fix this entry prescribes, listed to find the routes that decide differently; a hit on them is not the finding.
+
 ## Remediation Steps
 
 - Locate - Find middleware or route handlers reading role/user data from `req.body`, `req.query`, or a decoded-without-verification token, and any inline role comparisons standing in for a shared check

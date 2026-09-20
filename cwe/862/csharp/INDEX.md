@@ -20,6 +20,8 @@ In ASP.NET Core, Missing Authorization typically appears as a controller action 
 
 `[HttpGet]`, `[HttpPost]`, `[HttpPut]`, `[HttpDelete]` actions, `app.MapGet()`, `app.MapPost()`, `MapHub()` registrations, `[Authorize]`, `.RequireAuthorization()`, `IAuthorizationService.AuthorizeAsync()`
 
+The registrations are the sinks; `[Authorize]`, `.RequireAuthorization()` and `AuthorizeAsync()` are the fix, listed to find the routes without one. A hit on them is not the finding.
+
 ## Remediation Steps
 
 - Locate - Identify controller actions, Minimal API route handlers, and SignalR hubs that perform sensitive operations or return sensitive data

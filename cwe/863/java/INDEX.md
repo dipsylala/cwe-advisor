@@ -20,6 +20,8 @@ In Spring applications, Incorrect Authorization commonly appears as `@PreAuthori
 
 `@PreAuthorize`, `@PostAuthorize`, `@Secured`, `@EnableMethodSecurity`, `SecurityContextHolder.getContext()`, `Authentication.getName()`, `authorizeHttpRequests`
 
+These are Spring Security's own APIs: the flawed decision is inside the expression, so a hit is a place to read the logic rather than a finding - except `@PostAuthorize` on a method that writes.
+
 ## Remediation Steps
 
 - Locate - Find `@PreAuthorize`/`@Secured` annotations that check role only, and any custom filters with inline `if` role comparisons

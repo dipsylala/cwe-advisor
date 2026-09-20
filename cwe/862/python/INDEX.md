@@ -22,6 +22,8 @@ In Django and Django REST Framework, Missing Authorization typically appears as 
 
 `permission_classes`, `has_permission()`, `has_object_permission()`, `check_object_permissions()`, `get_object()`, `get_queryset()`, `perform_create()`, `@api_view`, `@permission_required`, `login_required`
 
+`@api_view` and the view registrations are the sinks; the DRF permission surface, `@permission_required` and `login_required` are the fix, listed to find the views lacking them. A hit is not the finding.
+
 ## Remediation Steps
 
 - Locate - Identify Django views, DRF `ViewSet`/`APIView` methods, and Celery task entry points that perform sensitive actions or return sensitive data

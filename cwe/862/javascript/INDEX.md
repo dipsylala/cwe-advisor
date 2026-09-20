@@ -19,6 +19,8 @@ In Express and similar Node.js frameworks, Missing Authorization typically appea
 
 `router.get()`, `router.post()`, `router.put()`, `router.delete()`, `app.use()`, `socket.on()`, `io.use()`, `socket.use()`, `@UseGuards()`, `req.user`
 
+The route and socket registrations are the sinks. `@UseGuards()` and `req.user` are the fix and the verified identity it depends on, listed so a route without a guard stands out against the routes with one; a hit on either is not the finding.
+
 ## Remediation Steps
 
 - Locate - Identify Express routes, GraphQL resolvers, and Socket.IO event handlers that perform sensitive actions or return sensitive data. Confirm what populates `req.user` - Express defines no such property, and express-jwt has placed the payload on `req.auth` rather than `req.user` since v7

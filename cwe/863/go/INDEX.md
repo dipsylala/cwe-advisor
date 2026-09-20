@@ -17,6 +17,8 @@ In Go handlers, Incorrect Authorization typically appears as an inline role comp
 
 `r.Header.Get()`, `r.Header.Values()`, `jwt.Parse()`, `jwt.ParseWithClaims()`, `jwt.WithValidMethods()`, `http.StatusForbidden`, `r.Context().Value()`
 
+`r.Header.Get()`, `r.Header.Values()` and `r.Context().Value()` are sources - a client-supplied role is the taint. The rest are the fix or its result: `jwt.WithValidMethods()` is the option this entry prescribes and `http.StatusForbidden` is the status it tells you to return, so a hit on those means the code is already right.
+
 ## Remediation Steps
 
 - Locate - Find handlers that read a role or permission (`r.Header.Get(...)`, JWT claims, session values) and compare it inline, and note which sibling handlers for the same resource skip the check. `Header.Get` returns only the first value for a key and `""` for an absent one, so a duplicated role header collapses silently and an empty header is indistinguishable from none - use `Header.Values` where more than one may arrive

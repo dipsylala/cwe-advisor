@@ -21,6 +21,8 @@ In Spring applications, Missing Authorization typically appears as a `@RestContr
 
 `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`, `@RequestMapping`, `@PreAuthorize`, `@Secured`, `@RolesAllowed`, `authorizeHttpRequests`, `@EnableMethodSecurity`
 
+The mappings are the sinks; the annotations, `authorizeHttpRequests` and `@EnableMethodSecurity` are the fix, listed to find the methods lacking them. A hit is not the finding.
+
 ## Remediation Steps
 
 - Locate - Identify `@RestController`/`@Controller` methods and service methods that perform sensitive actions or return sensitive data

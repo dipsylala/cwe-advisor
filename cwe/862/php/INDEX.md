@@ -20,6 +20,8 @@ In Laravel, Missing Authorization typically appears as a controller method reach
 
 `Route::get()`, `Route::post()`, `Route::put()`, `Route::delete()`, `Gate::authorize()`, `Gate::allows()`, `Gate::policy()`, `middleware('can:...')`, `denyAccessUnlessGranted()`
 
+The `Route::` registrations are the sinks. `Gate::authorize()`, `Gate::allows()`, `Gate::policy()`, `middleware('can:...')` and `denyAccessUnlessGranted()` are the fix, listed so an unprotected route stands out against the protected ones; a hit on them is not the finding.
+
 ## Remediation Steps
 
 - Locate - Identify controller methods, form request classes, and API actions that perform sensitive operations or return sensitive data
