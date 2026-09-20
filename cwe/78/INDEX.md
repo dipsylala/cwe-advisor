@@ -27,3 +27,4 @@ Where executing a command is the purpose of the code rather than a means to an e
 - Remove all shell patterns and string concatenation in command construction
 - Add validation only where the value has a format the application owns (a hostname, an interface name, a report id); enforce that format and say what it rejects. A pattern chosen for security alone rejects legitimate values (an IPv6 address, a filename with a space) and is a regression, not a defence
 - Apply least privilege principles to any remaining process execution
+- Test - send command separators, a newline, substitution syntax such as `$(...)`, and a value beginning with `-`, and assert on the arguments the invoked program actually received rather than on the absence of an error; confirm a legitimate awkward value still works

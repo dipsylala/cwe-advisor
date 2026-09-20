@@ -6,11 +6,11 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Key Principles
 
-- Replace all exec(), system(), shell_exec(), passthru(), and backtick calls with PHP built-in function alternatives
+- Decide first whether the command is incidental or the feature: incidental means replacing `exec()`/`system()`/`shell_exec()`/`passthru()`/backticks with the PHP function that does the work natively; the feature case means it stays and the work is executing it safely
 - Use copy(), rename(), unlink(), mkdir() for file operations instead of system commands
 - Use cURL functions or file_get_contents() for HTTP requests instead of curl/wget commands
 - `ping` has no PHP equivalent: ICMP means `socket_create(AF_INET, SOCK_RAW, ...)` with root or `CAP_NET_RAW`, or on Linux `SOCK_DGRAM` with the ICMP protocol where `net.ipv4.ping_group_range` admits the process's group, and then the echo, timing and output the tool produced - a rewrite, not a function call - while `fsockopen()` is a TCP connect that answers a different question (a host that replies to ping with the probed port closed now reads unreachable). Keep the `ping` binary, run it through `proc_open()` in array form with the host as its own element and the count flag fixed, and return the output the caller had
-- Neither `escapeshellarg()` nor `escapeshellcmd()` is a primary defence, and they are not interchangeable: `escapeshellcmd()` escapes metacharacters but does not quote, so the value can still split into extra arguments - treat a finding closed with it as still open. `escapeshellarg()` does quote, but its quoting is platform-dependent and correct only for the shell it targets
+- Neither `escapeshellarg()` nor `escapeshellcmd()` is a primary defence, and they are not interchangeable: `escapeshellcmd()` escapes metacharacters but does not quote, so the value can still split into extra arguments - treat a finding closed with it as still open. `escapeshellarg()` does quote, but its quoting is platform-dependent and correct only for the shell it targets - and on Windows it does not merely quote differently, it replaces `%`, `!` and `"` with spaces, so `100%!x"y` arrives as `100  x y` and a legitimate value is silently altered
 - Never concatenate user input into command strings
 - Only use proc_open() as a last resort with an argument array; the array form requires PHP 7.4 or later, below which only a string is accepted. On Windows the `bypass_shell` option in `options` avoids the `cmd.exe` wrapper and has no effect on Linux or macOS; note the manual treats the array form as itself opening the process without a shell, so the two are one mechanism rather than two independent guards
 - Prefer `Symfony\Component\Process\Process` constructed with an array of arguments over a hand-rolled `proc_open()` - it builds the argument vector itself and reaches a shell only via `Process::fromShellCommandline()`
@@ -29,8 +29,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Locate command execution - Identify all exec(), system(), shell_exec(), passthru(), backtick, and proc_open() instances
 - Determine the operation's purpose - Understand what the command is trying to accomplish
 - Find the PHP function alternative - Use copy/rename for file ops, cURL for HTTP; there is none for `ping`
-- Replace process execution - Delete exec()/system()/shell_exec() code and use the appropriate PHP function
+- Replace process execution - where that decision was to replace, delete the call and use the PHP function that does the same work; confirm it returns what the original did
 - For unavoidable commands - use `proc_open()` with an argument array on PHP 7.4 or later, which is
-  itself what avoids the shell; `bypass_shell` matters only for the Windows string-command form.
-  Validate all inputs
-- Test thoroughly - Verify the PHP function replacement provides the same functionality
+  itself what avoids the shell; `bypass_shell` matters only for the Windows string-command form. Validate the value only where the application owns its format, and say what that rejects - a pattern chosen for security alone rejects legitimate values and is a regression
+- Test - send `;`, `&&`, a newline, `$(id)` and a leading `-` as argument values, asserting on the arguments the child received rather than on the absence of an error, and confirm one legitimate awkward value (a path with a space, an IPv6 address) still works

@@ -6,7 +6,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Key Principles
 
-- Replace all child_process.exec(), child_process.spawn(), and child_process.execFile() calls with Node.js module alternatives
+- Decide first whether the command is incidental or the feature: incidental means replacing the `child_process` call with the Node module that does the work natively; the feature case means it stays and the work is executing it safely
 - Use fs or fs.promises for file operations instead of system commands
 - Use fetch, http, or https modules for HTTP requests instead of curl/wget
 - `net` is a TCP client, not a ping: Node has no ICMP without a native addon, so a `net.connect()` probe changes what "reachable" means for a host that answers ping with the probed port closed. Keep `ping` as the command and run it with `execFile('ping', [...])`, the host as its own array element and the count flag fixed, returning the output the caller had
@@ -18,13 +18,13 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Taint Sinks
 
-`child_process.exec()`, `child_process.execSync()`, `child_process.spawn()` (with `shell: true`), `child_process.execFile()`
+`child_process.exec()`, `child_process.execSync()`, `child_process.spawn()`, `child_process.spawnSync()`, `child_process.execFile()`, `child_process.execFileSync()`
 
 ## Remediation Steps
 
 - Locate command execution - Identify all child_process.exec(), spawn(), execFile() instances
 - Determine the operation's purpose - Understand what the command is trying to accomplish
 - Find the Node.js module alternative - Use fs for file ops, fetch/https for HTTP; there is none for `ping`
-- Replace process execution - Delete child_process code and use the appropriate Node.js module
-- For unavoidable commands - Use execFile() with argument array and no shell option, validate all inputs
-- Test thoroughly - Verify the Node.js module replacement provides the same functionality
+- Replace process execution - where that decision was to replace, delete the `child_process` call and use the Node module that does the same work; confirm it returns what the original did
+- For unavoidable commands - Use execFile() with argument array and no shell option, validate only where the application owns the value's format, and say what that rejects
+- Test - send `;`, `&&`, a newline, `$(id)` and a leading `-` as argument values, asserting on the arguments the child received rather than on the absence of an error, and confirm one legitimate awkward value (a path with a space, an IPv6 address) still works

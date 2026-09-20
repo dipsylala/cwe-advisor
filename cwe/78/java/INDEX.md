@@ -6,7 +6,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Key Principles
 
-- Replace all Runtime.exec() and ProcessBuilder calls with Java standard library alternatives
+- Decide first whether the command is incidental or the feature: incidental means replacing `Runtime.exec()`/`ProcessBuilder` with the Java library that does the work natively; the feature case means it stays and the work is executing it safely
 - Use java.nio.file.Files for file operations (copy, move, delete) instead of system commands
 - Use java.net.http.HttpClient or HttpURLConnection for HTTP requests instead of curl/wget
 - Use java.util.zip for archive operations instead of tar/zip commands
@@ -29,6 +29,6 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Locate command execution - Identify all Runtime.exec() and ProcessBuilder instances
 - Determine the operation's purpose - Understand what the command is trying to accomplish
 - Find the Java library alternative - Use Files API for file ops, HttpClient for HTTP. There is none for `ping`: `InetAddress.isReachable()` sends ICMP only when the JVM holds the privilege and otherwise tries a TCP connection to port 7, which almost nothing answers, so it reports reachable hosts as unreachable - keep `ping` under `ProcessBuilder` with the host as its own list element
-- Replace process execution - Delete Runtime.exec()/ProcessBuilder code and use the appropriate Java library
-- For unavoidable commands - Use ProcessBuilder with separate arguments (never shell), validate all inputs
-- Test thoroughly - Verify the Java library replacement provides the same functionality
+- Replace process execution - where that decision was to replace, delete the `Runtime.exec()`/`ProcessBuilder` call and use the Java library that does the same work; confirm it returns what the original did
+- For unavoidable commands - Use ProcessBuilder with separate arguments (never shell), validate only where the application owns the value's format, and say what that rejects
+- Test - send `;`, `&&`, a newline, `$(id)` and a leading `-` as argument values, asserting on the arguments the child received rather than on the absence of an error, and confirm one legitimate awkward value (a path with a space, an IPv6 address) still works

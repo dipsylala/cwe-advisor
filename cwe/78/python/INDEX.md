@@ -6,16 +6,19 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Key Principles
 
-- Replace all subprocess, os.system(), and os.popen() calls with Python standard library alternatives
+- Decide first whether the command is incidental or the feature: incidental means replacing `subprocess`/`os.system()`/`os.popen()` with the Python library that does the work natively; the feature case means it stays and the work is executing it safely
 - Use pathlib and shutil for file operations (copy, move, delete) instead of system commands
 - Use requests or urllib for HTTP requests instead of curl/wget
 - `socket` has no ping: ICMP means `SOCK_RAW` (root or `CAP_NET_RAW`) or, on Linux, `SOCK_DGRAM` with `IPPROTO_ICMP` where `net.ipv4.ping_group_range` admits the process's group, and then the echo, sequence and timing the tool did - a rewrite, not a library call; a `socket.create_connection()` probe is a TCP check with a different answer for a host that replies to ping with the probed port closed. Keep `ping` as the command: `subprocess.run(['ping', '-c', '4', host], ...)` with the host as its own list element, returning the output the caller had
 - Never concatenate user input into command strings
 - Default to `shell=False` with an argument list; where a shell is used it becomes the caller's job to
-  quote every metacharacter, which is the actual source of the injection. Treat this as a strong
-  default rather than an absolute, because CPython's own security-considerations section recommends
-  the opposite in one case: for a Windows batch file with untrusted arguments it advises passing
-  `shell=True` so Python can escape the special characters
+  quote every metacharacter, which is the actual source of the injection. CPython's own
+  security-considerations section makes one exception - for a Windows batch file with untrusted
+  arguments it says to "consider passing `shell=True` to allow Python to escape special characters" -
+  and the implementation does not do that. `list2cmdline()` runs on an argument list either way and
+  `shell=True` only wraps the result in `cmd.exe /c`, so the two are byte-identical, injection
+  included (reproduced on 3.13.12). Do not take that advice; the bullet below is the answer for a
+  batch target
 - Only use subprocess as a last resort with argument lists and shell=False
 - On Windows, a `.bat`/`.cmd` target re-enters `cmd.exe`, which parses the command line itself; Python leaves that to the caller, so `shell=False` plus an argument list gives no protection there. Invoke the executable the batch file wraps instead
 - `shlex.quote()` is a shell-quoting helper, not a substitute for `shell=False`; reach for it only when
@@ -35,13 +38,13 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Taint Sinks
 
-`subprocess.run()`, `subprocess.call()`, `subprocess.Popen()`, `os.system()`, `os.popen()`
+`subprocess.run()`, `subprocess.call()`, `subprocess.check_call()`, `subprocess.check_output()`, `subprocess.Popen()`, `os.system()`, `os.popen()`
 
 ## Remediation Steps
 
 - Locate command execution - Identify all subprocess, os.system(), os.popen() instances
 - Determine the operation's purpose - Understand what the command is trying to accomplish
 - Find the Python library alternative - Use pathlib/shutil for file ops, requests for HTTP; there is none for `ping`
-- Replace process execution - Delete subprocess/os.system code and use the appropriate Python library
-- For unavoidable commands - Use subprocess.run() with argument list and shell=False, validate all inputs
-- Test thoroughly - Verify the Python library replacement provides the same functionality
+- Replace process execution - where that decision was to replace, delete the call and use the Python library that does the same work; confirm it returns what the original did
+- For unavoidable commands - Use subprocess.run() with argument list and shell=False, validate only where the application owns the value's format, and say what that rejects
+- Test - send `;`, `&&`, a newline, `$(id)` and a leading `-` as argument values, asserting on the arguments the child received rather than on the absence of an error, and confirm one legitimate awkward value (a path with a space, an IPv6 address) still works

@@ -6,7 +6,7 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 
 ## Key Principles
 
-- Replace all Process.Start() and ProcessStartInfo calls with .NET Framework class alternatives
+- Decide first whether the command is incidental or the feature: incidental means replacing `Process.Start()`/`ProcessStartInfo` with the .NET class that does the work natively; the feature case means it stays and the work is executing it safely
 - Use System.IO.File and System.IO.Directory for file operations instead of system commands
 - Use System.Net.Http.HttpClient for HTTP requests instead of curl/wget
 - `System.Net.NetworkInformation.Ping` is ICMP, so it can replace the `ping` command - but `ping -n 4` sends four echoes and prints a per-reply table, while `Ping.Send()` sends one and returns a `PingReply`. Loop the count and keep the response shape the caller parsed; where the tool's output is itself the feature, keep the `ping` binary under `ArgumentList` instead
@@ -41,6 +41,6 @@ OS Command Injection occurs when untrusted data is incorporated into operating s
 - Locate command execution - Identify all Process.Start() and ProcessStartInfo instances
 - Determine the operation's purpose - Understand what the command is trying to accomplish
 - Find the .NET class alternative - Use System.IO for file ops, HttpClient for HTTP, Ping for network
-- Replace process execution - Delete Process.Start() code and use the appropriate .NET class
-- For unavoidable commands - Use ProcessStartInfo with ArgumentList and UseShellExecute = false, validate all inputs
-- Test thoroughly - Verify the .NET class replacement provides the same functionality
+- Replace process execution - where that decision was to replace, delete the `Process.Start()` call and use the .NET class that does the same work; confirm it returns what the original did
+- For unavoidable commands - Use ProcessStartInfo with ArgumentList and UseShellExecute = false, validate only where the application owns the value's format, and say what that rejects
+- Test - send `;`, `&&`, a newline, `$(id)` and a leading `-` as argument values, asserting on the arguments the child received rather than on the absence of an error, and confirm one legitimate awkward value (a path with a space, an IPv6 address) still works

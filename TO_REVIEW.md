@@ -66,7 +66,7 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 6 | 22 | Path Traversal | csharp, go, java, javascript, php, python | same | - | - | - |
 | 7 | 416 | Use After Free | c, cpp | same | - | - | - |
 | 8 | 125 | Out-of-bounds Read | c, cpp | same | done (3/3 read) | 2026-09-20 | 1 found, 1 fixed |
-| 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 7 found, 0 fixed |
+| 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 7 found, 6 fixed, 1 reported |
 | 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 22 found, 0 fixed |
 | 11 | 120 | Classic Buffer Overflow | none (router to 121/787) | no FFG page | done (1/1 read) | 2026-09-20 | 0 findings |
 | 12 | 434 | Unrestricted File Upload | csharp, go, java, javascript, php, python | same | - | - | - |
@@ -104,6 +104,12 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 - **79 vs 80 vs 83** share an XSS sink vocabulary; 80 and 83 are out of scope by rank but a change
   to 79's sink list has to stay consistent with them.
 - **22 vs 41 vs 73** likewise for path handling.
+- **77 vs 78 on the leading hyphen** - open. `cwe/77` says to reject a leading hyphen in any value
+  becoming a command argument; `cwe/78` says to insert `--` first, which rejects nothing, and to
+  reject a leading `-` only where the program does not honour `--`. Same family, opposite default.
+  `78`'s form is strictly more precise, but `77` covers non-shell interpreters where `--` is often
+  not honoured, so the divergence may be legitimate rather than drift. Settling it needs a survey of
+  which interpreters in `77`'s scope honour `--`; not attempted.
 
 ## Open questions
 
@@ -126,17 +132,46 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 
 ## Known debt from this campaign
 
-- **Three language files are over the ~800 word guideline and this campaign put them there**:
-  `cwe/862/java` 909 (was 821), `cwe/863/java` 863 (was 728), `cwe/862/csharp` 838 (was 740). The
-  linter does not fail until 950, so nothing is broken, but the additions were correctness fixes
-  applied on top of files that were already dense. They want a trim pass by someone reading for
-  redundancy rather than for defects - which is a different job and was not attempted here.
+- **Six language files are over the ~800 word guideline and this campaign put them there**:
+  `cwe/78/php` 928 (was 797), `cwe/862/java` 909 (was 821), `cwe/863/java` 863 (was 728),
+  `cwe/78/python` 858 (was 731), `cwe/78/csharp` 856 (was 768), `cwe/862/csharp` 838 (was 740). The
+  linter does not fail until 950, so nothing is broken, and `cwe/78/php` is the one to watch. The
+  additions were correctness fixes applied on top of files that were already dense; each was trimmed
+  once already. What they want now is a pass read for redundancy rather than for defects, which is a
+  different job and was not attempted here. The remaining wave-2 CWEs (94, 434, 502, 22) will make
+  this worse before it gets better.
 
 ## Findings log
 
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, wave 2: CWE-78
+
+Six of seven findings applied. The seventh is the `77` vs `78` hyphen doctrine, recorded above as a
+cross-cutting item because fixing it means changing `cwe/77`, and whether it should change is an open
+question rather than a defect.
+
+- **The `shell=True` concession is gone**, replaced by what the reproduction shows. This is the case
+  now written into `CLAUDE.md`: the entry quoted CPython correctly and CPython is wrong.
+- **Every language file's only test bullet was "verify the replacement provides the same
+  functionality"** - satisfied by the vulnerable original by definition. All five now send
+  metacharacters and a leading `-` and assert on the arguments the child received; the root had no
+  test step at all and now has one.
+- **`Replace all ...` / `Delete ... code`** in the five Key Principles and Replace steps predated the
+  keep-and-execute-safely doctrine that had been added to the same files' LLM Guidance, so the
+  sections an LLM acts on told it to delete the `ping` call the guidance two screens up says must
+  stay. Now conditional on that decision, mirroring the root's step 2.
+- **"validate all inputs"** survived as an unqualified step in five files - the eval-run-17
+  regression `CLAUDE.md` names - and `go`'s LLM Guidance said "plus allowlist validation" while its
+  own Key Principles said the opposite. All now carry the root's conditional wording.
+- **`escapeshellarg()` on Windows rewrites the value**: `%`, `!` and `"` become spaces, so
+  `100%!x"y` arrives as `100  x y`. Reproduced on PHP 8.5.8. The entry had said only that its quoting
+  is "platform-dependent", which does not tell a model the function corrupts legitimate data.
+- **Sink coverage**: `javascript` omitted `spawnSync()`/`execFileSync()` and qualified `spawn()` with
+  "(with `shell: true`)" although the file's own batch-file and CWE-88 bullets apply without a shell;
+  `python` omitted `check_output()`/`check_call()`.
 
 ### 2026-09-20, wave 1 (agent-gathered evidence, applied by this session)
 
