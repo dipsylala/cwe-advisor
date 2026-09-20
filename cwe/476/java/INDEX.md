@@ -57,13 +57,18 @@ to return `null` on failure
 - Trace data flow - follow the value back to where it can become null: a map miss, a repository
   finder, an unset optional request field, a deserialized JSON property, or an uninitialised field
 - Identify the unsafe pattern - a missing check, an unboxing conversion with no visible dereference, a
-  ternary unboxing an untaken branch, or a contract that returns null where the caller cannot tell
+  ternary whose branches mix a primitive and a wrapper, so the selected wrapper branch is unboxed, or
+  a contract that returns null where the caller cannot tell
   absence from a real value
 - Replace the unsafe pattern - change the producer to return `Optional<T>` or to throw, or handle the
-  absent case explicitly with `getOrDefault`/`orElseThrow` at the point the value is obtained
+  absent case explicitly with `getOrDefault`/`orElseThrow` at the point the value is obtained.
+  `getOrDefault` closes the absent-key half only - on a `HashMap`, which admits null values, it
+  returns that null and the unboxing still throws, so test the value with
+  `Optional.ofNullable(map.get(k))` there
 - Bind, encode, validate, or authorize - add `Objects.requireNonNull` on constructor and public-method
   arguments that must be present, and validate request-bound fields with `@NotNull` so absence is a
-  400 rather than a 500
+  400 rather than a 500 - inert on its own, so the handler parameter needs `@Valid` and a Bean
+  Validation provider on the classpath
 - Audit sibling call sites - a producer that can return null usually has several callers; confirm each
   handles it rather than fixing only the one that threw
 - Harden configuration - enable the build's nullability analysis (`@Nullable`/`@NonNull` annotations

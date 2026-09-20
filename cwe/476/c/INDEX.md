@@ -34,14 +34,16 @@ every allocation and lookup that can fail, and not relying on `assert` to do it.
   behaviour. Return an error the caller must handle
 - Fix at the producer where several callers share it: a function that returns null on failure has a
   contract, and patching only the call site the scanner reported leaves the siblings exposed
-- `memcpy`, `strcpy`, `snprintf` and friends have undefined behaviour on a null pointer argument even
-  with a zero length, so a "harmless" zero-length copy through a null pointer is still a defect
+- The n-argument memory functions - `memcpy`, `memmove`, `memset`, `memcmp`, `strncpy` - have
+  undefined behaviour on a null pointer even when n is zero, so a "harmless" zero-length copy through
+  a null pointer is still a defect. `snprintf` is the documented exception in the other direction:
+  `snprintf(NULL, 0, fmt, ...)` is the standard sizing idiom and is not a finding
 
 ## Taint Sinks
 
 `p->field` and `*p` on any pointer from `malloc`/`calloc`/`realloc`/`strdup`, `fopen`, `getenv`,
 `strchr`/`strstr`/`strtok`, `dlopen`/`dlsym`, a function documented to return `NULL` on failure, and
-pointer arguments to `memcpy`/`strcpy`/`strlen`/`snprintf`
+pointer arguments to `memcpy`/`memmove`/`memset`/`strncpy`/`strcpy`/`strlen`
 
 ## Remediation Steps
 
@@ -56,7 +58,10 @@ pointer arguments to `memcpy`/`strcpy`/`strlen`/`snprintf`
   then overwrite the original pointer, so a failure does not leak the block it left valid
 - Audit sibling call sites - if the null-producing function has other callers, confirm each handles
   the case; the reported one is rarely the only one
-- Harden configuration - build with `-Wnull-dereference`, and run the path under a sanitizer or static
-  analyser that models null propagation across functions
+- Harden configuration - build with GCC's `-Wnull-dereference` at `-O2`: it is gated on
+  `-fdelete-null-pointer-checks`, which optimization turns on, so at `-O0` it reports nothing. Clang's
+  same-named flag is a different diagnostic - already on by default, and only for a literal null - so
+  reach for its static analyser or `-fsanitize=null` there instead. Run the path under a sanitizer or
+  static analyser that models null propagation across functions either way
 - Test - exercise the path with the allocation failing and the lookup missing, and confirm a
   controlled error rather than a crash or a continued run on zeroed data

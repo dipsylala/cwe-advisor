@@ -56,7 +56,8 @@ a `std::optional`, an untested `dynamic_cast<T*>` result, `weak_ptr::lock()` res
   `weak_ptr`, and use `.at()` where an absent key must be an error rather than an insertion
 - Audit sibling call sites - a changed return type surfaces every caller that was ignoring the case,
   which is the point; fix them rather than casting the check away
-- Harden configuration - enable `-Wnull-dereference` and the analyser's null and optional checks, and
-  run the path under UndefinedBehaviorSanitizer
+- Harden configuration - enable `-Wnull-dereference` (GCC's needs `-O2`, being gated on
+  `-fdelete-null-pointer-checks`; Clang's is on by default and fires only for a literal null) and the
+  analyser's null and optional checks, and run the path under UndefinedBehaviorSanitizer
 - Test - exercise the absent case for each source, and confirm a controlled error rather than a crash
   or a silently inserted default
