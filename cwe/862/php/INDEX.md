@@ -24,7 +24,7 @@ In Laravel, Missing Authorization typically appears as a controller method reach
 
 - Locate - Identify controller methods, form request classes, and API actions that perform sensitive operations or return sensitive data
 - Check for missing checks - Confirm the method relies only on `auth` middleware with no `Gate::authorize()`, `can` middleware, or acted-on `Gate::allows()` result
-- Define or extend a Policy - Add the relevant method (`update`, `delete`, `view`) to the model's Policy class, comparing the authenticated user against the resource
+- Define or extend a Policy - Add the relevant method (`update`, `delete`, `view`) to the model's Policy class, comparing the authenticated user against the resource. Where the caller names a specific record, return `Response::allow()` and `Response::denyAsNotFound()` (Laravel 9.20+) rather than a bare boolean: a boolean false becomes a 403, which pairs with the 404 a missing id already returns and rebuilds the oracle the test below checks for
 - Add the check - Call `Gate::authorize('update', $order)` at the top of the controller action, or attach `->middleware('can:update,order')` to the route, which requires `order` to be resolved by route model binding
 - Cover role-only actions - For actions not tied to a specific model instance, use `Gate::define()` and `Gate::authorize('manage-orders')`
 - Reconcile route files - Audit `routes/web.php` and, where present, `routes/api.php` (opt-in via `php artisan install:api` from Laravel 11) to confirm every sensitive route applies the same `can` middleware or authorize call as comparable routes

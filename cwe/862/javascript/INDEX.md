@@ -13,7 +13,7 @@ In Express and similar Node.js frameworks, Missing Authorization typically appea
 - Do not rely on hiding client-side UI elements or trusting a role/permission value sent from the client in the request body
 - Centralize role and permission definitions in one middleware module so route files import consistent checks instead of writing inline conditionals per handler
 - Return 403 when the caller is authenticated and simply not permitted, and 401 when the credentials are missing, expired or invalid - a 401 must carry a `WWW-Authenticate` header. For a failed ownership check on a guessable id return the same 404 an unknown id would produce
-- In NestJS the equivalent is a `CanActivate` guard applied with `@UseGuards()`. Guards run global first, then controller, then route, and every bound guard runs - a controller-level guard adds to a route-level one rather than being replaced by it. A guard returning `false` produces a `ForbiddenException` (403); throw your own exception for any other status
+- In NestJS the equivalent is a `CanActivate` guard applied with `@UseGuards()`. Guards run global first, then controller, then route, and all of them must pass - a controller-level guard adds to a route-level one rather than being replaced by it. Nest stops at the first guard that returns false, so a later guard's side effect (attaching `request.order`, say) does not happen after an earlier denial. A guard returning `false` produces a `ForbiddenException` (403); throw your own exception for any other status
 
 ## Taint Sinks
 
