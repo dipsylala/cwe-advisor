@@ -21,7 +21,7 @@ Path Traversal in Python starts with a request value reaching `open()`, `send_fi
 
 ## Taint Sinks
 
-`open()`, `os.remove()`, `shutil.copy()`, `shutil.move()`, `send_file()`, `tarfile.extractall()`, `ZipFile.namelist()` joined manually (Zip Slip)
+`open()`, `os.remove()`, `shutil.copy()`, `shutil.move()`, `send_file()`, `tarfile.extractall()` without `filter=` on an interpreter below 3.14, `ZipFile.namelist()` joined manually (Zip Slip)
 
 ## Remediation Steps
 
@@ -30,5 +30,5 @@ Path Traversal in Python starts with a request value reaching `open()`, `send_fi
 - Replace the unsafe pattern - resolve the joined path once into a variable with `Path.resolve()`, verify `candidate.is_relative_to(BASE_DIR)`, confirm `is_file()`, and pass that variable to `open()`
 - Bind, encode, validate, or authorize - for writes, validate the filename is a single component and resolve the parent instead of the destination; add an ownership check where files belong to accounts
 - Break taint after the containment check - use the resolved path or the map's value at the sink, never the raw request value
-- Harden configuration - extract tar archives with `tarfile.extractall(dest, filter='data')` (available 3.12+, default from 3.14); on 3.11 and earlier, filter members individually against a resolved destination. `ZipFile.extractall()` already sanitizes member names - the exposure there is code that reads `namelist()` and joins the names itself
+- Harden configuration - extract tar archives with `tarfile.extractall(dest, filter='data')` - added in 3.12 and the default from 3.14, but backported to 3.8.17, 3.9.17, 3.10.12 and 3.11.4, so it is the fix on any supported interpreter (confirmed present on 3.10.20 and 3.11.15). Gate on `hasattr(tarfile, 'data_filter')` and hand-filter members only where that is false; note the backports emit no warning for a bare `extractall()`, so silence there is not safety. `ZipFile.extractall()` already sanitizes member names - the exposure there is code that reads `namelist()` and joins the names itself
 - Test - assert a legitimate subdirectory read still succeeds, that both `../../etc/passwd` and `/etc/passwd` raise (they take different routes through the code), that a sibling directory such as `../documents-archive/notes.txt` raises, and that a traversing upload name raises rather than being silently reduced

@@ -7,7 +7,7 @@ This vulnerability occurs when user input is used to construct file or directory
 ## Key Principles
 
 - Never use untrusted data directly as file names or path components
-- Decode fully before filtering: URL-decode input (including double-encoded variants such as `%252e`) and apply Unicode NFC normalisation before any character checks - full-width Unicode equivalents of `/`, `\`, and `.` (e.g. U+FF0F, U+2215) bypass naive filters applied to raw strings
+- Decode fully before filtering: URL-decode input (including double-encoded variants such as `%252e`) and do not reach for Unicode NFC normalisation as the answer to full-width look-alikes - NFC leaves U+FF0F, U+FF3C, U+FF0E and U+2215 all unchanged, and even NFKC folds only the first three, so normalisation is not the control here. These characters are not path separators to the filesystem; the containment check on the resolved path is what refuses them
 - Map external identifiers to server-controlled filenames using whitelists or indirect references
 - Enforce canonical path validation and containment within safe directories
 - Containment is not authorization: confirming a path resolves inside the base directory says nothing about whether this caller may access that file, and a successful `File.Exists()`/`os.path.isfile()` check is not an access decision

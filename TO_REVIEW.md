@@ -63,7 +63,7 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 3 | 352 | Cross-Site Request Forgery | csharp, go, java, javascript, python | same | done (6/6 read) | 2026-09-20 | 5 found, 5 fixed |
 | 4 | 862 | Missing Authorization | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 9 found, 8 fixed |
 | 5 | 787 | Out-of-bounds Write | c, cpp | same | done (3/3 read) | 2026-09-20 | 3 found, 3 fixed |
-| 6 | 22 | Path Traversal | csharp, go, java, javascript, php, python | same | - | - | - |
+| 6 | 22 | Path Traversal | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 8 found, 8 fixed |
 | 7 | 416 | Use After Free | c, cpp | same | - | - | - |
 | 8 | 125 | Out-of-bounds Read | c, cpp | same | done (3/3 read) | 2026-09-20 | 1 found, 1 fixed |
 | 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 7 found, 6 fixed, 1 reported |
@@ -103,7 +103,13 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
   audit has not been run on any other family.
 - **79 vs 80 vs 83** share an XSS sink vocabulary; 80 and 83 are out of scope by rank but a change
   to 79's sink list has to stay consistent with them.
-- **22 vs 41 vs 73** likewise for path handling.
+- **22 vs 41 vs 73** - partly done 2026-09-20. `41` is consistent with `22`. `73` contradicts it on
+  four points: decode again before filtering, apply NFC, allowlist filenames by default, and reject
+  `..` outright. Only the NFC sentence was corrected here, because it is demonstrably false rather
+  than a difference of doctrine - NFC leaves U+FF0F, U+FF3C, U+FF0E and U+2215 unchanged, and NFKC
+  folds only the first three, so prescribing NFC does nothing about the full-width look-alikes the
+  sentence cites. The other three need `cwe/73` reviewed on its own terms, since a model routed
+  22 -> 73 by 22's own guidance currently gets the opposite instruction on each.
 - **77 vs 78 on the leading hyphen** - open. `cwe/77` says to reject a leading hyphen in any value
   becoming a command argument; `cwe/78` says to insert `--` first, which rejects nothing, and to
   reject a leading `-` only where the program does not honour `--`. Same family, opposite default.
@@ -134,6 +140,7 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 
 - **Six language files are over the ~800 word guideline and this campaign put them there**:
   `cwe/78/php` 928 (was 797), `cwe/862/java` 909 (was 821), `cwe/863/java` 863 (was 728),
+  `cwe/22/javascript` 859 (was 735),
   `cwe/78/python` 858 (was 731), `cwe/78/csharp` 856 (was 768), `cwe/862/csharp` 838 (was 740). The
   linter does not fail until 950, so nothing is broken, and `cwe/78/php` is the one to watch. The
   additions were correctness fixes applied on top of files that were already dense; each was trimmed
@@ -146,6 +153,35 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, wave 2: CWE-22
+
+All eight findings applied. Five were settled by running something.
+
+- **`extract-zip` was named as the safe option** - "validates this internally in current versions".
+  Its last release is 2.0.1 from March 2023, and CVE-2026-19693 and CVE-2026-56876 both escape the
+  extraction directory through symlink entries with **no fixed release** in either OSV range. The
+  sentence marked a live finding as closed, and there is no version to pin, so the entry now says to
+  reject symlink entries or `lstat` the destination and open with `wx`.
+- **The `tarfile` filter backport was missed.** The entry said `filter='data'` is 3.12+ and told
+  3.11-and-earlier users to hand-filter members - the loop the same file warns against. PEP 706
+  backported it to 3.8.17/3.9.17/3.10.12/3.11.4; confirmed `hasattr(tarfile, 'data_filter')` on
+  3.10.20 and 3.11.15. The main `tarfile` doc page omits the backports, which is presumably where the
+  claim came from; the 3.11.4 changelog carries it.
+- **`filepath.IsLocal` is element-based**, so go's Key Principle "reject entries with `..`" was the
+  substring test its own Remediation Step calls redundant. Confirmed on 1.25.5: `IsLocal("..foo")`
+  is true, `IsLocal("../x")`, `IsLocal("/abs")` and `IsLocal("C:\x")` are false.
+- **`ZipArchive::extractTo()` does strip traversal**, though the PHP manual never says so. Verified
+  on 8.5.8: an entry named `../../evil.txt` landed at `dest\evil.txt`. The entry's "do not assume
+  extractTo covers it" read as an instruction to rewrite a safe call into the `getNameIndex()` loop,
+  which is where the exposure actually lives.
+- **The single-component upload rule admits `''`, `'.'` and `'..'`** in both java and javascript, and
+  the Java form throws for a bare root: on JDK 26, `getFileName()` returns those three unchanged and
+  `null` for `/` and `C:\`. The php and python siblings already enumerated the three rejects.
+
+Also: `java` and `javascript` had no locate step and no test step, and the root had no test step -
+the same gap found in `cwe/78` and `cwe/200`, which makes it the third family where the template's
+required shape had quietly lapsed.
 
 ### 2026-09-20, wave 2: CWE-78
 

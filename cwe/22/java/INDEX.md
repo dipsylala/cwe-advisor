@@ -18,7 +18,7 @@ Path Traversal occurs when user input constructs file paths without validation, 
   and note `getCanonicalPath()` documents link resolution on UNIX platforms specifically, while
   `toRealPath()` stops following if `NOFOLLOW_LINKS` is passed, so neither is unconditional
 - `toRealPath()` fails when the target does not exist - the Javadoc specifies `IOException`, so catch
-  that rather than only `NoSuchFileException`, which is a subtype it does not contractually promise -, so it cannot validate an upload destination - canonicalize the parent directory instead, check that with `startsWith`, and require the supplied name to be a single component by rejecting anything where `Paths.get(name).getFileName().toString()` differs from `name` - an upload-filename rule only, not one to apply to archive entries, which are nested by design
+  that rather than only `NoSuchFileException`, which is a subtype it does not contractually promise -, so it cannot validate an upload destination - canonicalize the parent directory instead, check that with `startsWith`, and require the supplied name to be a single component. `Paths.get(name).getFileName().toString()` differing from `name` is most of that test but not all of it: `""`, `"."` and `".."` all pass it unchanged, and `getFileName()` returns `null` for a bare root (`/`, `C:\`) so the comparison throws - reject those four explicitly, and catch `InvalidPathException`, which `Paths.get` throws for a Windows-illegal character - an upload-filename rule only, not one to apply to archive entries, which are nested by design
 - Reject null bytes. A `..` substring test belongs only where no containment check exists; beside `toRealPath()` plus `startsWith()` it is redundant and rejects a legitimate `notes..v2.txt`
 - Containment is the fix; add an extension or directory allowlist only where the application defines which files are legitimate, and say what it rejects
 - Avoid constructing paths from untrusted input when possible
@@ -30,6 +30,7 @@ Path Traversal occurs when user input constructs file paths without validation, 
 
 ## Remediation Steps
 
+- Locate - find the sinks above and follow the path operand back to the request parameter, upload field, or archive entry it came from
 - Implement indirect object references (user provides ID, application maps to filename)
 - Validate the value the container already decoded - add no second `URLDecoder.decode()` pass, and do not rely on `Normalizer` to neutralise separators
 - Canonicalize with `Path.toRealPath()` or `File.getCanonicalFile()`, which follow symbolic links; `normalize()` only rewrites the string and leaves a planted link in place
@@ -37,3 +38,4 @@ Path Traversal occurs when user input constructs file paths without validation, 
 - Reject an absolute path and a null byte before resolving; do not add a `..` or character test on top of the containment check above
 - Where the application defines the permitted extensions, enforce that list and say so; do not invent one for the fix
 - Use OS/container sandboxing and filesystem permissions to restrict file access
+- Test - assert a legitimate nested read (`sub/ok.txt`) still succeeds, that `../../etc/passwd`, an absolute `/etc/passwd` and a sibling-directory path (`../<sibling>/x`) are all refused, and that an upload named `..` or `''` is rejected rather than writing to the parent
