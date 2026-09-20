@@ -61,42 +61,58 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 1 | 79 | Cross-site Scripting | csharp, go, java, javascript, perl, php, python | same | done (8/8 read) | 2026-09-20 | 5 found, 5 fixed |
 | 2 | 89 | SQL Injection | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 3 found, 3 fixed |
 | 3 | 352 | Cross-Site Request Forgery | csharp, go, java, javascript, python | same | done (6/6 read) | 2026-09-20 | 5 found, 5 fixed |
-| 4 | 862 | Missing Authorization | csharp, go, java, javascript, php, python | same | - | - | - |
-| 5 | 787 | Out-of-bounds Write | c, cpp | same | - | - | - |
+| 4 | 862 | Missing Authorization | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 9 found, 8 fixed |
+| 5 | 787 | Out-of-bounds Write | c, cpp | same | done (3/3 read) | 2026-09-20 | 3 found, 3 fixed |
 | 6 | 22 | Path Traversal | csharp, go, java, javascript, php, python | same | - | - | - |
 | 7 | 416 | Use After Free | c, cpp | same | - | - | - |
-| 8 | 125 | Out-of-bounds Read | c, cpp | same | - | - | - |
+| 8 | 125 | Out-of-bounds Read | c, cpp | same | done (3/3 read) | 2026-09-20 | 1 found, 1 fixed |
 | 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | - | - | - |
-| 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | - | - | - |
-| 11 | 120 | Classic Buffer Overflow | none (router to 121/787) | no FFG page | - | - | - |
+| 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 22 found, 0 fixed |
+| 11 | 120 | Classic Buffer Overflow | none (router to 121/787) | no FFG page | done (1/1 read) | 2026-09-20 | 0 findings |
 | 12 | 434 | Unrestricted File Upload | csharp, go, java, javascript, php, python | same | - | - | - |
-| 13 | 476 | NULL Pointer Dereference | c, cpp, java | none (root page only) | - | - | - |
-| 14 | 121 | Stack-based Buffer Overflow | c, cpp | same | - | - | - |
-| 15 | 502 | Deserialization of Untrusted Data | csharp, go, java, javascript, php, python | same | - | - | - |
-| 16 | 122 | Heap-based Buffer Overflow | no entry | no FFG page | - | - | - |
-| 17 | 863 | Incorrect Authorization | csharp, go, java, javascript, php, python | same | - | - | - |
-| 18 | 20 | Improper Input Validation | none | none | - | - | - |
-| 19 | 284 | Improper Access Control | none | none | - | - | - |
-| 20 | 200 | Exposure of Sensitive Information | none | none | - | - | - |
+| 13 | 476 | NULL Pointer Dereference | c, cpp, java | none (root page only) | done (4/4 read) | 2026-09-20 | 5 found, 5 fixed |
+| 14 | 121 | Stack-based Buffer Overflow | c, cpp | same | done (3/3 read) | 2026-09-20 | 3 found, 3 fixed |
+| 15 | 502 | Deserialization of Untrusted Data | csharp, go, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 13 found, 0 fixed |
+| 16 | 122 | Heap-based Buffer Overflow | no entry | no FFG page | resolved | 2026-09-20 | absence deliberate; see log |
+| 17 | 863 | Incorrect Authorization | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 9 found, 6 fixed |
+| 18 | 20 | Improper Input Validation | none | none | done (1/1 read) | 2026-09-20 | 3 found, 3 fixed |
+| 19 | 284 | Improper Access Control | none | none | done (1/1 read) | 2026-09-20 | 1 found, 1 fixed |
+| 20 | 200 | Exposure of Sensitive Information | none | none | done (1/1 read) | 2026-09-20 | 4 found, 4 fixed |
 
 ## Cross-cutting checks
 
 Per `CLAUDE.md`, some defects are invisible to a per-file read because each file is internally
 consistent. Run these once the per-CWE rows are done, and record the outcome here:
 
-- **862 vs 863** (ranks 4 and 17) must agree on the status an ownership failure returns, across
-  every shared language. They have disagreed before.
-- **787, 125, 121, 122, 120** (the memory-safety cluster) must agree on hardening flag levels and
-  on which entry owns which destination. `120` routes rather than duplicates; check `122`'s absence
-  is deliberate and that nothing routes to it.
+- **862 vs 863** (ranks 4 and 17) - DONE 2026-09-20. They had drifted again, in `java` this time:
+  862 said a non-owner gets the 404 of an owner-scoped repository query, 863 said 403 from a SpEL
+  bean that loads then compares, and 863/java was the only 863 language answering 403 where go,
+  javascript, php and python all answer 404. Both now prescribe the owner-scoped lookup for a
+  guessable identifier and reserve 403 for the role gate. `863/csharp` had no status doctrine at all
+  and now does.
+- **787, 125, 121, 122, 120** (the memory-safety cluster) - DONE 2026-09-20. Routing is coherent:
+  `120` routes stack destinations to `121` and everything else to `787`, and `787` explicitly claims
+  the unnamed children including the heap variant `122`, so `122` having no entry is deliberate and
+  nothing routes to a missing file. `_FORTIFY_SOURCE` is `=3` everywhere with the right toolchain
+  caveat. One divergence remains open, below.
 - **79 vs 80 vs 83** share an XSS sink vocabulary; 80 and 83 are out of scope by rank but a change
   to 79's sink list has to stay consistent with them.
 - **22 vs 41 vs 73** likewise for path handling.
 
 ## Open questions
 
-- CWE-122 (rank 16) has no entry in either corpus. Decide whether it gets its own entry or a router
-  entry pointing at 787, the way 120 does.
+- CWE-122 (rank 16) has no entry in either corpus, and `cwe/787/INDEX.md` deliberately covers the
+  heap variant, so nothing is missing for a developer who already knows to read 787. What is missing
+  is the way in: `references/cwe-identifier.md` has no CWE-122 row, because `scripts/lint.py` errors
+  on a row with no matching `cwe/` directory, so SKILL.md Step 1 cannot resolve "CWE-122" or
+  "heap overflow" at all. A router entry the shape of `cwe/120/INDEX.md` (~200 words) would close
+  that. Decision needed; not taken.
+- **`-O1` vs `-O2` for `_FORTIFY_SOURCE`, across the whole C family.** `121/c`, `125/c`, `787/c` and
+  `823/c` say `-O1` or higher; `134/c`, `170/c`, `242/c` and `477/c` say `-O2` or higher. glibc's
+  `features.h` gates only on `__OPTIMIZE__ > 0`, which `-O1` satisfies, so activation is settled -
+  but whether level 3's `__builtin_dynamic_object_size` is meaningfully weaker at `-O1` than at
+  `-O2` is NOT, and needs a compiler this machine does not have. Left divergent rather than
+  normalised on an unverified claim.
 - CWE-20, 284 and 200 (ranks 18-20) are root-only in both corpora. Confirm that is deliberate
   before treating the missing language files as a gap.
 
@@ -105,6 +121,93 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, wave 1 (agent-gathered evidence, applied by this session)
+
+Nine read-only agents were given one CWE each, told to read both corpora whole, to verify against a
+vendor source or a runtime, and to separate confirmed from suspected. Findings were re-verified here
+before any edit. What the wave produced is in
+`<scratchpad>/wave1/cwe-*.md`; what it changed is in `git log`.
+
+**Applied: 862, 863, 476, 20, 284, 200.**
+
+The dominant shape, found independently in six files across the 862/863 pair, is the one this
+campaign already hit in `cwe/352/go`: **the Remediation Steps prescribe one mechanism and the Test
+step asserts the result of a different one.** In `862/csharp`, `862/java`, `862/python`, `862/php`,
+`863/java` and `863/python` the steps prescribe a load-then-compare authorization check, which
+answers 403, while the test asserts the 404 that an owner-scoped lookup produces - a lookup no step
+prescribed. An LLM executing those steps ships the existence oracle the root entry warns about and
+then fails the entry's own test. Every one of those files is internally plausible; only reading the
+steps against the test catches it.
+
+Other applied findings worth carrying:
+
+- **`getOrDefault` does not close an unboxing NPE** where the map can hold nulls - it returns the
+  stored null and `intValue()` still throws (reproduced on JDK 26). `476/java` prescribed it as the
+  fix for the `Map.get` case.
+- **`UserManager.GetUserId(User)` is not "mapping-independent"** - it reads
+  `IdentityOptions.ClaimsIdentity.UserIdClaimType`, which defaults to the same
+  `ClaimTypes.NameIdentifier` the surrounding sentence had just said is absent (dotnet/aspnetcore
+  `UserManager.cs:446`). `863/csharp` offered it as the way round inbound-claim mapping.
+- **`\z` is a compile error in Python's `re` before 3.14** (`bad escape \z`, reproduced on 3.13.12).
+  `cwe/20` offered it as one of three interchangeable whole-string anchors.
+- **`hasRole('ADMIN') or isOwner(...)` widens an admin-only endpoint to every owner.** `863/java`
+  gave it as the canonical expression. Whether owners may act at all is a product decision the fix
+  must not make.
+- **`snprintf(NULL, 0, ...)` is the standard's own sizing idiom**, not undefined behaviour;
+  `476/c` listed it beside `memcpy` as UB-on-null and as a taint sink.
+- **MITRE marks CWE-284 and CWE-200 Discouraged** (Pillar and Class respectively, both confirmed on
+  cwe.mitre.org). Both entries routed correctly but never said the ID should not be the reported one,
+  so an autonomous write-up would keep it.
+
+**Not applied, and the reason: volume.** `cwe/94` came back with 22 confirmed defects and `cwe/502`
+with 13, each traced to a runtime or a vendor source. Those are remediation jobs in their own right,
+not a triage pass - see the wave-1 files. Four agents (22, 78, 434, and one still running) had not
+reported when this was written.
+
+Process note for the next wave: the agents were substantially right. Every claim spot-checked here -
+the Java reproductions, the aspnetcore source, the Spring Security jar diff, the Python regex, the
+MITRE pages - held up. The value added by re-verifying was not catching agent errors but choosing
+which findings to act on and writing the replacement prose, which is where this session's own
+near-miss happened in rank 2.
+
+### 2026-09-20, memory-safety cluster (ranks 5, 8, 11, 14, 16)
+
+Read `cwe/120`, `121`, `125`, `787` roots and the `c`/`cpp` files under 121, 125 and 787, plus the
+FFG counterparts for 121. Handled here rather than fanned out: there is no C or C++ toolchain on this
+machine, so every claim is settled by reading a vendor source, and the flag consistency check needs
+all five entries held at once.
+
+Three findings, all in the `_FORTIFY_SOURCE` guidance, all settled against glibc's own
+`include/features.h` (fetched from sourceware at HEAD and at the `glibc-2.34` tag):
+
+- **"at `-O0` it silently does nothing" was wrong in one word.** `features.h` emits
+  `#warning _FORTIFY_SOURCE requires compiling with optimization (-O)`. Not silent - and the
+  difference matters to a developer checking whether their hardening is live, because the entry told
+  them there was no signal to look for. Was in `121/c` and `787/c`.
+- **"fall back to `=2` on older toolchains" told the model to do work glibc already does.**
+  `features.h` degrades an unsupported `=3` to level 2 itself, with
+  `#warning _FORTIFY_SOURCE > 2 is treated like 2 on this platform`. So `=3` is safe to set
+  unconditionally and toolchain detection is unnecessary. Present identically in nine C files;
+  swept all nine, which is four outside the top-20 - `CLAUDE.md`'s "sweep doctrine across the family"
+  rule against leaving known-imprecise text in siblings.
+- **`121/c` said `strlcpy`/`strlcat` "where available"** while its sibling `787/c` carried the
+  floor. Now both say BSD, macOS and glibc 2.38+, confirmed in glibc's 2.38 NEWS ("The strlcpy and
+  strlcat functions have been added").
+
+One contradiction surfaced by the fix itself: `787/c`'s Key Principles said `_FORTIFY_SOURCE`
+"catch[es] mistakes where the size is statically known", which is level 2's scope and is
+contradicted by the same file's level-3 guidance. Rewritten to the canary point, which is the part
+that was actually load-bearing.
+
+Carried forward:
+
+- **A hardening-flag claim is checkable against one header.** `include/features.h` is the whole
+  decision procedure for `_FORTIFY_SOURCE` - level selection, toolchain gates, every warning it
+  emits - and it is 20KB. Any future claim about this flag should be settled there rather than from
+  a blog post or recall, and the same is likely true of other glibc feature-test macros.
+- **The word "silently" is a claim.** It asserts the absence of a diagnostic, which is exactly the
+  kind of thing a vendor source settles and a plausibility reread does not.
 
 ### 2026-09-20, CWE-352
 
