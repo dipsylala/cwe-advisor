@@ -44,7 +44,10 @@ SQL Injection occurs when untrusted user input is incorporated into SQL queries 
   `query()` call changes which escaping runs rather than parameterising the statement - move the call
   to `execute()` as part of the fix
 - Parameters are for values only across all of these. Sequelize documents `bind` as unusable for a
-  table or column name; knex spells identifiers `??` rather than `?`; and passing an array to a single
-  `?` does not expand into an `IN` list, so build one placeholder per element
+  table or column name; knex spells identifiers `??` rather than `?`; and an array bound to a single `?`
+  by a prepared statement is one value rather than an `IN` list, so build one placeholder per
+  element. mysql2's client-side path is the exception that proves the method distinction above -
+  `query()` expands a nested array, so `format('... IN (?)', [[1,2,3]])` yields `IN (1, 2, 3)` while
+  the same call on `execute()` binds one parameter
 - Test with SQL injection payloads to verify fixes
 - Implement input validation layers before data reaches queries

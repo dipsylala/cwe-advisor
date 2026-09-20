@@ -35,7 +35,11 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
   `DbParameter` rather than concatenating it. `ExecuteSql`/`ExecuteSqlRaw` are the non-query
   equivalents and `SqlQuery`/`SqlQueryRaw` the scalar ones. `FromSqlRaw` is not automatically the
   defect - EF Core documents it as safe when the values are passed as `DbParameter` arguments, so
-  check how the arguments reach it before rewriting the call
+  check how the arguments reach it before rewriting the call. The trap is an untrusted value in the
+  hole of `FromSqlRaw($"... {value} ...")`: an interpolated string binds to the `string` overload, so
+  the value is concatenated into the SQL before EF Core sees it, while `FromSql` and
+  `FromSqlInterpolated` take the `FormattableString` and parameterise each hole. Interpolating into
+  `FromSqlRaw` is correct only for an identifier already resolved through an allowlist, as below
 - A dynamic table, column or `ORDER BY` name cannot be fixed this way, and this is where the obvious
   rewrite fails: no database allows parameterising a column name or any other part of the schema, so
   `FromSql`/`FromSqlInterpolated` on an identifier does not work at all. EF Core's own guidance is to

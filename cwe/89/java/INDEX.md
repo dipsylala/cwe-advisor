@@ -38,6 +38,15 @@ SQL Injection occurs when untrusted data is incorporated into SQL queries withou
   Persistence specification allows input parameters only in a `WHERE` or `HAVING` clause - so a sort
   column, entity name or attribute path still has to come from an allowlist, and that is usually the
   half of a JPQL query that was concatenated in the first place
+- Where the query is built through the Criteria API or Hibernate rather than as JPQL text, the
+  identifier need not reach the query as a string at all: `Root.get(name)` resolves the name against
+  the entity metamodel and throws `IllegalArgumentException` when it is not a mapped attribute, and
+  Hibernate's `org.hibernate.query.Order.asc(User.class, name)` does the same for sorting (its
+  `org.hibernate.query.sqm.PathElementException` is an `IllegalArgumentException` subclass, so one
+  catch covers either provider). That closes the injection without a hand-maintained list, but it is
+  not an authorization check - `Order.asc(User.class, "password")` sorts by that column quite
+  legally, and ordering alone leaks it a row at a time - so the allowlist still decides which
+  attributes this caller may name
 - Bind parameters - Use `setString()`, `setInt()` or similar methods to bind user input to placeholders
 - Test - Verify the fix handles special characters and injection attempts correctly
 - Review - Ensure all similar patterns in the codebase are addressed
