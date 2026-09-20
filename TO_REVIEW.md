@@ -64,7 +64,7 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 4 | 862 | Missing Authorization | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 9 found, 8 fixed |
 | 5 | 787 | Out-of-bounds Write | c, cpp | same | done (3/3 read) | 2026-09-20 | 3 found, 3 fixed |
 | 6 | 22 | Path Traversal | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 8 found, 8 fixed |
-| 7 | 416 | Use After Free | c, cpp | same | - | - | - |
+| 7 | 416 | Use After Free | c, cpp | same | done (3/3 read) | 2026-09-20 | 4 found, 4 fixed |
 | 8 | 125 | Out-of-bounds Read | c, cpp | same | done (3/3 read) | 2026-09-20 | 1 found, 1 fixed |
 | 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 7 found, 6 fixed, 1 reported |
 | 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | done (6/6 read) | 2026-09-20 | 22 found, 22 fixed |
@@ -140,7 +140,8 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 
 - **Six language files are over the ~800 word guideline and this campaign put them there**:
   `cwe/78/php` 928 (was 797), `cwe/862/java` 909 (was 821), `cwe/863/java` 863 (was 728),
-  `cwe/22/javascript` 859 (was 735), `cwe/94/java` 938 (was 782),
+  `cwe/22/javascript` 859 (was 735), `cwe/94/java` 938 (was 782), `cwe/416/cpp` 917 (was 861),
+  `cwe/416/c` 867 (was 806),
   `cwe/502/java` 923 (was 827, and the first file to trip
   the linter's own 950 warning before being trimmed back under it),
   `cwe/78/python` 858 (was 731), `cwe/78/csharp` 856 (was 768), `cwe/862/csharp` 838 (was 740). The
@@ -155,6 +156,34 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, CWE-416 - the rank this session lost track of
+
+Rank 7 was scanned last because it was not scanned at all when it should have been. When the
+memory-safety cluster was carved out to be handled directly rather than fanned out, it was defined as
+"787, 125, 121, 120, 122" - the buffer-overflow family - and CWE-416 sits at rank 7 as the other
+C/C++ entry in the top 20. It went to no agent and to no cluster, and only a recount of the status
+table at the end of the campaign surfaced it. The lesson is the one already in `TODO.md` about stale
+counts: the table is the record, so check every row against it before calling a pass complete, rather
+than trusting the grouping the work was planned in.
+
+Four findings, all in the halves of the entries that verify rather than describe:
+
+- **The `c` entry's test never exercised the generation counter it prescribes.** It asked for the
+  early-release path and a no-op second release. The counter exists for the case where the slot has
+  been *reused*, and a revalidation that only checks the slot is occupied passes while the slot is
+  empty. The test now acquires, releases, acquires a second object into the same slot, and asserts
+  the first handle is refused.
+- **The handle table is indexed by a number that came from outside.** The `c` entry prescribes a slot
+  table plus generation counter as the fix for a pointer crossing an async boundary, and never says to
+  bounds-check the index - `slots[index]` is pointer arithmetic, and a CWE-416 fix that opens CWE-823
+  has moved the bug.
+- **The `cpp` entry's harden step covered only heap ASan.** Its own guidance calls a view outliving a
+  stack frame the dominant modern shape, and plain ASan red-zones heap blocks; the step now adds
+  `-fsanitize-address-use-after-scope` and `ASAN_OPTIONS=detect_stack_use_after_return=1`.
+- **The `cpp` test never reallocated.** Its principles flag `vector` reallocation as an invalidation
+  cause, but the test only covered an observer outliving its owner. A `vector` that never outgrows its
+  initial buffer keeps every reference valid, so the test passed for the wrong reason.
 
 ### 2026-09-20, wave 2: CWE-94 - campaign complete
 
