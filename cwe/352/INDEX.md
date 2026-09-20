@@ -26,3 +26,8 @@ CSRF attacks force authenticated users to perform unwanted actions by exploiting
 - Implement Synchronizer Token Pattern with cryptographically random tokens of at least 128 bits
 - Include CSRF tokens in all forms and AJAX requests that modify data
 - Validate tokens server-side before processing any state-changing request
+- Verify with three assertions rather than a status code: a forged cross-site request is
+  rejected *and* left the record unchanged, a token minted in one session is rejected in
+  another - the one test that catches a token generated well but never bound to a session -
+  and every legitimate form and AJAX path still succeeds, which is what enabling protection
+  breaks far more often than it fails to block an attack
