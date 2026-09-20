@@ -69,7 +69,7 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 7 found, 6 fixed, 1 reported |
 | 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 22 found, 0 fixed |
 | 11 | 120 | Classic Buffer Overflow | none (router to 121/787) | no FFG page | done (1/1 read) | 2026-09-20 | 0 findings |
-| 12 | 434 | Unrestricted File Upload | csharp, go, java, javascript, php, python | same | - | - | - |
+| 12 | 434 | Unrestricted File Upload | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 17 found, 17 fixed |
 | 13 | 476 | NULL Pointer Dereference | c, cpp, java | none (root page only) | done (4/4 read) | 2026-09-20 | 5 found, 5 fixed |
 | 14 | 121 | Stack-based Buffer Overflow | c, cpp | same | done (3/3 read) | 2026-09-20 | 3 found, 3 fixed |
 | 15 | 502 | Deserialization of Untrusted Data | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 13 found, 13 fixed |
@@ -154,6 +154,55 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, wave 2: CWE-434
+
+All seventeen findings applied. This entry's failure mode is different from the other four: almost
+nothing here was a wrong *description* of the weakness. It was controls that do not control.
+
+- **Django has no built-in upload-size ceiling**, and the entry named two settings that do not
+  provide one. Reproduced on 6.1.1 with both set to 1000: a 50,000-byte file upload was accepted as a
+  `TemporaryUploadedFile`, while a 5,000-byte non-file field raised `RequestDataTooBig`.
+  `FILE_UPLOAD_MAX_MEMORY_SIZE` is only the spool-to-disk threshold and `DATA_UPLOAD_MAX_MEMORY_SIZE`
+  is documented as excluding `request.FILES`. The Flask half (`MAX_CONTENT_LENGTH`) was right.
+- **A final-extension allowlist does not close the double-extension case.** The entry said a double
+  extension is "executed by a server configured to run the last one" - but that configuration
+  (`FilesMatch` + `SetHandler`) is the safe one. The dangerous one is `AddHandler`/`AddType`, where
+  mod_mime applies the PHP handler to any dot-separated segment, so `shell.php.jpg` executes and its
+  final extension passes the allowlist. The entry taught the wrong threat model and prescribed the
+  check that misses it.
+- **The `.htaccess` hardening route is inert on a stock Apache** (`AllowOverride None` means the file
+  is never read), and a bare `php_flag` without mod_php is a 500 rather than the "silently ignored"
+  the entry claimed. The deny block belongs in the vhost `<Directory>`.
+- **The FPM deny pattern omitted `.phar`**, which Debian and Ubuntu's shipped Apache configs forward
+  to PHP alongside `.php`, leaving an uploaded `x.phar` executable in the directory just hardened.
+- **`MimeTypes.forName()` does not throw for an unrecognized type** - only for a malformed name. An
+  `application/x-nonexistent` is minted and returned with an empty extension, so a
+  `catch (MimeTypeException)` written to handle "unrecognized" never fires and the empty-string check
+  is the real one.
+- **The `require('file-type')` prohibition is stale**: `require()` of ESM without top-level await has
+  been supported since Node 20.19/22.12/23, and Node 20 is EOL. Verified on Node 24 with file-type
+  22.1.1.
+- **`fileTypeFromBuffer(undefined)` throws rather than rejecting**, so inside an async `fileFilter` it
+  is an unhandled rejection with `cb` never called - the request hangs or the process exits. The
+  entry's placement conclusion was right and its stated failure mode was not.
+- **`diskStorage` names the file before any bytes exist**, so the detected extension cannot be applied
+  at naming time; the entry asked for both without saying a rename is needed between them.
+- **Four libraries were named with no floor**: multer (below 2.3.0 an async `fileFilter` defeats
+  `limits.fileSize` outright - the entry's own size control), file-type (21.3.2, zip-bomb DoS
+  reachable from the exact call the entry prescribes), tika-core (3.2.2, and the fix is in tika-core
+  rather than the parser module), ImageSharp (3.1.11 / 2.1.11, and it carries a Split License with a
+  build-time key required from 4.0.0 - a licensing decision the entry never mentioned).
+- **csharp's LLM Guidance prescribed `Path.GetRandomFileName()`** while its own Key Principles explain
+  that it returns an 8.3 name containing a dot, so appending an extension yields a double-extension
+  name. Two sections, opposite advice, and the guidance is what gets read first.
+- **Family doctrine, settled in the root**: it said "forced attachment download" flatly, javascript's
+  entry argues against exactly that (`res.download()` turns an avatar into a download), and go, php
+  and python said nothing about serving at all. The root now conditions attachment on what the browser
+  would render as a document and keeps `nosniff` unconditional; the three silent languages point at it.
+- **The positive test was missing everywhere but go.** Renaming to a generated name outside the web
+  root breaks any caller that built a URL from the original name, and only go's entry said to return
+  the generated name and assert the round trip. Both hoisted into the root.
 
 ### 2026-09-20, wave 2: CWE-502
 
