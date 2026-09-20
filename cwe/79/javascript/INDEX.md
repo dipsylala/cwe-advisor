@@ -27,9 +27,13 @@ Cross-Site Scripting (XSS) occurs when untrusted data is rendered in web pages w
   escaping while every `{{ }}` and `<%= %>` in the codebase still looks safe. The bug is always the raw-output tag: replace EJS `<%- %>` with `<%= %>`, Handlebars `{{{ }}}` with `{{ }}`, and Pug `!{}`/`!=` with `#{}`/`=`
 - Sanitize user-generated HTML with `DOMPurify.sanitize()` and assign only its return value to
   `innerHTML`, with nothing modifying the markup afterwards - DOMPurify's own guidance is that
-  post-sanitisation edits can void the sanitisation. Set the floor at 3.4.0: CVE-2026-41238 affects
-  3.0.1 through 3.3.3 under the plain `DOMPurify.sanitize(input)` call with no special configuration,
-  and supersedes the 3.2.4 floor often quoted for the earlier `SAFE_FOR_TEMPLATES` bypass
+  post-sanitisation edits can void the sanitisation. Set the floor at 3.4.13, not the 3.4.0 that
+  closed CVE-2026-41238: ten further advisories were fixed between 3.4.5 and 3.4.13, the last being
+  CVE-2026-75838 (GHSA-55q2-fjhq-7xh7), which affects every release before it. Most of the
+  intervening ones need a specific option to reach - `IN_PLACE`, `SAFE_FOR_TEMPLATES`, a
+  function-valued `ADD_TAGS`/`ADD_ATTR`, or a `setConfig()` call - so read the sanitiser's
+  configuration before deciding a lower pinned version is safe, and re-check the advisory list
+  rather than treating this floor as durable
 - DOMPurify's stated scope is HTML re-insertion sinks. Its own threat model excludes moving the
   result into SVG, MathML, XML, an attribute or a rawtext element, and it does not sanitise CSS inside
   `style`, so sanitised output is not a value you can then place in any context

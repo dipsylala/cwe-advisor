@@ -16,7 +16,14 @@ Cross-Site Scripting (CWE-79) occurs when untrusted data is included in web page
 - Set Content-Security-Policy headers to restrict script execution sources; a nonce has to come from an OS CSPRNG (`Crypt::URandom`, not `rand()`, which is predictable from prior output) and change on every response, or it is not a nonce
 - Never insert untrusted data directly into JavaScript, CSS, or URL contexts without proper encoding
 - `HTML::Entities::encode_entities($value)` with no second argument escapes a broad default set; pass the characters explicitly (`'<>&"\''`) when the output must be predictable, and remember it is for HTML text and attribute context only. Because the second argument is that character set, anything that reaches it by accident - a list-context `param()`, an array that flattens - narrows the escaping instead of raising an error
-- Use `URI::Escape`'s `uri_escape()` for a value going into a URL and `JSON::XS` (or `JSON::PP`) to emit a value into a `<script>` block - an HTML encoder is wrong in both places
+- Use `URI::Escape`'s `uri_escape()` for a value going into a URL; an HTML encoder is wrong there.
+  A JSON encoder is not the answer for a `<script>` block either: no JSON encoder escapes `<` or `/`
+  by default, so a value containing `</script>` still ends the element and everything after it is
+  parsed as markup while the JSON stays valid. Prefer keeping the value out of the script - render
+  it into a quoted `data-` attribute with `encode_entities` and read it back with `JSON.parse`,
+  where a `</script>` cannot close anything. Where it must go inline, `JSON::PP`'s `escape_slash(1)`
+  emits `<\/script>`, which the HTML parser does not treat as an end tag; that option is JSON::PP-only
+  and `JSON::XS` has no equivalent, so `JSON`'s `escape_slash` forces the pure-Perl backend
 - In Mojolicious, `$c->render(text => ...)` does not escape while the template `<%= %>` does; `param()` returns raw request data, so the escaping decision belongs at the point of output
 
 ## Taint Sinks

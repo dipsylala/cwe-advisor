@@ -12,9 +12,12 @@ XSS occurs when untrusted data is included in web output without proper encoding
   that `HtmlString` and anything returning `IHtmlContent` are exempt from it by design
 - Apply context-specific encoders from `System.Text.Encodings.Web`: `HtmlEncoder` for HTML, `JavaScriptEncoder` for JS contexts, `UrlEncoder` for URLs
 - Outside Razor (Web Forms, handlers, hand-built responses) use `System.Net.WebUtility.HtmlEncode()` or `System.Web.HttpUtility.HtmlEncode()` for markup. Neither belongs inside a `<script>` block: HTML encoding does escape `<`, but a `<script>` element is raw text where the browser never decodes entities, so the value arrives in the JS string still spelled `&quot;` while the backslashes and U+2028/U+2029 line terminators that can break the literal go untouched. Use `HttpUtility.JavaScriptStringEncode()` or `JavaScriptEncoder.Default.Encode()` there
-- Sanitize rich HTML before `@Html.Raw()` with the third-party `HtmlSanitizer` package (NuGet
-  `Ganss.Xss`, formerly `HtmlSanitizer`) - it is not a Microsoft component, so treat its version as
-  part of the fix
+- Sanitize rich HTML before `@Html.Raw()` with the third-party HtmlSanitizer package - the NuGet id
+  is `HtmlSanitizer` and the type lives in the `Ganss.Xss` namespace, so `dotnet add package
+  Ganss.Xss` installs nothing. It is not a Microsoft component, so its version is part of the fix:
+  set the floor at 9.2.1039, which closed an attribute bypass in the `SanitizeDom(string)` wrapper
+  element. That fix carries no advisory of its own, so checking only GHSA-j92c-7v7g-gj3f
+  (CVE-2026-25543, fixed in 9.0.892) passes an affected version
 - Implement Content Security Policy headers for defence-in-depth
 - Validate input format as secondary defence, never rely on it alone
 

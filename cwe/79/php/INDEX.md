@@ -24,6 +24,8 @@ XSS occurs when untrusted data is rendered in web pages without proper encoding,
 - Replace all unencoded output with `htmlspecialchars($data, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8')`
 - Use framework escaping - Laravel `{{ $var }}` instead of `{!! $var !!}`, Twig `{{ var }}` not `{{ var|raw }}`
 - For JavaScript contexts, use `json_encode($data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)`
+  and assign its result directly - it emits the surrounding double quotes itself, so writing
+  `var x = "<?= ... ?>";` wraps a second pair around an already-quoted value and breaks the script
 - For URLs, apply `urlencode()` or `rawurlencode()` to user data
 - Review all instances of `echo`, `print`, and template rendering
 - Add a CSP header built on a per-response nonce or hash rather than an allowlist, with
