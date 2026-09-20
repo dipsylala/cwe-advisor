@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Integer coercion errors occur when a conversion between integer types - a narrowing cast, a sign change, or a parameter conversion at a function call - silently changes a value instead of raising an error. This is not confined to unmanaged code: C and C++ perform the conversion implicitly, while Java and C# demand a visible cast that still truncates without complaint (`(int) longValue` keeps the low 32 bits, and C# does the same outside a `checked` block). The language decides where the wrong value surfaces, not whether it is produced. The converted value then flows into a size, index, comparison, or security check as if it were still correct, producing a truncated buffer size, a flipped comparison outcome, or a bypassed check. The fix is to never rely on an implicit conversion: convert explicitly and validate that the value fits the target type's range before converting.
+Not confined to unmanaged code: C and C++ convert implicitly, while Java and C# demand a visible cast that still truncates without complaint - `(int) longValue` keeps the low 32 bits, and C# does the same outside a `checked` block. The language decides where the wrong value surfaces, not whether it is produced. Narrower children carry the specific conversions - losing high-order bits is CWE-197, signed to unsigned is CWE-195, and unsigned to signed is CWE-196.
 
 ## Key Principles
 

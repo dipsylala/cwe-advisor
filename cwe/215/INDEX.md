@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insertion of sensitive information into debugging code occurs when debug statements, verbose logging, stack traces, or development features expose passwords, tokens, internal paths, SQL queries, or system architecture in production environments, enabling information disclosure and attack reconnaissance.
+The debug path is the channel. Where the debug code is reachable at all in production the finding is CWE-489, where the detail arrives through an error message CWE-209, and where it reaches a log file CWE-532.
 
 ## Key Principles
 

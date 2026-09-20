@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Embedded malicious code includes backdoors, logic bombs, time bombs, and trojans intentionally placed in source code or dependencies. Compromised npm packages, malicious gems, and supply chain attacks inject code that steals credentials, creates backdoors, or triggers on specific conditions.
+Deliberately placed rather than a mistake, which changes the remediation: remove and rebuild from reviewed source, and treat everything the code could reach as compromised. A dormant trigger waiting on a date or a counter is the CWE-511 variant, and a dependency that arrived unverified is CWE-494 or CWE-829.
 
 ## Key Principles
 

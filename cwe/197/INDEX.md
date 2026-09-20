@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness appears when a value is cast or assigned from a wider numeric type to a narrower one, such as a 64-bit size into a 32-bit field, a large integer into a smaller one, or a floating-point value into an integer, and the destination type cannot represent the original value. The high-order bits or fractional/out-of-range magnitude are silently discarded rather than raising an error, producing a value unrelated to the original one; this is especially dangerous when the narrowed value is later used for an allocation or bounds check while other code still uses the original, wider value. The fix is to validate the value against the destination type's range while it is still in the wider type, before the narrowing conversion, and to reject or resize rather than convert implicitly.
+Losing the high-order bits on a narrowing conversion. The sign-changing conversions are siblings - signed to unsigned is CWE-195 and unsigned to signed is CWE-196 - and CWE-192 is the parent to use where a finding spans several of them.
 
 ## Key Principles
 

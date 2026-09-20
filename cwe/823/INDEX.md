@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Use of out-of-range pointer offset occurs when pointer arithmetic uses an offset that can place the resulting pointer outside the buffer it was meant to reference, typically from unchecked indexing, an off-by-one loop bound, or an offset derived from external input without validation. Once formed, dereferencing that pointer produces an out-of-bounds read or write. The fix is to validate any offset against the buffer's actual bounds before the pointer is formed, and to prefer bounds-checked accessors over hand-computed pointer arithmetic.
+The offset is the intermediate cause and the dereference is the consequence - a read is CWE-125 and a write CWE-787 - while an unvalidated index feeding the arithmetic is CWE-129. A signed offset moves the pointer backwards, so a check phrased only as "is it past the end" leaves the whole space before the buffer open.
 
 ## Key Principles
 
@@ -13,8 +13,6 @@ Use of out-of-range pointer offset occurs when pointer arithmetic uses an offset
 - Never trust an offset or index taken from user input, file data, or network data without validating it against the actual buffer size
 - Enable compiler warnings for pointer-arithmetic issues as build failures, and use sanitizers and fuzzing in development as defence-in-depth
 - Check before forming the pointer, not after: the offset is usually applied and the result stored before anything examines it, which separates the bounds check from the arithmetic by whatever code sits between them
-- A signed offset moves the pointer backwards, so a check phrased only as "is it past the end" leaves the entire space before the buffer open
-- The offset is the intermediate cause and the dereference is the consequence - a read is CWE-125 and a write CWE-787 - while an unvalidated index feeding the arithmetic is CWE-129
 
 ## Remediation Steps
 

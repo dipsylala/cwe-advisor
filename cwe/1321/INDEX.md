@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Every JavaScript object literal inherits from `Object.prototype`, so a property written onto that one object is visible from every other object in the process that does not shadow it. Pollution happens when a key from untrusted input is walked into an object graph and one of the keys along the way is `__proto__`, `constructor`, or `prototype`. Parsing is not the pollution step: `JSON.parse` creates an ordinary *own* `__proto__` property and leaves `Object.prototype` untouched. The payload is inert until a recursive merge, a `set(obj, path, value)` helper, or a config loader walks it - that walk is the sink. This is the JavaScript variant of CWE-915; a request that sets `isAdmin` on one record is CWE-915, and the same request setting it on `Object.prototype` is this entry.
+`JSON.parse` is not the pollution step: it creates an ordinary *own* `__proto__` property and leaves `Object.prototype` untouched. The payload stays inert until a recursive merge, a `set(obj, path, value)` helper, or a config loader walks it. A request that sets `isAdmin` on one record is CWE-915; the same request setting it on `Object.prototype` is this entry.
 
 ## Key Principles
 

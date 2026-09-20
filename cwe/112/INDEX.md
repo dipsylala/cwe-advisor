@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Missing XML validation occurs when applications parse XML without validating it against a defined schema (XSD, DTD, or RelaxNG), allowing malformed, malicious, or unexpected XML structures to be processed. This can lead to injection attacks, denial of service, or business logic bypasses. Never process untrusted XML without strict schema validation. This is distinct from CWE-611: disabling DTD and external-entity processing closes XXE, while schema validation is what closes this - a finding reported as "XXE" belongs to CWE-611, and one about structurally invalid, oversized, or unexpected XML being accepted belongs here. The two commonly appear together and both fixes are needed.
+Distinct from CWE-611, and commonly present alongside it: disabling DTD and external-entity processing closes XXE, while schema validation is what closes this. A finding reported as "XXE" belongs to CWE-611; one about structurally invalid, oversized, or unexpected XML being accepted belongs here. Both fixes are usually needed.
 
 ## Key Principles
 

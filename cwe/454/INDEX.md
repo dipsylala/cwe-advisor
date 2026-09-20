@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-External initialization vulnerabilities occur when applications initialize critical variables from untrusted sources (environment variables, config files, user input) without validation, enabling attackers to control application behavior, bypass security, or execute code. Trusted variables must be initialized internally with strict validation; never allow external inputs to override trusted state.
+This weakness is defined by where the value *came from*, so check whether the sink has its own entry first: a configuration setting is CWE-15, a search path is CWE-426/CWE-427, a class or method name is CWE-470, a filesystem path is CWE-73, and untrusted data written into a store the application trusts at runtime is CWE-501. Use this entry when the finding is initialization itself - a trusted variable or data store given its starting value from outside the trust boundary - or as the overview when one value feeds several of those sinks.
 
 ## Key Principles
 
@@ -11,8 +11,6 @@ External initialization vulnerabilities occur when applications initialize criti
 - Minimize external trust - Reduce reliance on environment variables, config files, and command-line arguments for security-critical settings
 - Immutable after init - Once validated and set, prevent runtime modification of trusted variables
 - Defence in depth - Combine validation with least privilege and sandboxing to limit impact of compromised values
-- This weakness is defined by where the value *came from*, so check whether the sink has its own entry first: a configuration setting is CWE-15, a search path is CWE-426/CWE-427, a class or method name is CWE-470, a filesystem path is CWE-73, and untrusted data written into a store the application trusts at runtime is CWE-501
-- Use this entry when the finding is initialization itself - a trusted variable or data store given its starting value from outside the trust boundary - or as the overview when one value feeds several of those sinks
 
 ## Remediation Steps
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-427 occurs when a fixed, unmodified search path (unlike CWE-426, the path itself is not attacker-controlled) still contains one element that is writable by a lower-privileged or untrusted actor - most commonly the current working directory, a world-writable temp directory, or an application-local plugin folder that sits early in the default library/executable search order. An attacker who can place a malicious file at that one writable location (a same-named DLL, shared library, or executable) gets it loaded before the legitimate version further down the search path, without ever needing to modify PATH or any environment variable - the classic case is DLL side-loading via the current working directory. The fix is to remove writable-by-others locations from the search order or resolve to a specific, trusted, absolute path rather than relying on default search behavior.
+The search path itself is fixed and not attacker-controlled - where the path can be modified, that is CWE-426. Here one element already in it is writable by a lower-privileged actor: the current working directory, a world-writable temp directory, or an application-local plugin folder sitting early in the default order. A same-named DLL, shared library, or executable placed there loads ahead of the legitimate one without any environment variable being touched.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Dangerous functions - unbounded string/memory operations, unvalidated shell or process execution, weak randomness, and dynamic code evaluation - lack bounds checking, enable code execution, or carry other inherent security flaws in a language's standard library. Using them creates buffer overflows, command injection, code injection, and other vulnerabilities that modern, safer alternatives prevent.
+A safe calling convention exists and the risk is a caller skipping it. Where the function has no safe convention at all, because its signature omits what any caller would need, that is CWE-242; where the platform has superseded or withdrawn it, CWE-477. `gets()` is on all three lists.
 
 ## Key Principles
 

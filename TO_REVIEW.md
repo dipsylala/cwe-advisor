@@ -182,6 +182,43 @@ routing - `cwe/80` and `cwe/83` both route *up* to 79 and 79 routed nowhere - so
 tag-injection and attribute cases. Check the replacement against the rest of the file, not only
 against what it replaced.
 
+**Run 22 measured the top-20 cut and found it neutral** (`evals/RESULTS-v22.md`): `fix_quality`
+-0.010 with 25 cases ahead against 26 behind, `no_harm` +0.052 at p = 0.06, both under the run's
+15.6% judge-disagreement rate, and an exact tie on the compile gate at 209 of 226 per arm. That is
+what licensed doing the remaining 172.
+
+**All 172 remaining roots done, 2026-09-20.** 13,683 -> 9,169 guidance words, a 33% cut - smaller
+than the top 20's 41%, because these were already leaner (mean 80 against 107) and much of the work
+was moving routing *up* out of `Key Principles` rather than deleting prose. Across the 172 files:
+18,076 words removed, 9,169 written, net -8,907, and **115 `Key Principles` bullets deleted**.
+All 192 roots now total 10,428 guidance words, mean 54, against 15,826 and mean 82 at the start.
+
+The pass turned into more than a guidance cut, for two reasons worth keeping:
+
+- **The duplicate was usually a Key Principle, not the guidance.** Cutting the definition exposed
+  bullets saying the same thing as the sentence above them - `cwe/1426`, `cwe/269`, `cwe/479`,
+  `cwe/364` and `cwe/668` had three each. Where the duplicated content was *routing* it belongs in
+  `LLM Guidance`, since routing is the first decision, so several entries' guidance grew while the
+  file shrank: `cwe/479` shed 124 principle words to add 14, `cwe/99` shed 69 to add 18.
+- **It found a cross-family contradiction.** `cwe/250` said the CWE-272 remediation "is the same, so
+  treat the number as reporting preference rather than a triage question" while `cwe/272` said the
+  standing condition is "a different weakness requiring a different fix". They *are* different fixes
+  - a lower-privilege identity from startup against a drop after the operation - so `272` was right
+  and `250` was corrected. Same shape as the CWE-862/863 status-code disagreement: per-file review
+  cannot see it, because each file is internally consistent.
+
+Twenty entries route in their guidance to a CWE with no directory here (`917`, `685`, `703`, `1392`,
+`1393`, `307`, `521`, `640`, `674`, `459`, `763`, `775`, `663`, `491`, `515`, `540`, `623`, `565`,
+`455`/`456`/`457`/`908`/`909`/`1188`/`1419`, `488`, `174`/`605`/`764`/`765`/`1341`, `430`/`431`/`841`,
+`188`/`1102`). Every one of these already existed in the corpus - the pass moved them from
+`Key Principles` into `LLM Guidance`, which makes them more prominent rather than new. They are safe:
+SKILL.md Step 2 says "If the child's directory doesn't exist, continue with the parent." Whether any
+of them deserves its own entry is a separate question and a reasonable source of future work.
+
+Not done, and still open: the eight over-length *language* files. Run 22 is what shows the language
+file carries the weight of a fix, so they cannot inherit its null result and want their own
+measurement rather than this one's answer.
+
 Not yet done: the remaining 172 roots, and the eight over-length language files. The next eval run is
 the check on whether any of this moved fix quality; the prediction is that it did not, since the
 language file does that work.

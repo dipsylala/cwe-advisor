@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Struts ActionForm's `validate()` method that returns null or is improperly implemented bypasses validation, allowing unvalidated user input to reach application logic. This enables injection attacks, data integrity issues, and business logic bypasses. Three things must agree for validation to run - the method, the action mapping's `validate` attribute, and the form name in `validation.xml` - and all three fail silently, so confirm which one is actually broken before editing.
+Three things must agree for validation to run - the `validate()` method, the action mapping's `validate` attribute, and the form name in `validation.xml` - and all three fail silently, so confirm which one is actually broken before editing. A form bean never wired into the validator at all is CWE-104.
 
 ## Key Principles
 

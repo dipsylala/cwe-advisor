@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Uncaught exceptions cause application crashes, expose sensitive information through stack traces (file paths, internal logic, SQL queries), and enable denial of service attacks. They also leave resources unclosed and abort critical operations mid-execution.
+Control leaves the frame that was meant to contain the failure. A result nobody inspects is the opposite shape and belongs to CWE-252, and the stack trace an uncaught exception surfaces to the caller is CWE-209.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Missing authentication occurs when a critical function, route, or handler has no identity check at all - not a flawed one. The usual cause is a path missed when authentication was wired up elsewhere: an internal admin API left open because "it's not linked from the UI," a debug endpoint shipped without auth, a new route that never inherited the shared auth middleware, or a service-to-service API that trusts network location instead of verifying caller identity. This differs from CWE-287 (auth logic exists but is bypassable), CWE-862 (identity is verified but the permission is never checked), and CWE-863 (a permission check exists but its logic is wrong) - CWE-306 has no identity check whatsoever. Remediate by enumerating every code path that reaches the sensitive function and confirming each one requires authentication.
+No identity check at all, as against a check that exists and can be bypassed, which is CWE-287. Where identity is established but the permission is never checked, use CWE-862; where a permission check exists and its logic is wrong, CWE-863.
 
 ## Key Principles
 
@@ -15,7 +15,6 @@ Missing authentication occurs when a critical function, route, or handler has no
 - Make authentication the default for the router rather than a per-route opt-in, then enumerate the routes and confirm each one: the handler is usually correct and the defect lives in the routing table, where a route registered outside the shared middleware group silently gets nothing and a diff shows nothing wrong
 - Authenticating at the gateway only leaves every backend reachable directly - another internal service, a misconfigured route, a debug port - trusting the request implicitly; each service verifies identity itself
 - An unlinked admin or debug route is not protected: test the endpoint directly rather than through the UI, since that is the path an attacker uses
-- Route by which check is missing: identity never established is this entry, a permission check missing after identity is CWE-862, and a permission check with wrong logic is CWE-863
 
 ## Remediation Steps
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Argument Injection occurs when untrusted user input is used to construct command-line arguments, function parameters, or system calls, allowing attackers to inject malicious arguments and alter program behavior. Innocuous installed executables (LOLBins) can be subverted through command-line arguments to perform code execution or filesystem manipulation. This is the weakness that survives the CWE-78 fix: an argument array delivers `--use-compress-program=touch` faithfully, and the invoked program's own option parser is what reinterprets it.
+This is the weakness that survives the CWE-78 fix: an argument array delivers `--use-compress-program=touch` faithfully, and the invoked program's own option parser is what reinterprets it. Innocuous installed executables (LOLBins) are subverted this way with no shell involved at all.
 
 ## Key Principles
 

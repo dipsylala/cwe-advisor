@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Hard-coded passwords embed credentials directly in source code, configuration files, or binaries, exposing secrets to anyone with codebase access. Attackers can easily extract these credentials to gain unauthorized access.
+A child of CWE-798 scoped to passwords, with CWE-321 the cryptographic-key equivalent. The remediation is CWE-798's, and the half that decides it is whether this is a password the product *sends* or one it *accepts*.
 
 ## Key Principles
 

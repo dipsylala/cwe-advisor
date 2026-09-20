@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when code checks a condition - file existence, permissions, balance, authorization - and then acts on it in a separate step, leaving a window where the underlying state can change between the check and the use. An attacker can exploit that window to substitute a different resource or invalidate the assumption the check established. The core fix is to eliminate the gap by making check-and-use a single atomic operation, or by acting on a handle obtained at check time (such as a file descriptor) instead of re-resolving a name or re-querying state at use time.
+A check and the use of what it established are two separate steps, with a window between them in which the state can change. Where there is no separate check - a plain unsynchronized read-modify-write - the entry is CWE-362, or CWE-366 where the racing parties are threads of one process.
 
 ## Key Principles
 

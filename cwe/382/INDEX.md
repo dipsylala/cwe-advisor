@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Calling System.exit() in J2EE applications terminates the entire application server, affecting all deployed applications and users. This violates the J2EE threading model, prevents proper cleanup of container-managed resources, and causes denial of service.
+The container owns the JVM lifecycle, not the application: `System.exit()` takes down every application deployed alongside this one and skips container-managed cleanup. The fix is to throw or return rather than to call it conditionally.
 
 ## Key Principles
 

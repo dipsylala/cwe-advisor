@@ -2,9 +2,7 @@
 
 ## LLM Guidance
 
-Sensitive information in log files occurs when applications write confidential data (passwords, tokens, PII, session IDs) to application logs, system logs, or debug output. Logs are often stored with weak access controls, retained for long periods, backed up to multiple locations, and aggregated to centralized logging systems - multiplying exposure risk.
-
-Common examples include authentication failures logging passwords, request/response logging containing sensitive data, error messages with credentials, debug output, database query logs, and API interaction logs containing tokens or payment information.
+A log entry outlives its request by the retention period rather than by the session, and is readable by support staff, on-call engineers, the aggregation service, and whatever ships the logs there - a much larger set of people than could read the credential where it was stored.
 
 ## Key Principles
 
@@ -15,7 +13,6 @@ Common examples include authentication failures logging passwords, request/respo
 - Use structured logging with automatic sanitization for known sensitive fields
 - Redact at the logging layer with a field-name filter that recurses through nested objects and lists, so a call site that forgets to sanitize still fails safe - that is the common case, and per-call-site discipline is what a fix built on it depends on
 - The strongest fix is not passing the secret to the logger at all; redaction is what covers the structured-payload case where the whole object must be logged
-- A log entry outlives its request by the retention period rather than the session, and is readable by support staff, on-call engineers, the aggregation service, and whatever ships the logs there - a much larger set of people than could read the credential where it was stored
 
 ## Remediation Steps
 

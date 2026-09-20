@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Protection mechanism failure is a broad parent weakness covering any case where a security control does not do its job - including a control that is entirely absent, one that is disabled or only partially applied, or one that can be bypassed through an alternate code path. Official CWE hierarchy places entries like CWE-306 (missing authentication) and CWE-862 (missing authorization) as children of this weakness, so "the mechanism was never applied at all" is squarely in scope here too, not excluded from it. That said, when a finding names a more specific mechanism - authentication middleware wired into some routes but not others, a security feature left off because of a debug flag, a validation rule with a bypassable alternate path - prefer the more targeted entry (CWE-306, CWE-862, CWE-863, or others) if one matches; use this entry's guidance when the finding doesn't map cleanly to a narrower CWE, or spans multiple protection mechanisms. The core fix is finding every path that should invoke the control and confirming it is actually applied on each one, not layering on unrelated defences.
+MITRE marks this a Discouraged Pillar: file the descendant wherever one fits. CWE-306 and CWE-862 are children of it, so a control that was never applied at all belongs to them rather than being out of scope for this family. Use this entry only where the finding spans several mechanisms, or maps to no narrower CWE.
 
 ## Key Principles
 

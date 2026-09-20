@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when user input is used to construct file or directory names, allowing attackers to read, write, or delete arbitrary files on the system. Attackers can exploit path traversal (e.g., `../../../etc/passwd`) or absolute paths to access sensitive files outside intended directories, but the weakness does not require traversal at all - choosing which file inside an allowed directory gets read, written, or deleted is the same finding. Where the payload does escape the directory, apply CWE-22 as well; where validation is defeated by two spellings of the same path, apply CWE-41.
+The weakness does not require traversal at all: choosing which file inside an allowed directory gets read, written, or deleted is the same finding. Where the payload does escape the directory, apply CWE-22 as well; where validation is defeated by two spellings of the same path, apply CWE-41.
 
 ## Key Principles
 

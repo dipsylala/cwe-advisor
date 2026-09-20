@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper signature verification occurs when applications accept unsigned data, fail to validate signatures, use weak signature algorithms, or implement flawed verification logic. This enables attackers to forge signatures, tamper with signed data, and bypass authentication mechanisms.
+Signature verification specifically, under the CWE-345 authenticity parent; an integrity check value that is not a signature is CWE-354. Two defects recur: accepting the algorithm named inside the signed object itself, and treating "a signature is present" as "the signature verified".
 
 ## Key Principles
 

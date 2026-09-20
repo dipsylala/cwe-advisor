@@ -2,14 +2,7 @@
 
 ## LLM Guidance
 
-XPath injection occurs when untrusted input is concatenated into an XPath expression, letting an
-attacker change which nodes the expression selects rather than only what it matches. The classic
-result is an authentication bypass, where a value closing the quoted literal and adding `or '1'='1'`
-turns a single-user lookup into the whole document. The fix parallels SQL parameterization - bind the
-value as an XPath variable - but with one difference that decides the whole remediation: **XPath 1.0
-string literals have no escape sequence**, so escaping is not available as a fallback. A finding about
-building an XML *document* by concatenation is CWE-91, and one about `DOCTYPE` or external entities is
-CWE-611.
+The fix parallels SQL parameterization - bind the value as an XPath variable - with one difference that decides the whole remediation: **XPath 1.0 string literals have no escape sequence**, so escaping is not available as a fallback. A finding about building an XML *document* by concatenation is CWE-91, and one about `DOCTYPE` or external entities is CWE-611.
 
 ## Key Principles
 

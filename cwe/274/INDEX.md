@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper handling of insufficient privileges occurs when applications don't gracefully handle permission denied errors, continuing operation with partial functionality, exposing error details, or failing insecurely. Applications must check permissions before operations and handle authorization failures properly by failing closed when privileges are insufficient.
+The privileged operation was denied and the program carried on regardless. Where privilege was dropped and the drop never verified, that is CWE-273; the family parent is CWE-269.
 
 ## Key Principles
 

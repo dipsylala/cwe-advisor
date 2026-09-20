@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-HTTP Response Splitting occurs when untrusted user input is included in HTTP headers without proper validation or encoding, allowing attackers to inject CRLF characters (carriage return and line feed). This enables attackers to create additional headers or inject complete HTTP responses, potentially leading to cache poisoning, XSS, or session hijacking.
+The HTTP-header-specific case of CRLF injection: response splitting through `Location`, `Set-Cookie`, or a custom header. For line-oriented formats generally - mail headers, log entries, line-based protocol commands - use CWE-93.
 
 ## Key Principles
 

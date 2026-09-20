@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Exposed dangerous methods (admin functions, debug endpoints, internal APIs, privileged operations) accessible without proper authorization enable attackers to invoke sensitive functionality directly, bypassing normal access controls. The core fix is to make dangerous methods private/internal and gate high-risk operations behind strong authentication and authorization controls.
+The method is reachable and carries no access check at all. A check that exists and is wrong is CWE-863, and one missing from a path that has it elsewhere is CWE-862. An ActiveX control marked safe for scripting is the CWE-618 special case.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Omission of security-relevant information occurs when applications fail to log critical security events such as login failures, access denials, privilege escalations, and data modifications. This prevents effective security monitoring, incident response, compliance auditing, and attack detection. The core fix is implementing comprehensive logging of all security-relevant events while ensuring logged information doesn't expose sensitive data. Most findings reported here are really CWE-778 (Insufficient Logging), the narrower case of a missing or incomplete log entry - check that first. This entry also covers security-relevant *output* generally: a warning, prompt, scanner report, or downstream API response that says something is wrong without saying what, leaving the reader unable to judge the actual risk.
+Most findings reported here are really CWE-778 (Insufficient Logging), the narrower case of a missing or incomplete log entry - check that first. This entry also covers security-relevant *output* generally: a warning, prompt, scanner report, or downstream API response that says something is wrong without saying what, leaving the reader unable to judge the actual risk.
 
 ## Key Principles
 

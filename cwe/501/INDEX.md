@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Trust boundary violations occur when untrusted data (user input, HTTP requests) is mixed into the same data structure as trusted data - most commonly stored in a trusted context like a session object or internal object - without validation, so the two can no longer be reliably distinguished downstream. This enables session poisoning, privilege escalation, and security control bypass, since code that trusts the structure as a whole ends up trusting the untrusted portion too. Core fix: explicitly validate untrusted data before it is mixed into or stored in a trusted context, and keep trusted and untrusted data in clearly separate structures wherever possible.
+The defect is the change of trust level, not the absence of validation: the value may have been validated correctly for its original purpose, and what is wrong is that it entered a store the rest of the application treats as authoritative. The mirror images are CWE-642 for security-critical state kept where the *client* controls it, CWE-454 for the same shape at startup, and CWE-668/CWE-200 for trusted data reaching a context that should not hold it.
 
 ## Key Principles
 
@@ -11,9 +11,7 @@ Trust boundary violations occur when untrusted data (user input, HTTP requests) 
 - Never assume session, cache, or internal object data is inherently safe
 - Validate and sanitize before storing untrusted data in trusted contexts
 - Separate trusted and untrusted data storage mechanisms
-- The defect is the change of trust level, not the absence of validation: the value may have been validated correctly for its original purpose, and what is wrong is that it entered a store the rest of the application treats as authoritative
 - Validate and re-authorize at the moment of the *write* into the trusted store, since every later reader is entitled to skip the check by design
-- Distinguish the mirror image: security-critical state kept where the *client* controls it is CWE-642, the same shape at startup is CWE-454, and trusted data reaching a context that should not hold it is CWE-668/CWE-200
 
 ## Remediation Steps
 

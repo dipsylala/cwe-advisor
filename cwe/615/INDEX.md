@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Sensitive information in source code comments (passwords, API keys, internal IPs, security TODOs) is exposed to anyone with code access through version control, decompiled binaries, or client-side JavaScript. This data persists in git history even after removal, creating long-term security risks.
+Comments ship with the code: into version control history, into decompiled binaries, and into client-side JavaScript the browser downloads. A credential found in one is also CWE-798, and removing the comment does not remove it from history.
 
 ## Key Principles
 

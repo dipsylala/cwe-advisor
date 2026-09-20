@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This is the general buffer-bounds weakness: a read, write, or pointer/index operation on a buffer, array, or memory region proceeds without confirming the computed index, offset, or length stays within the region's actual allocated bounds. It covers both directions - reading past the end (CWE-125) and writing past the end (CWE-787) - plus cases where the operation could do either, such as a generic memcpy-style call driven by an untrusted or miscalculated size. If you can tell whether the operation is a read or a write, prefer the more specific CWE-787 or CWE-125 guidance; use this entry when the operation is mixed, unclear, or you are addressing the class as a whole rather than one call site.
+The general buffer-bounds weakness, covering both directions. Where you can tell whether the operation is a read or a write, use CWE-125 or CWE-787 instead. Use this entry when the operation could do either - a generic memcpy-style call driven by an untrusted or miscalculated size - or when you are addressing the class as a whole rather than one call site.
 
 ## Key Principles
 

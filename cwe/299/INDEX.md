@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when code trusts a certificate without checking whether it has been revoked, allowing a compromised or otherwise invalidated certificate to be accepted. The core fix is to enable revocation checking (OCSP stapling preferred, CRL as fallback) in the TLS configuration and to define an explicit fail behavior for when revocation status cannot be determined.
+Revocation is a separate check from chain validity and expiry, and it is the one most often left off entirely. A certificate that fails the chain is CWE-295 or CWE-296, and one past its validity window is CWE-298; what is distinctive here is a certificate still well-formed and in date that has been withdrawn.
 
 ## Key Principles
 

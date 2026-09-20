@@ -2,9 +2,7 @@
 
 ## LLM Guidance
 
-Improper certificate validation occurs when an application fails to correctly verify the authenticity of SSL/TLS certificates during secure connections. This undermines the entire purpose of HTTPS by allowing attackers to intercept encrypted communications (man-in-the-middle attacks), impersonate legitimate servers, and steal credentials or sensitive data in transit.
-
-SSL/TLS certificates serve two purposes: authentication (prove the server is who it claims to be) and encryption (establish a secure encrypted channel). When certificate validation is disabled or improperly implemented, encryption alone is insufficient - you may be encrypting data to an attacker's server.
+Encryption without authentication is the failure mode: with validation disabled the channel is still encrypted - to the attacker's server.
 
 ## Key Principles
 

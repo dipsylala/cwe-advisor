@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Inadequate Encryption Strength is a choice made once and never revisited: an algorithm or key size too weak for the data's lifetime, often still reachable through a legacy compatibility branch. Fix by making the decision central and server-controlled, and check each finding against the standard's actual status word first - several flagged algorithms are restricted for one operation and permitted for another, so treating a partial restriction as total turns working code into a false finding.
+Check each finding against the standard's actual status word first: several flagged algorithms are restricted for one operation and permitted for another, so treating a partial restriction as total turns working code into a false finding. An algorithm that is broken outright rather than merely underpowered is CWE-327; this entry is a sound algorithm with too short a key, a weak mode, or a static IV.
 
 ## Key Principles
 

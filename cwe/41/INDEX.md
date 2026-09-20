@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Path equivalence issues occur when a security check compares or validates a path string without first resolving it to canonical form, so semantically identical paths that differ only in encoding, trailing separators, case, `.`/`..` segments, or symbolic links bypass the check. This differs from path traversal: the vulnerable step is the comparison logic itself, not `../` sequences reaching a sink. The fix is to canonicalize both sides of any path comparison before applying access control or containment checks.
+The vulnerable step is the comparison logic itself, not `../` sequences reaching a sink: semantically identical paths differing only in encoding, trailing separators, case, or symbolic links pass a check written against the raw string. Where the payload does escape the directory, that is CWE-22.
 
 ## Key Principles
 

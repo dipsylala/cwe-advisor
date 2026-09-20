@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when Struts form beans do not extend the proper validation base class for the validation mechanism in use. Declarative Struts validation requires `ValidatorForm` or `DynaValidatorForm`; a plain `ActionForm` must implement a complete `validate()` method. Missing validation allows untrusted input to reach application logic. This is the sibling of CWE-103 and looks identical from the outside: CWE-104 is a form bean never wired into the validator at all, while CWE-103 is a bean that extends the right class but whose `validate()` is broken or never calls `super`. Confirm which mechanism applies before remediating.
+The sibling of CWE-103, and identical from the outside: this entry is a form bean never wired into the validator at all, while CWE-103 is a bean that extends the right class but whose `validate()` is broken or never calls `super`. Confirm which mechanism applies before remediating.
 
 ## Key Principles
 

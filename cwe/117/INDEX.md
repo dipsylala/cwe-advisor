@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Log Injection occurs when untrusted user input is written to logs without proper validation or encoding, allowing attackers to forge log entries, hide malicious activity, or inject misleading information. This can compromise audit trails, inject false data into monitoring systems, or obscure security incidents.
+The sink is whoever or whatever reads the log. This is the counterpart of CWE-778: fixing insufficient logging writes attacker-controlled values into the log, and creates this weakness unless the newlines are neutralized at the same time. For line-oriented formats generally, CWE-93.
 
 ## Key Principles
 

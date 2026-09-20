@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Integer underflow occurs when a subtraction (or other arithmetic) produces a result below the minimum value its type can represent. An unsigned type wraps to a very large positive value instead of going negative, most often from an unvalidated "remaining space" or "count minus offset" calculation where the subtrahend can legitimately exceed the minuend. When the wrapped value sizes a buffer, a copy, or a loop bound, it drives out-of-bounds access or memory corruption in native code, and wrong results or unhandled exceptions in managed languages. The fix is to validate that a subtraction cannot cross the type's minimum before performing it, never after.
+An unsigned subtraction crossing zero wraps to a very large positive value instead of going negative - most often an unvalidated "remaining space" or "count minus offset" where the subtrahend can legitimately exceed the minuend. Arithmetic crossing the type's *maximum* instead is CWE-190.
 
 ## Key Principles
 

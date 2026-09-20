@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when code that produces a C-style string fails to guarantee a terminating null byte at the true end of the data, most often because a bounded copy function that does not guarantee termination is used without an explicit terminator written afterward, or because data read from a network or file is treated as a string without ever being terminated. Downstream functions that scan for the terminator then read past the buffer's real end, leaking adjacent memory or crashing, or a terminator write itself lands out of bounds and corrupts memory. The fix is to guarantee, explicitly and on every path, that a buffer used as a string ends with a null terminator inside its real bounds.
+Two different consequences follow and a finding is usually one of them: a downstream function scanning for the terminator reads past the buffer's real end, which is CWE-125, or the terminator write itself lands outside the bounds, which is CWE-787.
 
 ## Key Principles
 

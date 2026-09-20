@@ -2,17 +2,14 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when a process, service, or account holds more privilege than its current task requires, keeps elevated privilege after the privileged operation is complete, or can have its privilege level raised through an unprotected path. It is a lifecycle problem: the standing privilege level granted to an identity over time, not a single resource's permission bits and not a single request's authorization check. Fix by granting only the minimum privilege needed to start, dropping to a lower privilege level immediately after the privileged step finishes, and gating any privilege change behind an authenticated, authorized, auditable path with a defined expiry or revocation.
+MITRE marks this Class Discouraged for new findings: prefer the child that fits - a component configured to run over-privileged for its whole lifetime is CWE-250, a privilege not dropped after the operation that needed it is CWE-272, an unverified drop is CWE-273, and mishandling a privilege that was *denied* is CWE-274. What this family covers is the standing privilege level of an identity over time: not a resource's permission bits, which is CWE-732, and not a single request's authorization check, which is CWE-862 and CWE-863.
 
 ## Key Principles
 
 - Apply least privilege as the primary defence: start processes, services, and accounts with the minimum privilege level required, not the broadest available
 - Drop elevated privilege immediately after the operation that required it completes; do not let a process or session keep running at a higher level than its remaining work needs
 - Treat privilege elevation as a controlled transition: require explicit authorization, log who requested and approved it, and bind temporary grants to an expiry or revocation step
-- This is not CWE-732 (Incorrect Permission Assignment for Critical Resource): CWE-732 is about a resource's permission bits or ACL being wrong; CWE-269 is about the standing privilege level of the process or account acting on resources
-- This is not CWE-862/CWE-863 (Missing/Incorrect Authorization): those CWEs govern whether a single request should be allowed at the caller's current privilege level; CWE-269 governs whether that privilege level was acquired, retained, or escalated correctly over time
 - Prefer capability-scoped or role-scoped grants over broad administrative or root-equivalent privilege, even when the broader grant is more convenient
-- MITRE marks this Class Discouraged for new findings - prefer the child that fits: a component configured to run over-privileged for its whole lifetime is CWE-250, a privilege not dropped after the operation that needed it is CWE-272, an unverified drop is CWE-273, and mishandling a privilege that was *denied* is CWE-274
 - Scope the elevation to the call, not the request: wrapping a whole handler in an elevated context because one internal step needs it puts every line of untrusted-input handling at the higher level
 - Treat a broad cloud role or container capability set chosen for convenience as the finding itself - any compromise of that component then becomes a full-account compromise
 

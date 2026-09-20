@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enables padding oracle attacks, chosen ciphertext attacks, and message malleability. OAEP adds randomness and integrity checks, making RSA encryption secure against modern attacks. Always use RSA-OAEP instead of raw RSA or PKCS#1 v1.5 padding.
+A specific child of CWE-327 where the algorithm is RSA and the defect is the padding. PKCS#1 v1.5 encryption padding is the usual finding, since it is what produces a Bleichenbacher oracle, and OAEP is the replacement.
 
 ## Key Principles
 

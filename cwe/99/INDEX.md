@@ -2,11 +2,10 @@
 
 ## LLM Guidance
 
-Resource Injection occurs when untrusted input selects system resources (files, ports, class names, URLs) without validation, allowing attackers to manipulate which resources the application accesses. The core fix is to never let untrusted input directly select resources; instead, use allowlisted mappings and canonical validation so only permitted resources are reachable. MITRE marks this ID Allowed-with-Review because it is a Class: almost every finding has a more specific entry, chosen by the sink rather than by anything visible at the reported line.
+MITRE marks this ID Allowed-with-Review because it is a Class: almost every finding has a more specific entry, chosen by the sink rather than by anything visible at the reported line. A file path is CWE-22 where it escapes the directory or CWE-73 where it names the file at all; a class or method resolved by reflection is CWE-470; a URL the *server* fetches is CWE-918; a URL the *browser* is sent to is CWE-601; and a database name, connection string, or other setting is CWE-15. A port chosen directly by a request is the case this entry terminates.
 
 ## Key Principles
 
-- Route by sink before remediating: a file path is CWE-22 (escapes the directory) or CWE-73 (names the file at all); a class or method resolved by reflection is CWE-470; a URL the *server* fetches is CWE-918; a URL the *browser* is sent to is CWE-601; a database name, connection string, or other setting is CWE-15. A port chosen directly by a request is the case this entry terminates
 - Never let untrusted input select resources by name or path directly
 - Canonicalize all resource identifiers (resolve paths, normalize names) before validation
 - Map user-controlled input to allowlisted resources using indirect references

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when user input controls system or application configuration settings, allowing attackers to alter application behavior, security controls, or environment variables. The core fix is to never allow untrusted input to directly control configuration - all settings must be defined and enforced by trusted code. Where the externally-controlled state is broader than configuration (session, workflow, or other critical state), use CWE-642 instead.
+Treat the configuration *source* as a sink too - a file path, URL, uploaded file, or user-writable database row that the application reads its configuration from is externally controlled configuration. Where the externally-controlled state is broader than configuration, such as session or workflow state, use CWE-642 instead.
 
 ## Key Principles
 
@@ -11,7 +11,6 @@ This vulnerability occurs when user input controls system or application configu
 - Never accept configuration key names from user input; map a user's choice to an internal key
 - Separate user preferences from security-critical system configuration
 - Require authentication and admin-level authorization on any endpoint that changes configuration, and audit every change
-- Treat the configuration *source* as a sink too - a file path, URL, uploaded file, or user-writable database row that the application reads its config from is externally controlled configuration
 - Validate and sanitize any user data that influences application behavior
 - Enforce configuration integrity through code-based defaults
 

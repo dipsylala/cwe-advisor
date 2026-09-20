@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when externally-controllable data (user input, retrieved documents, fetched web pages, tool results) is combined into the context sent to an LLM in a way that lets the model fail to distinguish trusted developer instructions from untrusted content - commonly called prompt injection. Unlike SQL or command injection, there is no complete parameterization fix: natural language has no syntax that reliably separates "instruction" from "data" the way a prepared-statement placeholder does. The remediation is defense-in-depth, not a single sink-side fix: structurally separate trusted instructions from untrusted content wherever the platform supports it, enforce authorization for consequential actions independent of what the model decided, and apply least privilege to what the model can actually do.
+Unlike CWE-1426, this ID is Allowed for mapping, so a prompt-injection finding belongs here. There is no parameterization fix: natural language has no syntax that reliably separates instruction from data the way a prepared-statement placeholder does, so the remediation is layered rather than a single change at the sink. Where a tool fetches a URL the model chose, apply CWE-918 to that fetch.
 
 ## Key Principles
 
@@ -12,10 +12,7 @@ This vulnerability occurs when externally-controllable data (user input, retriev
 - Apply least privilege to tool design: narrow, purpose-built, parameterized tools with server-side argument validation, not broad-capability tools (arbitrary shell execution, unrestricted file or network access) that turn a successful injection into full compromise
 - Require human approval or a secondary confirmation step for irreversible or high-consequence actions (financial transfers, deletions, sending communications, credential changes) regardless of model confidence
 - This class of weakness cannot be fully eliminated by any single control; combine multiple independent layers and expect new bypass techniques to keep appearing
-- There is no parameterization fix here: natural language has no syntax separating instruction from data, so a capable model can still be talked out of its instructions by content crafted to look authoritative
 - Defend in layers instead: structural separation of trusted instructions from untrusted content where the platform offers it, independent server-side authorization for every consequential tool action, and least-privilege tools so a successful injection has a narrow blast radius
-- Where a tool fetches a URL the model chose, apply CWE-918 to that fetch
-- Unlike CWE-1426, this ID is Allowed for mapping, so a prompt-injection finding belongs here
 
 ## Remediation Steps
 

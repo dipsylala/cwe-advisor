@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Weak or broken cryptographic algorithms fail to protect data confidentiality, integrity, and authenticity. MITRE classes this entry Allowed-with-Review and asks that a better-fitting child be used where one exists, so treat it as the superset: establish what the algorithm is *for*, then read the specific entry if one matches, and use this page's guidance when none does or when the finding spans several. A weak hash used for integrity or signatures is CWE-328. A hash that is sound but too fast or unsalted for password storage is CWE-916 - the algorithm is not the defect there, the work factor is. RSA encryption without OAEP is CWE-780. CWE-326 is a *sibling* rather than a child and covers the case where the algorithm is sound but the key size or mode is not, so a finding about a short key, ECB, or a static IV belongs there. Use this entry directly for an algorithm that is broken outright - DES, 3DES, RC4, MD5 or SHA-1 used as a signature - and for protocol and cipher-suite selection.
+MITRE classes this Allowed-with-Review and asks for a better-fitting child where one exists, so establish what the algorithm is *for* before using this page. A weak hash used for integrity or signatures is CWE-328. A hash that is sound but too fast or unsalted for password storage is CWE-916 - the work factor is the defect there, not the algorithm. RSA encryption without OAEP is CWE-780. CWE-326 is a sibling rather than a child and takes a sound algorithm with an unsound key size or mode, so a short key, ECB, or a static IV belongs there. Use this entry for an algorithm that is broken outright, and for protocol and cipher-suite selection.
 
 ## Key Principles
 

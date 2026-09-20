@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insufficient randomness means a security-relevant value - a session ID, token, key, salt or nonce - came from a general-purpose PRNG rather than the platform's cryptographic generator. The fix is to change the source; changing the seed or the shape of the output does nothing. First confirm the value's unpredictability is what makes it work, because those same generators are correct for simulation, shuffling, jitter and test fixtures, where converting call sites costs throughput and buys nothing.
+First confirm the value's unpredictability is what makes it work, because the same general-purpose generators are correct for simulation, shuffling, jitter and test fixtures, where converting call sites costs throughput and buys nothing. Narrower children: a non-cryptographic PRNG standing in for a CSPRNG is CWE-338, and a sound generator with too little entropy behind it is CWE-331.
 
 ## Key Principles
 

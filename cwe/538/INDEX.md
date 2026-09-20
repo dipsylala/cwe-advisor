@@ -2,19 +2,17 @@
 
 ## LLM Guidance
 
-This weakness occurs when sensitive data (credentials, backups, internal configuration, source code, logs) is placed in a location that users outside the intended trust boundary can reach: a web-served directory, a public storage bucket, or a shared file path. The root cause is treating "not linked" or "not documented" as equivalent to "not accessible" - anything under an externally-reachable root is reachable regardless of discoverability. The fix is to relocate sensitive content outside any exposed root, or to apply explicit access control if it must remain there.
+The root cause is treating "not linked" or "not documented" as equivalent to "not accessible": anything under an externally-reachable root is reachable regardless of discoverability. Where the externally-accessible file is a log, the finding is CWE-532; source code containing secrets is CWE-540.
 
 ## Key Principles
 
 - Never place credentials, backups, source, or internal configuration inside a publicly-served directory or bucket
-- Treat every path under an externally-accessible root as reachable, whether or not it is linked
 - Apply authentication or authorization before content becomes reachable, not as an afterthought
 - Keep storage boundaries separate from serving boundaries so only intentionally-published files are servable
 - Return generic error messages and avoid leaking internal file paths through errors, headers, or metadata
 - Audit build and deployment output for stray sensitive files: backups, VCS directories, editor swap files
 - Treat the artifact set as the control: exclude `.git`, `.env`, editor swap and backup files, build manifests, and source maps from what is deployed, rather than adding a deny rule per extension after the fact
 - Directory listing is one exposure mechanism among several - a predictable name reachable without a listing (`.env`, `config.php.bak`, `db.sql`) is the same finding, so disabling listings is not the fix on its own
-- Where the externally-accessible file is a log, the finding is CWE-532; source code containing secrets is CWE-540
 
 ## Remediation Steps
 

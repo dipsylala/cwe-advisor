@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Process control vulnerabilities occur when applications accept untrusted input to control process execution, library loading, or behavior (start, stop, kill, priority, resource limits). This includes insecure dynamic library loading (DLL hijacking, `LD_PRELOAD` attacks), command injection through process execution, and unauthorized process control. MITRE discourages mapping findings here directly, since it is a Class combining several weaknesses: route a loader searching an attacker-influenced path to CWE-426, one whose fixed path contains an attacker-writable element to CWE-427, an attacker-specified library or executable path to CWE-73, and a built command line to CWE-78. Use this entry for the process-lifecycle case - start, stop, kill, priority, resource limits - that those do not cover. Attackers exploit weak validation to load malicious libraries, execute arbitrary commands, or manipulate running processes.
+MITRE discourages mapping findings here directly, since it is a Class combining several weaknesses. A loader searching an attacker-influenced path is CWE-426, one whose fixed path contains an attacker-writable element is CWE-427, an attacker-specified library or executable path is CWE-73, and a built command line is CWE-78. Use this entry for the process-lifecycle case those do not cover - start, stop, kill, priority, resource limits.
 
 ## Key Principles
 

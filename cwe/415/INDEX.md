@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A double free occurs when memory that has already been deallocated is deallocated a second time, corrupting the memory allocator's internal bookkeeping in a way that can crash the process or be leveraged for code execution. It typically arises from unclear pointer ownership (multiple owners each freeing the same allocation), a pointer freed on both a normal path and an error-handling or cleanup path, or a missing check before a repeated release. The fix is to establish single, unambiguous ownership for every allocation and make it structurally impossible to release the same allocation twice.
+Usually unclear ownership - several owners each freeing the same allocation - or a pointer released on both a normal path and an error or cleanup path. Where the second free happens because a signal interrupted a function mid-deallocation, the root cause is CWE-364 and the signal handling is what to fix first.
 
 ## Key Principles
 
@@ -14,7 +14,6 @@ A double free occurs when memory that has already been deallocated is deallocate
 - `free` receives the address, not the variable, so it cannot change the caller's pointer: after the first call the variable still holds a value indistinguishable from a valid pointer, and nothing about the second call looks wrong where it is written
 - Single ownership makes the question unaskable rather than answered correctly - with no release call on any path out of the function, no path can contain a second one
 - Nulling at release reaches only the variable passed in; a caller's local, a struct field, or a node still linked into a list is untouched, which is why it is the mitigation and ownership is the fix
-- Where the second free happens because a signal interrupted a function mid-deallocation, the root cause is CWE-364 and the signal handling is what to fix first
 
 ## Remediation Steps
 

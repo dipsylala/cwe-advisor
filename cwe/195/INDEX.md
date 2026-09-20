@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness appears when a negative signed value is cast, assigned, or implicitly converted into an unsigned type, most often a function's negative error return (read/receive/format-length calls) flowing into a size, index, or allocation parameter typed as unsigned. Because unsigned types have no sign bit, the conversion silently reinterprets the value as a very large positive number instead of failing, which then bypasses any check that assumes unsigned values are inherently non-negative. The fix is to validate the value against zero while it is still in its signed type, before any conversion, comparison, or arithmetic against an unsigned type occurs.
+A negative signed value converted into an unsigned type becomes a very large positive number - most often a function's negative error return from a read, receive, or format-length call flowing into a size, index, or allocation parameter. The opposite direction, a large unsigned value cast into a signed type, is CWE-196.
 
 ## Key Principles
 

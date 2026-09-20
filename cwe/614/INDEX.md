@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Sensitive cookies (session IDs, authentication tokens) transmitted without the `Secure` flag can be intercepted over unencrypted HTTP connections, exposing them to attackers. The fix requires setting the `Secure` flag on all sensitive cookies to ensure they are only transmitted over HTTPS connections.
+Without the flag the browser sends the cookie over cleartext HTTP whenever it is given the chance, which is why a redirect to HTTPS and HSTS do not substitute for it - both act after the first request has gone. The general cleartext-transmission finding is CWE-319.
 
 ## Key Principles
 

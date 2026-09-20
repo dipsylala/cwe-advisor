@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper validation of array index occurs when user-controlled or untrusted data is used as an array index without proper bounds checking, allowing attackers to read or write arbitrary memory locations, leak sensitive data, or cause crashes. The core fix is to validate array indices before use, including checks for negative and overflowed values.
+The untrusted value is the index itself, which is why MITRE files this outside the CWE-118 buffer hierarchy - the root cause is missing input validation rather than a missing bounds check at the access. The consequence is CWE-125 on a read and CWE-787 on a write, with the pointer arithmetic in between CWE-823.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Incorrect function arguments (wrong type, wrong order, wrong count, null when required) cause undefined behavior, security check bypass, buffer overflows, null pointer dereferences, and logic errors, often due to API misuse or type confusion. Call functions with correct argument types, order, and count to prevent memory and state corruption.
+MITRE files CWE-685, an argument *count* mismatch, under this entry, which is why CWE-234 routes here: a request arriving without a parameter is a different weakness from a call site passing fewer arguments than the function declares.
 
 ## Key Principles
 

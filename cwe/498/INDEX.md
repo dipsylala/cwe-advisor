@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when a class holding credentials, keys, tokens, or a security context implements a language's duplication mechanism (a clone method, copy constructor, or equivalent), letting any code holding a reference produce an unauthorized, untracked copy that bypasses the constructor and whatever validation it normally enforces. The core fix is to remove the cloning mechanism from sensitive classes; if a copy is genuinely required, expose it as an explicit factory method that still goes through construction.
+The duplication mechanism is a second constructor the class did not write and cannot see: everything the real constructor does - authorizing the caller, validating inputs, recording the object in an audit trail or a live-session count - is skipped, and the result is indistinguishable from an object that went through all of it. Whether a *subclass* can exploit a non-final `clone()` to obtain an instance that never ran the constructor is CWE-491; removing the cloning path closes both.
 
 ## Key Principles
 
@@ -12,9 +12,7 @@ This weakness occurs when a class holding credentials, keys, tokens, or a securi
 - If cloning cannot be avoided, gate it with an authorization check performed before the copy is produced, and deep-copy every mutable field rather than relying on default shallow-copy behavior
 - Log any legitimate clone/copy operation the same way a new credential issuance would be logged
 - Defence-in-depth: ensure every copy of sensitive data is tracked so it can be securely cleared from memory when no longer needed
-- The duplication mechanism is a second constructor the class did not write and cannot see: everything the real constructor does - authorizing the caller, validating inputs, recording the object in an audit trail or a live-session count - is skipped, and the result is indistinguishable from an object that went through all of it
 - The guarantee being broken is not that the checks are hard to bypass but that construction is the only way in, which is why not implementing the mechanism is the fix rather than guarding it
-- A neighbouring finding asks a different question: whether a *subclass* can exploit a non-final `clone()` to obtain an instance that never ran the constructor (CWE-491). Removing the cloning path closes both at once
 
 ## Remediation Steps
 

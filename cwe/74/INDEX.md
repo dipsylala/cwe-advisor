@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This is MITRE's broad parent category for injection: untrusted input reaches a downstream interpreter (database, shell, LDAP, XML parser, browser, template engine) without neutralizing the elements that interpreter treats as syntax rather than data. MITRE discourages mapping findings directly to this ID; when the specific sink is known, use the matching child guidance (SQL, command, XSS, LDAP, XML, CRLF, code, CSV/formula, or query-logic injection) instead, since the correct primary defence depends on the sink. Use this page only when a finding is reported generically as "injection" with no identified sink.
+MITRE's broad parent for injection, and discouraged as a mapping target. Where the sink is known, use the matching child - SQL, command, XSS, LDAP, XML, CRLF, code, CSV/formula, or query-logic injection - since the correct primary defence depends entirely on which interpreter receives the data. Use this page only where a finding is reported generically as "injection" with no identified sink.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Overly permissive CORS occurs when web applications allow requests from any origin or untrusted origins, exposing sensitive resources to unauthorized websites. This enables data theft, account compromise, and cross-origin attacks. The core fix is restricting allowed origins to a specific allowlist of trusted domains and never using wildcards with credentials.
+The permissive policy is the finding rather than a missing token: an over-broad `Access-Control-Allow-Origin`, a `crossdomain.xml`, or a `postMessage` handler that accepts any sender. The general origin-validation failure is CWE-346, and forged state-changing requests riding a victim's session are CWE-352.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Open redirect vulnerabilities occur when applications accept user-controllable input to determine redirect destinations without proper validation. Attackers exploit this by crafting malicious links from trusted domains that redirect victims to attacker-controlled sites. The core fix is to never allow untrusted input to control navigation targets - use server-defined destinations or strict allowlists only.
+The redirect is sent to the *browser*; where the server itself fetches the attacker-chosen URL, that is CWE-918. The usual bypass is a value that looks same-site - a scheme-relative `//evil.com`, a backslash, or a userinfo segment - so validate the parsed result rather than the string.
 
 ## Key Principles
 

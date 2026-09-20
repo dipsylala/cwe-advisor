@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when code measures a string with a byte-counting function but treats the result as a character count, or the reverse - most commonly assuming one byte equals one character for text that may contain multi-byte encoded (UTF-8, UTF-16) characters. In native code, a miscounted length that drives a buffer allocation or copy causes memory corruption. In any language, using the wrong unit for a truncation point or a length-based validation check produces malformed text or lets more or less data through a limit than intended. The fix is to keep byte length and character count as two distinct values and use whichever one the specific operation actually needs.
+In native code a miscount driving an allocation or copy becomes memory corruption; in any language the same miscount makes a truncation point or a length-based limit admit more or less data than intended.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Server-Side Request Forgery (SSRF) occurs when an application fetches remote resources based on user-supplied URLs without proper validation, allowing attackers to force the server to make requests to arbitrary destinations including internal services and cloud metadata endpoints. The vulnerability exploits the server's trusted network position. Never allow untrusted input to determine outbound request destinations.
+Validate the resolved *address*, not the hostname string, and re-pin it for the connection: a name that resolved to a permitted address can resolve to a private one on the next lookup. Where the request is not outbound from the server but a redirect sent to the *browser*, that is CWE-601, and the general confused-deputy shape is CWE-441.
 
 ## Key Principles
 
@@ -11,7 +11,6 @@ Server-Side Request Forgery (SSRF) occurs when an application fetches remote res
 - Perform DNS validation - Resolve URLs and check that resolved IPs don't point to internal resources
 - Never use denylists - Attackers will bypass them; allowlists are the only effective approach
 - Enforce network egress controls - Limit outbound connections at the infrastructure level
-- Validate the resolved *address*, not the hostname string, and re-pin it for the connection: a name that resolved to a permitted address can resolve to a private one on the next lookup (DNS rebinding), so resolve once and connect to that address
 - Runtime URL parsers disagree, which is why a string blocklist fails: Node normalizes `[::ffff:7f00:1]` and similar forms while Python and Go do not, so the host your check inspects is not always the host the client dials
 - Handle redirects explicitly - follow none, or re-run the full address check on every hop - since a permitted host can redirect the client out of the allowlist after the check passed
 - Constrain egress at the network as well: a deny rule covering link-local (169.254.0.0/16, including the cloud metadata endpoint), loopback, and RFC 1918 ranges catches what the application-level check misses

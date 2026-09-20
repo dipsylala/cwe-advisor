@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness appears when code relies directly on machine-dependent characteristics, such as pointer width, byte order, memory alignment, or CPU-specific instruction sets, instead of isolating those assumptions behind a portable interface. The assumption holds on the development platform but breaks silently on a different architecture: a pointer truncates, a multi-byte value is misread, an unaligned access faults, or a missing CPU feature is used anyway. The remediation strategy is to make every machine-dependent assumption explicit, verified at runtime or by the type system, and centralized behind a single isolated interface rather than scattered through general logic.
+MITRE marks this Prohibited for mapping - "primarily a quality issue with no direct security implications" - so file the consequence instead and use this entry as the remediation reference: a truncated pointer is CWE-197, or the memory-safety CWE for whatever the truncated address reaches; a layout or byte-order assumption is CWE-188 or CWE-1102; and a hardware capability assumed rather than handled leaves a variable unassigned on the branch nobody wrote, which is CWE-457.
 
 ## Key Principles
 
@@ -12,7 +12,6 @@ This weakness appears when code relies directly on machine-dependent characteris
 - Detect CPU-specific instruction set availability at runtime rather than assuming it is present, and always provide a correct fallback
 - Centralize all machine-dependent or platform-conditional code in one isolated, well-documented location instead of scattering assumptions through general application logic
 - Treat an absent hardware feature or platform mismatch as a functionality or performance change, never a silent security downgrade
-- MITRE marks this Prohibited for mapping - "primarily a quality issue with no direct security implications" - so file the consequence instead and use this entry as the remediation reference: a truncated pointer is CWE-197 (or the memory-safety CWE for what the truncated address reaches), a layout or byte-order assumption is CWE-188 or CWE-1102, and a hardware capability assumed rather than handled leaves a variable unassigned on the branch nobody wrote, which is CWE-457
 
 ## Remediation Steps
 

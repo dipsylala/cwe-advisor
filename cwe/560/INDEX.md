@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-On Unix-family systems, `umask()` is subtractive: it removes permission bits from the process default (0666 for files, 0777 for directories) rather than setting the desired mode directly. Code that passes a `chmod`-style absolute value (for example 0600, intending "owner only") to `umask()` produces close to the opposite of what was intended, often leaving files world-writable. The fix is to pass the complement - the bits to remove - to `umask()`, or to set explicit permissions at file-creation time instead of relying on the ambient umask.
+`umask()` is subtractive: it removes bits from the process default (0666 for files, 0777 for directories) rather than setting a mode, so a `chmod`-style value such as 0600 produces close to the opposite of what was intended. A finding phrased as "files are created world-writable" may arrive under CWE-276 instead, and one `chmod`-style call setting the wrong mode on a named resource is CWE-732.
 
 ## Key Principles
 
@@ -12,8 +12,6 @@ On Unix-family systems, `umask()` is subtractive: it removes permission bits fro
 - Set a restrictive umask (0077 or 0027) once at process startup as the safe baseline
 - Verify the actual resulting permissions after any umask change rather than trusting the passed value to be correct
 - Remember umask is process-wide state - a change on one code path affects every file created afterward until it is reset
-- The weakness is an argument with the wrong *value*, and its effect is an incorrect default permission on every file the process creates afterwards - so a finding phrased as "files are created world-writable" may arrive under CWE-276 instead
-- Where the finding is one `chmod`-style call setting the wrong mode on a named resource rather than a wrong process-wide default, it is CWE-732
 - Set the mask once, early, before any file is created, and pass an explicit mode at each creation call as well - the mask only subtracts, so it cannot make a permissive explicit mode safe
 
 ## Remediation Steps

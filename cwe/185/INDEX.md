@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when a regular expression's matching logic does not do what the developer intended - missing anchors, unescaped metacharacters, misgrouped alternation, or a character class that is too broad or too narrow. When the pattern gates a security decision, that logic gap becomes a validation bypass: input the check was meant to reject gets accepted, or the reverse. The fix is to anchor and escape the pattern correctly, verify alternation and quantifier scope match intent, and prefer a purpose-built parser over regex for structured formats.
+A matching-logic bug: the pattern does not accept or reject what its author intended, and where it gates a security decision that gap becomes a validation bypass. A pattern that is logically correct but backtracks catastrophically on hostile input is CWE-1333 instead - both present as "bad regex", but one is a correctness bug and the other an availability bug.
 
 ## Key Principles
 
@@ -14,7 +14,6 @@ This weakness occurs when a regular expression's matching logic does not do what
 - Prefer a maintained URL, IP address, or path parser over a hand-written pattern for structured formats
 - Reserve regex for genuinely simple, fixed-shape formats
 - `$` is not an end-of-input anchor in every engine - it also matches before a final newline in Python, .NET and PCRE, so `^[a-z]+$` accepts a permitted value with a newline appended, and that newline is the byte that splits a header, a log line, or a mail command downstream. Use the whole-string call (`re.fullmatch()`, `Matcher.matches()`) or `\A...\z`
-- A pattern that is logically correct but backtracks catastrophically on hostile input is CWE-1333, not this weakness - both present as "bad regex", but one is a matching-logic bug and the other an availability bug
 
 ## Remediation Steps
 

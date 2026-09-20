@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-757 occurs when a protocol's algorithm-negotiation process allows an attacker (often positioned as a man-in-the-middle) to steer the handshake toward a weaker algorithm or protocol version that both sides technically support, even though a stronger option was available - as in TLS cipher-suite downgrade, SSLv3 fallback (POODLE), or export-grade key-exchange forcing (FREAK, Logjam). Unlike simply using a weak algorithm outright (see CWE-327 for broken/risky algorithms or CWE-916 for weak password hashing), the flaw here is in the negotiation itself: the implementation accepts a weaker choice than it should have. The fix is to remove weak algorithms and protocol versions from the set the implementation will ever accept, not merely deprioritize them, and to reject any fallback or downgrade attempt.
+The algorithms are negotiable and the implementation accepts a weaker choice than it should have - TLS cipher-suite downgrade, SSLv3 fallback (POODLE), export-grade key exchange (FREAK, Logjam). A broken algorithm hardcoded with no negotiation involved belongs to CWE-327 instead, and weak password hashing to CWE-916.
 
 ## Key Principles
 
@@ -13,7 +13,6 @@ CWE-757 occurs when a protocol's algorithm-negotiation process allows an attacke
 - Monitor and log negotiation attempts that request deprecated algorithms or protocol versions, since repeated attempts can indicate an active downgrade attack
 - Remove weak algorithms from the negotiable set rather than merely preferring strong ones: the server's own list decides the floor, so anything still listed has already been agreed to if asked, and an on-path attacker only has to rewrite the proposal so the weakest mutually supported option is the only one
 - Verify the negotiation transcript so a rewritten offer is detected and the handshake aborted rather than silently downgraded
-- Distinguish from CWE-327: a specific broken algorithm hardcoded with no negotiation involved belongs there, and downgrade, fallback, or negotiation behaviour belongs here
 
 ## Remediation Steps
 

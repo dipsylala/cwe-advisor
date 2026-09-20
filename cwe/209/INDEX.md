@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Error Message Information Leak occurs when detailed error messages expose sensitive information about the application's internal structure, configuration, or data to users. This includes stack traces, file paths, database errors, SQL queries, and system configuration details. The core fix is to display only generic error messages to users while logging detailed information server-side.
+Where the same detail reaches a log rather than the response, the finding is CWE-532; CWE-200 is the general information-exposure parent, and system information exposed deliberately rather than through an error is CWE-497.
 
 ## Key Principles
 

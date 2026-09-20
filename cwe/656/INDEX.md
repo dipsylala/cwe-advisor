@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Security through obscurity relies on hiding implementation details (secret URLs, obfuscated code, unusual ports) instead of implementing proper security controls like authentication, encryption, and access control. This approach provides a false sense of security that fails once attackers discover the hidden information. Replace obscurity with real security controls that remain effective even when implementation details are known.
+MITRE allows this Class with review for an unusual reason: it has no Base-level children, so there is often nothing narrower to file. Do the root-cause analysis first, and where nothing more specific fits, this is the right entry rather than a placeholder. The test is whether the control still holds once the mechanism is public.
 
 ## Key Principles
 
@@ -11,8 +11,6 @@ Security through obscurity relies on hiding implementation details (secret URLs,
 - Move security checks from client-side obfuscation to server-side enforcement
 - Layer multiple security controls (defence-in-depth) rather than relying on a single obscurity measure
 - Test security assuming the attacker has already discovered all obscured information
-- MITRE allows this Class with review for an unusual reason: it has no Base-level children, so there is often nothing narrower to file - do the root-cause analysis first, and if nothing more specific fits, this is the right entry rather than a placeholder
-- The test is whether the control still holds once the mechanism is public: a hidden endpoint, an undocumented parameter, a proprietary encoding, or a client-side check is not a control, and the fix is to add the real one rather than to conceal it better
 - Obscurity is legitimate only as a layer on top of a control that would hold without it - keeping version numbers out of headers reduces reconnaissance and is not a substitute for patching
 
 ## Remediation Steps

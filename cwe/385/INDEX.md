@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A covert timing channel is a deliberate, out-of-band communication path: two mutually distrusting or otherwise-isolated processes exchange information by having one modulate its use of a resource it shares with the other (CPU load, lock acquisition/release timing, cache occupancy, disk I/O pacing, induced faults) in an observable pattern, and the other decodes that pattern from the outside. This differs from CWE-208 (Observable Timing Discrepancy), where an attacker passively infers a secret from a single component's incidental response-time variation - CWE-385 requires an encoding sender and a decoding receiver cooperating across a boundary that is supposed to prevent them from communicating directly (a sandbox, a VM boundary, a mandatory access control policy, a multi-tenant host). The fix is architectural: eliminate or tightly control the shared, observable resource between the isolated principals rather than trying to patch the encoding pattern itself.
+This weakness needs an encoding sender and a decoding receiver cooperating across a boundary meant to stop them communicating - a sandbox, a VM boundary, a mandatory access control policy, a multi-tenant host - with one modulating a shared resource (CPU load, lock timing, cache occupancy, I/O pacing) that the other observes. Where an attacker instead infers a secret passively from one component's incidental response-time variation, that is CWE-208. Use this entry when the concern is the channel itself.
 
 ## Key Principles
 

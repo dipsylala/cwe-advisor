@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-760 occurs when a password (or comparable secret) hash uses a salt, but the salt itself is predictable - a hardcoded value shared across all records, derived from a public or guessable field (username, email, sequential ID), or generated from a low-entropy source such as a truncated timestamp. Unlike CWE-759 (no salt at all), a salt is present here, but predicting or reconstructing it lets an attacker precompute a rainbow table for that specific salt value, which defeats the purpose of salting just as effectively as having none. The fix is to source the salt from a cryptographically secure random generator, unique per credential, ideally handled automatically by an adaptive password-hashing function.
+A salt is present but predictable, so a table can be precomputed for that one salt value and salting is defeated as effectively as by having none. Where no salt is present at all the finding is CWE-759, and both sit under CWE-916 with the same fix.
 
 ## Key Principles
 
@@ -14,7 +14,6 @@ CWE-760 occurs when a password (or comparable secret) hash uses a salt, but the 
 - A salt derived from the account - the username, the user id, the email, the row's creation timestamp - is not a salt: an attacker who has the database has those values too, so the table can be built per target
 - One salt shared across all records is equivalent to no salt for precomputation purposes, since a single table still covers every row
 - The salt does not need to be secret, only unpredictable and unique per credential; store it alongside the hash, which is what the standard password-hash encodings already do
-- Where no salt is present at all the finding is CWE-759, and both sit under CWE-916 with the same fix
 
 ## Remediation Steps
 

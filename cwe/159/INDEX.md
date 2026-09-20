@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper handling of invalid special elements occurs when applications fail to properly validate, encode, or reject special characters (metacharacters) that have meaning in specific contexts (SQL, shell, HTML, regex, file paths), enabling injection attacks.
+A Class covering metacharacter handling generally. Where the sink is known, use the injection child - CWE-89, CWE-78, CWE-79, CWE-22 - with CWE-74 for the family. Use this entry for the validation-side shape where no single sink has been identified.
 
 ## Key Principles
 

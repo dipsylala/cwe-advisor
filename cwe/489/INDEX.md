@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Leftover debug code in production (print statements, test backdoors, disabled authentication, verbose error messages, debug endpoints) exposes sensitive information, creates security bypasses, and provides attackers with reconnaissance data. Core principle: Remove or strictly gate all debug paths before production deployment.
+Debug behaviour that is reachable in production, not merely present in the tree. Where the leak is a framework debug page or a verbose error the entry is CWE-209, debug information sent to an external actor is CWE-215, and system information exposed deliberately is CWE-497.
 
 ## Key Principles
 

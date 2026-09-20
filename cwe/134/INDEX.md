@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Format string vulnerabilities occur when untrusted input is passed as the format/template argument to a formatting function (printf-family, String.format, %/.format() interpolation) instead of as a value substituted into an application-authored template. The attacker then controls how the function parses its own argument list. In native code this can read or write arbitrary memory; in managed languages it typically causes an unhandled exception or discloses object internals. The fix is to keep the format string a fixed literal at every call site and pass untrusted data only as substituted arguments.
+Untrusted input reaches the *format* argument rather than the substituted arguments, so the attacker controls how the function parses its own argument list.
 
 ## Key Principles
 

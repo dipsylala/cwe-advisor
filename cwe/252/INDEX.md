@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Unchecked return values occur when code ignores error indicators from security-critical functions (setuid, chroot, malloc, read, write), assuming operations succeeded when they may have failed. This leads to continued execution with wrong privileges, uninitialized memory, or invalid state. Always check return values and handle failures securely.
+MITRE files this under CWE-703 rather than under the control-flow pillar CWE-691, which is where findings of this shape most often arrive. Where control leaves the frame meant to contain the failure instead of carrying on past it, the entry is CWE-248.
 
 ## Key Principles
 

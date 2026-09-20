@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when a program opens a secondary communication channel - a data port, named pipe, callback URL, or rendezvous socket - intended for one specific authorized peer, but accepts whichever connection arrives first without verifying identity, letting an attacker race the legitimate peer and hijack the channel. It is a specific case of the broader race-condition weakness, applied to channel or session setup rather than shared in-memory state. The fix is to bind the channel to the requesting session with an unpredictable, verifiable credential and reject any connection that cannot present it.
+CWE-362 applied to channel setup rather than to shared in-memory state: a secondary channel opened for one authorized peer - a data port, named pipe, callback URL, or rendezvous socket - accepts whichever connection arrives first. Asynchronous signal delivery interrupting shared state is CWE-364 and unrelated.
 
 ## Key Principles
 
@@ -11,9 +11,7 @@ This weakness occurs when a program opens a secondary communication channel - a 
 - Verify the peer's identity using OS-level primitives where available (peer credentials on a socket, process identity on a named pipe) in addition to any application-level token
 - Create the channel with restrictive access already in place at creation time rather than opening it broadly and restricting permissions afterward, which leaves a window of exposure
 - Minimize the race window with a short timeout so the channel does not remain open indefinitely waiting for the legitimate peer
-- Never treat "whoever connects first" as authentication - bind the channel to the identity of the session that requested it and reject a peer that does not match
 - On Windows, `FILE_FLAG_FIRST_PIPE_INSTANCE` answers only "was I first", and it does so even against a squatter that did not pass the flag: a create that passes it fails with `ERROR_ACCESS_DENIED` when the name already exists, which is broader than the documented both-callers case and is what makes it useful for detection
-- This is CWE-362 applied to channel setup; asynchronous signal delivery interrupting shared state is CWE-364 and unrelated
 
 ## Remediation Steps
 

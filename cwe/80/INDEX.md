@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-80 occurs when applications fail to properly neutralize script-related HTML tags (`<script>`, `<img>`, `<iframe>`) in web output, allowing attackers to inject malicious scripts that execute in victims' browsers. This is a specific subset of CWE-79, scoped by MITRE to the `<`, `>` and `&` characters that let a value become a tag. The fix is identical to CWE-79's, so use CWE-79's guidance for anything beyond plain tag injection - an attribute, a `<script>` block, a URL, or a CSS value. The core fix is applying context-appropriate output encoding to prevent untrusted input from being interpreted as executable markup.
+A subset of CWE-79, scoped by MITRE to the `<`, `>` and `&` characters that let a value become a tag. The fix is identical, so use CWE-79's guidance for anything beyond plain tag injection - an attribute, a `<script>` block, a URL, or a CSS value.
 
 ## Key Principles
 

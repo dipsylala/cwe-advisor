@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Remote File Inclusion (RFI) in PHP occurs when untrusted input is used in file inclusion functions (`include`, `require`, `include_once`, `require_once`) without proper validation, allowing attackers to execute arbitrary code from remote sources. The core fix is to never allow untrusted input to select files for inclusion - use allowlists and disable remote file inclusion entirely. CWE-98 is the PHP-specific variant of CWE-829 (inclusion of functionality from an untrusted control sphere); use CWE-829 for dynamic imports and equivalents in other languages, and CWE-73 where the finding is about the path construction rather than the include mechanism.
+The PHP-specific variant of CWE-829. Use CWE-829 for dynamic imports and their equivalents in other languages, and CWE-73 where the finding is about how the path is constructed rather than about the include mechanism itself.
 
 ## Key Principles
 

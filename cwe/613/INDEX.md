@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insufficient session expiration means a session or token stays valid far longer than the access it grants requires, or has no expiration at all - so a stolen cookie, a leaked token, or an account whose privileges just changed keeps working long after it should have stopped. A traditional server-side session needs an explicit idle and absolute timeout on the session store. A stateless token such as a JWT is the harder case: once issued, it stays valid until its own `exp` claim expires regardless of anything the server does afterward, since there is no session store to update. The fix has two independent halves - set the expiration deliberately, short enough that a leak isn't a long-term compromise, and build a revocation path for anything that must be invalidated before its natural expiry, since time alone cannot do that for a token already issued.
+A server-side session can be expired by the store; a stateless token cannot - once issued it stays valid until its own `exp` claim says so, whatever the server does afterward. Expiration and revocation are therefore two separate pieces of work rather than one. Reusing the *same* session identifier across a trust-level change is session fixation, CWE-384, not this weakness: this entry is a session or token that started legitimately and stays usable longer than it should.
 
 ## Key Principles
 
@@ -11,7 +11,6 @@ Insufficient session expiration means a session or token stays valid far longer 
 - Revocation before expiry needs its own mechanism for a stateless token: a denylist keyed by the token's own identifier (its `jti` claim), not the raw token or a hash of it, or a short-lived access token paired with a separately revocable refresh token
 - Size the timeout to the risk, not to one number for everything - shorter for a high-value action, longer for low-risk browsing - and set an absolute cap sized to how long a legitimate session should ever actually need to last
 - A password change, role change, or explicit logout must invalidate the specific session or token already issued, not just stop new ones from being trusted the same way - check that the fix revokes the one already in the attacker's hand
-- Distinguish the neighboring failure: reusing the *same* session identifier across a trust-level change (a login that never rotates it) is session fixation (CWE-384), not this weakness - this one is about a session or token that started legitimately but remains usable, or reusable, longer than it should
 
 ## Remediation Steps
 

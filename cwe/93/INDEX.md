@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CRLF Injection occurs when untrusted input is written into any line-oriented, CRLF-delimited protocol or text format without neutralizing the carriage-return/line-feed sequence, letting an attacker inject additional lines, fields, or commands that the receiving parser interprets as new protocol elements. This spans mail header injection (SMTP), log forging, arbitrary line-based protocol commands, and other CRLF-delimited formats generally - for the HTTP-header-specific case (response splitting via `Location`/`Set-Cookie`/custom headers), see CWE-113. The core issue is allowing untrusted data to inject CRLF or protocol delimiters into structured, line-oriented text.
+Covers line-oriented, CRLF-delimited formats generally - mail header injection over SMTP, log forging, line-based protocol commands. For the HTTP-header-specific case, response splitting through `Location`, `Set-Cookie`, or a custom header, see CWE-113.
 
 ## Key Principles
 

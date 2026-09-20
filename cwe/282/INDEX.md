@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper ownership management occurs when files, directories, or resources are created with incorrect ownership, allowing unauthorized modification, privilege escalation, or data tampering by unintended users. Core fix: Set explicit ownership on all resources and verify it-never assume safe defaults.
+Ownership rather than permission bits, and the two are routinely confused: a resource owned by the wrong principal is this entry, while the wrong mode on a correctly owned resource is CWE-732. Ownership assigned to a principal outside the application's intended control is CWE-708.
 
 ## Key Principles
 

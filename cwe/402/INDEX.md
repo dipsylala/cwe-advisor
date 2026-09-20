@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when a private resource - a file outside the intended public directory, an internal data structure, a full database record, an internal object reference, or a raw handle - crosses a trust boundary and becomes reachable by a less-privileged party such as an external caller or a different user. It differs from a memory or handle exhaustion leak: here the "resource" is private data or a reference to it, and the "leak" is exposure across a trust boundary rather than a failure to release memory. Fix it by explicitly filtering what crosses the boundary: transmit only an allowlisted, minimal representation of the resource rather than the resource itself or its raw internal reference.
+Despite the name, this is not a memory or handle exhaustion leak: the resource is private data or a reference to it, and the leak is exposure across a trust boundary rather than a failure to release. A file outside the intended public directory, a full database record, an internal object reference, or a raw handle becomes reachable by a less-privileged party.
 
 ## Key Principles
 

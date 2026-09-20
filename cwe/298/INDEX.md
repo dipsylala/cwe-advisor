@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when code accepts a certificate without checking its notBefore/notAfter validity window, or when expiration errors are caught and ignored, allowing expired or not-yet-valid certificates to be trusted. The core fix is to use the standard TLS/X.509 library's default validation path, which enforces expiration checks, and to remove any override that suppresses or bypasses date validation errors.
+Disabling validation wholesale takes the validity period with it, so a finding here is often the CWE-295 finding seen from a different angle. What is distinctive to this entry is a named opt-out that disables the date check while leaving the rest of validation looking intact.
 
 ## Key Principles
 
@@ -14,7 +14,6 @@ This weakness occurs when code accepts a certificate without checking its notBef
 - Monitor certificate expiration proactively (inventory and alerting) as a defence-in-depth measure separate from runtime validation
 - Know the named opt-outs, since each disables the date check while leaving the rest of validation looking intact: .NET's `X509VerificationFlags.IgnoreNotTimeValid` (or a `RemoteCertificateValidationCallback` that accepts a chain whose only status is `NotTimeValid` - a shape that appears in Microsoft's own `SslStream` documentation), Java's `PKIXParameters.setDate()` pinned to a past instant, and OpenSSL's `X509_V_FLAG_NO_CHECK_TIME`
 - A custom verification callback that returns success on any path it does not explicitly reject has this defect by construction - it never compares the validity dates against the current time at all
-- Disabling validation wholesale takes the validity period with it, so a finding here is often the CWE-295 finding seen from a different angle
 
 ## Remediation Steps
 

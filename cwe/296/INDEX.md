@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when code validates parts of a certificate but does not properly build and verify the full chain up to a trusted root, accepts incomplete or self-signed chains, or trusts certificates outside the intended trust anchor set. The core fix is to rely on the platform or library's standard chain-validation path against an explicit, minimal trust store instead of custom chain-walking or trust logic, and to never disable chain validation for convenience.
+Supplying a custom CA *replaces* the default trust store in most clients rather than adding to it, so internal services start working while every public host fails - and the usual response to that is to disable validation entirely. Validate the chain first and pin the verified leaf: a pin check that runs before validation compares the pinned hash against *some* certificate in the presented chain, so an attacker can attach the pinned CA to a chain ending in a leaf of their own.
 
 ## Key Principles
 
@@ -12,8 +12,6 @@ This weakness occurs when code validates parts of a certificate but does not pro
 - Validate the full chain to a trusted root, not just the leaf certificate or a single intermediate
 - Combine chain validation with hostname verification and expiration checks; chain trust alone does not prove the certificate belongs to the expected host
 - Use certificate or public key pinning for high-value connections as defence-in-depth, with a documented rotation plan
-- Supplying a custom CA *replaces* the default trust store in most clients rather than adding to it, so internal services start working while every public host fails - and the usual response to that is to disable validation entirely. Include the platform defaults alongside your CA
-- Validate the chain first and pin the verified leaf: a pin check that runs before validation compares the pinned hash against *some* certificate in the presented chain, so an attacker can attach the pinned CA or intermediate to a chain ending in a leaf of their own and the pin still matches
 
 ## Remediation Steps
 

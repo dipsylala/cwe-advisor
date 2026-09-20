@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Weak cryptographic hashes (MD5, SHA-1) are broken and vulnerable to collision attacks, enabling attackers to forge signatures, create malicious files with same hash, and crack hashed passwords. Modern applications must use SHA-256+ for integrity and bcrypt/Argon2 for passwords.
+A child of CWE-327 where the weakness is the hash itself. Collision resistance breaks first - MD5 and SHA-1 have practical collisions and no practical preimage attack - so a digest no longer pins the input that produced it. A fast hash used for password storage is CWE-916 instead, where the speed rather than the algorithm is the defect.
 
 ## Key Principles
 

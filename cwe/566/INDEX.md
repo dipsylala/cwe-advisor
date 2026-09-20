@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-566 is the SQL-specific case of Insecure Direct Object Reference (see CWE-639): a user-controlled value is used directly as, or to build, the primary key in a SQL query, and the query returns or modifies the matching row without verifying the authenticated user owns or may access that record. Unlike the broader CWE-639, the fix here is scoped to the query itself, not just an application-layer check. Core fix: add an ownership/authorization condition to the query so it cannot return another user's row even if an upstream check is bypassed.
+The SQL-specific case of insecure direct object reference, CWE-639. What differs is where the fix belongs: in the query's own predicate rather than in an application-layer check wrapped around it.
 
 ## Key Principles
 

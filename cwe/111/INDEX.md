@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when Java code calls native (JNI) functions and passes data across the managed/unmanaged boundary without validating it first, or when the native implementation itself uses JNI functions unsafely (unchecked lengths, missing null checks, unreleased references). Native code has none of Java's automatic memory safety, so any unvalidated data crossing the boundary can produce native-side memory corruption. The primary fix is to validate everything on the Java side before the native call and to use bounds-aware JNI accessor functions with proper error handling on the native side.
+Native code has none of Java's memory safety, so a value that would merely be wrong in Java becomes memory corruption once it crosses the boundary.
 
 ## Key Principles
 

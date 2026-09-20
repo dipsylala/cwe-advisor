@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CBC mode requires a random, unpredictable Initialization Vector (IV) for each encryption operation. Using static, sequential, or predictable IVs enables plaintext recovery through IV manipulation attacks, completely breaking encryption security even with the correct key.
+A key-and-mode finding rather than a broken algorithm, so it sits under CWE-326 rather than CWE-327. An authenticated mode such as AES-GCM removes the padding-oracle surface along with the question - but reusing a nonce there is worse than reusing an IV in CBC, not better, because it leaks the authentication key.
 
 ## Key Principles
 

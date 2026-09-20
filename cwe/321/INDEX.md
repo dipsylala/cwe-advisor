@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Hard-coded cryptographic keys in source code, configuration files, or binaries are exposed to anyone with codebase access. This compromises all encrypted data and prevents key rotation without redeployment.
+A child of CWE-798 scoped to key material, with CWE-259 the password equivalent. What is specific here is that the exposure is retrospective: every token, cookie, or record ever produced with the key is forgeable, and rotating it invalidates all of them at once.
 
 ## Key Principles
 

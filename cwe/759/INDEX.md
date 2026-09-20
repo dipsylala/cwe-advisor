@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Hashing a password or comparable secret without a salt means identical inputs always produce identical hashes, so an attacker who obtains the hash store can crack every account sharing a password with a single precomputed lookup. The fix is to use a purpose-built, adaptive password hashing algorithm that generates and manages a unique random salt automatically, so salting cannot be skipped at a call site. Migrating existing unsalted hashes requires a controlled re-hash strategy, since the old and new formats cannot be compared directly.
+An unsalted hash leaks before any cracking starts: identical passwords produce identical stored values, so the most frequently repeated hash is the system's most common password and the accounts sharing it are visible without anything being broken. Where a salt is present but predictable the finding is CWE-760, and both sit under CWE-916.
 
 ## Key Principles
 
@@ -12,7 +12,6 @@ Hashing a password or comparable secret without a salt means identical inputs al
 - Never reuse a salt across users or derive it from a predictable value such as a username or timestamp
 - Keep the hashing work factor configurable so it can be increased as hardware improves
 - Treat unsalted or predictably salted stores as compromised data at rest and plan a migration rather than leaving them in place
-- An unsalted hash leaks before any cracking starts: identical passwords produce identical stored values, so the most frequently repeated hash is the system's most common password and the accounts sharing it are visible without anything being broken
 - Precomputation is the other half - a table built once against the algorithm works against every database using it, so the cost of the first crack is the cost of the millionth
 - A per-record salt turns "crack the whole database at once" into "crack each hash individually", which is a difference of years of compute rather than a marginal slowdown
 - Use a password hashing function that generates and stores the salt itself (Argon2id, bcrypt, scrypt) rather than concatenating a salt onto a fast digest

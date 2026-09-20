@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Including third-party web functionality, such as a script, stylesheet, widget, or embed, from an external origin gives that code the same origin privileges as the including page: full access to its DOM, cookies, and data, with no isolation. This is risky even when the source is trustworthy at inclusion time, because a later compromise of that origin, CDN, or build pipeline silently compromises every page that includes it. The fix is to pin included content to a verified version, restrict which origins may supply executable content, and isolate embedded functionality that does not need page access.
+Included web content runs with the including page's origin privileges - full access to its DOM, cookies, and data, with no isolation - so a later compromise of that origin, CDN, or build pipeline silently compromises every page that includes it, however trustworthy the source was at inclusion time. For native libraries, package dependencies, and dynamically loaded modules rather than web content, use CWE-829.
 
 ## Key Principles
 

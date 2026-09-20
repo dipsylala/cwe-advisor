@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Origin validation errors occur when an application fails to properly verify the source of a request or message - accepting cross-origin requests without checking the Origin/Referer header, misconfiguring CORS to allow arbitrary or overly broad origins, trusting `postMessage()` senders without an origin check, or failing to re-validate a resolved DNS host (DNS rebinding). Left unchecked, this can enable CSRF (for which CWE-352's token-based defence is the primary fix), cross-origin data theft, or unauthorized cross-domain access. The core fix here is validating the origin of the request or message itself against a strict allowlist before trusting it - not adding a token-based defence, which addresses a different layer.
+The fix is validating the origin of the request or message against a strict allowlist, not adding a token - the two address different layers and are complementary rather than substitutes. Route by the specific manifestation: forged state-changing requests riding a victim's session are CWE-352, and an over-broad `Access-Control-Allow-Origin`, `crossdomain.xml`, or `postMessage` handler is CWE-942.
 
 ## Key Principles
 
@@ -15,7 +15,6 @@ Origin validation errors occur when an application fails to properly verify the 
 - Match the `Origin` header against an exact allowlist server-side and echo only that value - never a wildcard, the reflected header, or a suffix or substring match
 - Never allowlist the literal `null` origin: an attacker can make a request carry `Origin: null` from a page they fully control (a sandboxed iframe, a `data:` URL, certain redirect chains), so `null` in the list admits anyone
 - Send `Vary: Origin` with the response, or a shared cache can hand the response built for one allowed origin to a different one
-- Route by the specific manifestation: forged state-changing requests riding a victim's session are CWE-352, and an over-broad `Access-Control-Allow-Origin`, `crossdomain.xml`, or `postMessage` handler is CWE-942
 
 ## Remediation Steps
 

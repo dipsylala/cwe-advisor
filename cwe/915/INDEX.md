@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when user input dynamically modifies object attributes or properties, allowing attackers to alter application behavior or access unauthorized data. In ASP.NET applications specifically, this same failure mode is also covered under CWE-1174 (ASP.NET Misconfiguration: Improper Model Validation), where it is fixed via the framework's `[Bind]` allowlist and model-binding configuration. Never allow mass assignment of object attributes; allowlist permitted fields and enforce invariants server-side.
+Mass assignment: the attacker chooses *which fields* of an expected object get set. In ASP.NET the same failure mode is also filed as CWE-1174, where it is fixed through the framework's `[Bind]` allowlist and model-binding configuration. Where the attacker controls *what type is constructed* instead, the finding is CWE-502; in JavaScript the same shape reaching `Object.prototype` is CWE-1321.
 
 ## Key Principles
 
@@ -13,7 +13,6 @@ This vulnerability occurs when user input dynamically modifies object attributes
 - Prefer explicit property binding over reflection-based or dynamic assignment
 - Bind an explicit allowlist of fields rather than the whole request object, and take the values from the parsed result - re-spreading the original body after validating it puts the payload straight back
 - Server-owned fields (role, price, owner, status, timestamps, identifiers) are never bindable, whatever the form on screen contains
-- Where the attacker controls *what type is constructed* rather than which fields of an expected one get set, the finding is CWE-502; in JavaScript the same shape reaching `Object.prototype` is CWE-1321
 
 ## Remediation Steps
 

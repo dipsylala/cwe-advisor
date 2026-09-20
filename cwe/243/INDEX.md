@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness appears when code creates a chroot jail (remapping the process's filesystem root) but does not also change the process's current working directory into the new root immediately afterward. Because the working directory is left outside the jail, relative-path file access after the jail is created can still reach files anywhere the process's underlying privileges allow, making the jail cosmetic rather than a real containment boundary. The remediation is to treat jail creation and the directory change as one inseparable operation, followed immediately by dropping any elevated privilege the process no longer needs.
+The working directory is left outside the new root, so relative-path access after the call still reaches anywhere the process's underlying privileges allow, and the jail is cosmetic rather than a containment boundary.
 
 ## Key Principles
 

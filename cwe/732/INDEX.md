@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when critical resources (files, directories, services) are assigned overly broad or incorrect permissions, allowing unauthorized users to access or modify them. The core fix is applying least privilege principles: default-deny access and grant only minimum necessary permissions for legitimate operations.
+A specific permission assignment set incorrectly in application logic - a bad `chmod` call, an ACL bug. The baseline a resource is *created* with is CWE-276, and the standing privilege of the process acting on resources rather than the resource's own bits is CWE-269, with CWE-250 for its over-privileged case.
 
 ## Key Principles
 

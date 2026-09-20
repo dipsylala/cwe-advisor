@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper authentication occurs when an application fails to correctly verify user, service, or system identity through flawed authentication logic itself - not just weak credentials. Common real-world bypass classes include JWT algorithm-confusion or `alg: none` acceptance, weak or guessable JWT signing secrets, OAuth/OIDC flows that omit or fail to validate the `state` parameter, and password-reset tokens that are not bound to the account that requested them. The core fix is never trusting client-supplied identity and requiring server-validated authentication for every request.
+Route to the specific descendant where the finding names one: no identity check on the path at all is CWE-306, certificate validation is CWE-295, unrestricted authentication attempts is CWE-307, weak password requirements CWE-521, weak recovery CWE-640, hard-coded credentials CWE-798, and insufficiently protected credentials CWE-522. Use this entry for the authentication logic itself - JWT algorithm confusion or `alg: none`, a weak signing secret, an OAuth flow that never validates `state`, a reset token not bound to the account that requested it.
 
 ## Key Principles
 
@@ -17,7 +17,6 @@ Improper authentication occurs when an application fails to correctly verify use
 - Produce that dummy with the application's own hasher at its configured parameters; an empty or malformed placeholder fails the format check in microseconds and leaves the gap open, as does a stored hash left empty for SSO-only accounts
 - Do not assume the framework closes that gap - some hash on the unknown-user branch and some do not; confirm it for the one in use
 - Validate every part of a token, not just its signature: issuer, audience, expiry, and revocation status
-- Route to the specific descendant where the finding names one: no identity check on the path at all is CWE-306, certificate validation is CWE-295, unrestricted authentication attempts is CWE-307, weak password requirements CWE-521, weak recovery CWE-640, hard-coded credentials CWE-798, and insufficiently protected credentials CWE-522
 
 ## Remediation Steps
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Storing passwords in plaintext (database, files, configuration, logs) exposes all user credentials if storage is compromised. Passwords must be hashed with strong algorithms (bcrypt, Argon2, PBKDF2) using salts, making them computationally infeasible to reverse even if the database is stolen.
+Storage that is reversible at all, which is what separates it from a work-factor finding: the password should never be recoverable, not merely expensive to recover, so CWE-916 is the entry where an adaptive hash is present but too weak. Encoding mistaken for protection is CWE-261, and the general cleartext-at-rest parent is CWE-312.
 
 ## Key Principles
 

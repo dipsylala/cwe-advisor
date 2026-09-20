@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-331 occurs when a security-sensitive value is generated with insufficient actual randomness even though the generator algorithm itself is cryptographically sound - the problem is entropy quantity or source, not algorithm choice (contrast with CWE-338, where the algorithm itself, e.g. a non-cryptographic PRNG, is the weakness). Common causes: seeding a CSPRNG from a low-entropy source, drawing from a hardware entropy pool that hasn't yet accumulated enough randomness at early boot on embedded or virtualized systems, generating a value with too few random bits for its security purpose, or cloning virtual machine images that then share identical PRNG seed state. The fix is to ensure the generator draws from a properly-seeded, sufficiently-entropic source and that generated values carry enough bits of randomness for their purpose.
+The generator algorithm is sound and what feeds it is not - entropy quantity or source, rather than choice of algorithm. Where the algorithm itself is the weakness, such as a non-cryptographic PRNG standing in for a CSPRNG, use CWE-338.
 
 ## Key Principles
 

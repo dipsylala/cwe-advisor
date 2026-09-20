@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Storing sensitive data (passwords, API keys, PII, credit cards, session tokens) unencrypted in files or databases enables data theft through backup exposure, filesystem access, database dumps, stolen devices, or insider threats. The core fix is to encrypt sensitive data at rest using strong encryption algorithms and store encryption keys in secure key management systems, never alongside the encrypted data.
+Where the medium is process memory rather than disk, the finding is CWE-316; CWE-312 is the broader parent covering any persistent medium, and a password stored in a form a dump can be turned back into is CWE-916.
 
 ## Key Principles
 
@@ -14,7 +14,6 @@ Storing sensitive data (passwords, API keys, PII, credit cards, session tokens) 
 - Hash passwords rather than encrypting them - encryption is reversible and a database dump plus the key returns every password, so the column type is not the tell: a bcrypt or Argon2id digest lives in a `VARCHAR` perfectly correctly, and what is wrong is anything a dump can be turned back into the user's password (CWE-916)
 - Store a hash of a session or API token rather than the token as issued: the server never needs the value back, only to recognise it, so encryption is the wrong control there too
 - Minimise before encrypting: truncate a card to its last four digits, tokenize through the payment processor, and delete on a retention schedule - data not stored needs no key
-- Where the medium is process memory rather than disk, the finding is CWE-316; CWE-312 is the broader parent covering any persistent medium
 
 ## Remediation Steps
 

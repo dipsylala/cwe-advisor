@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when two or more layers that process the same input, such as a validator and an executor, or a proxy and a backend, interpret it differently, letting an attacker craft input that passes validation under one interpretation while executing under another. It commonly underlies HTTP request smuggling, encoding-based filter bypass, and validation/execution mismatches. The fix is to make every layer parse the input identically, and to validate the exact form of data that will actually be used, not an earlier or alternate representation of it.
+Two layers that process the same input interpret it differently - a validator and an executor, a proxy and a backend - so input can pass validation under one reading and execute under another. This is what underlies HTTP request smuggling and encoding-based filter bypass.
 
 ## Key Principles
 

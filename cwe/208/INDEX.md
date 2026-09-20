@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-An observable timing discrepancy arises when processing time, response latency, or other measurable timing differs based on a secret value - for example, a comparison that exits as soon as it finds a mismatched byte, or a branch taken only when a guess is correct. An attacker who can measure timing across many attempts can infer the secret one step at a time, even without ever seeing it directly. Fix this by making any code path that touches a secret value take the same time and access the same memory regardless of what the secret is, rather than trying to mask the leak with added delay.
+Processing time that varies with a secret, inferred by measuring across many attempts. Where the variance comes from a branch doing *different amounts of work* rather than from the comparison itself, CWE-385 carries that case.
 
 ## Key Principles
 

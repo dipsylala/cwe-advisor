@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-LDAP Injection occurs when untrusted user input is used to construct LDAP queries without proper validation or escaping, allowing attackers to modify queries and access or manipulate directory data. Never concatenate untrusted input into LDAP filters; use safe LDAP APIs and escaping. The filter is parsed as an expression tree, so an injected `)` ends the term the value was interpolated into and `(` starts another, while a bare `*` turns an equality test into a match-everything wildcard. CWE-90 is a child of CWE-943; use that entry for the general structured-query defence and this one for the LDAP-specific rules.
+The filter is parsed as an expression tree, so an injected `)` ends the term the value was interpolated into and `(` starts another, while a bare `*` turns an equality test into a match-everything wildcard. CWE-90 is a child of CWE-943: use that entry for the general structured-query defence and this one for the LDAP-specific rules.
 
 ## Key Principles
 

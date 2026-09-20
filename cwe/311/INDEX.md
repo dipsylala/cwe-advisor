@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Missing Encryption occurs when sensitive data is transmitted or stored without proper cryptographic protection, exposing it to unauthorized access or interception. The core fix is to encrypt sensitive data in transit using TLS 1.2+ and at rest when storage systems are untrusted or exposure is plausible.
+The general missing-encryption parent. In transit is CWE-319, at rest on a persistent medium CWE-312, a file or disk specifically CWE-313, and process memory CWE-316. Use this entry only where the finding spans several of those or names none.
 
 ## Key Principles
 

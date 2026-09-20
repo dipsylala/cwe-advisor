@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when multiple threads access or update shared state - variables, collections, counters, cached values - without synchronization, allowing operations from different threads to interleave and produce corrupted, inconsistent, or security-bypassing results. The core fix is to identify the shared state and protect the read-modify-write sequence around it with a lock, atomic operation, or thread-safe data structure so the sequence behaves as a single atomic step.
+An in-process lock reaches only threads of this process: once the state is a database row, a file, or shared across replicas, the fix belongs at the datastore and the entry is CWE-362; for a filesystem check-then-use it is CWE-367 and an atomic operation.
 
 ## Key Principles
 
@@ -14,7 +14,6 @@ This weakness occurs when multiple threads access or update shared state - varia
 - Ensure the same lock consistently protects the same shared state everywhere it is accessed, including error and exception paths
 - Guard every access with the same lock, reads included: a read left outside still observes a half-finished update, so protecting only the writes leaves the weakness in place
 - Hold one lock across the whole invariant - two correctly synchronized calls in sequence are not a synchronized pair, which is why `if (map.containsKey(k)) map.get(k)` races even on a `ConcurrentHashMap` and why those types offer `computeIfAbsent` and `putIfAbsent`
-- An in-process lock reaches only threads of this process: once the state is a database row, a file, or shared across replicas, the fix belongs at the datastore (CWE-362), and for a filesystem check-then-use it belongs in an atomic operation (CWE-367)
 
 ## Remediation Steps
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Configuration weaknesses arise when software is deployed with insecure defaults, missing hardening, or an exposed administrative surface instead of an explicit, secure-by-default posture. MITRE classes CWE-16 as a Category and marks it Prohibited for mapping real-world vulnerabilities, so when a finding names a specific mechanism (an access-control gap - CWE-284, a weak TLS setting - CWE-326, debug mode left on - CWE-489, permissive file permissions - CWE-732), report that CWE instead and use this guidance only for general hardening when no narrower CWE fits. The core fix is to replace defaults with an explicit, minimal, environment-appropriate setting and verify it against a hardening baseline rather than assuming defaults are safe.
+MITRE classes CWE-16 as a Category and marks it Prohibited for mapping real-world vulnerabilities. Where a finding names a specific mechanism, report that instead - an access-control gap is CWE-284, a weak TLS setting CWE-326, debug mode left on CWE-489, permissive file permissions CWE-732. Use this guidance only for general hardening where no narrower CWE fits.
 
 ## Key Principles
 

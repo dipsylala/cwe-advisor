@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Weak PRNG vulnerabilities occur when applications use cryptographically insecure, general-purpose random number generators for security-sensitive operations such as session tokens, cryptographic keys, or nonces. Attackers can predict or reproduce these values, compromising security. Fix: Replace weak PRNGs with cryptographically secure alternatives.
+The generator is the defect: a general-purpose PRNG standing in for a CSPRNG. Where the generator is sound and the entropy behind it is not, the finding is CWE-331, and CWE-330 is the parent covering both.
 
 ## Key Principles
 

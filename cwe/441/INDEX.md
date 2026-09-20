@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Unintended proxy vulnerabilities occur when applications forward requests to arbitrary destinations based on user input, acting as open proxies that enable SSRF attacks, bypassing firewalls, port scanning internal networks, and accessing cloud metadata services. The core issue is allowing intermediaries to become confused deputies that perform actions on behalf of untrusted callers without proper authentication or authorization constraints.
+The deputy must carry the original caller's identity through to the point of decision and be authorized against *that* identity, not against its own credential, network position, or process privilege. Where the forwarded thing is an outbound request whose destination the caller chooses, the concrete guidance is CWE-918; this entry covers the rest - a worker, a gateway, a privileged helper, a service calling a service.
 
 ## Key Principles
 
@@ -11,9 +11,7 @@ Unintended proxy vulnerabilities occur when applications forward requests to arb
 - Authenticate and authorize the true caller - verify who is making the request and what they're permitted to access
 - Constrain delegated actions - limit what the proxy can do even for authorized requests
 - Apply defence in depth - combine input validation, network controls, and runtime restrictions
-- The deputy must carry the original caller's identity through to the point of decision and be authorized against *that* identity, not against its own credential, network position, or process privilege
 - Distinguish the two variants when tracing: the caller's identity is never sent at all, or it is sent as an unverified claim the caller could have chosen
-- Where the forwarded thing is an outbound request whose destination the caller chooses, the concrete guidance is CWE-918; this entry covers the rest - a worker, a gateway, a privileged helper, a service calling a service
 - Expect overlap rather than a clean boundary inside your own estate: a queued job running as an administrator is both this weakness and a missing permission check at execution time (CWE-862), and the remediation does not depend on which number it carries
 
 ## Remediation Steps

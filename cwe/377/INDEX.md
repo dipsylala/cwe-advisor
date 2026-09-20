@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insecure temporary files occur when applications create predictable filenames, use insecure permissions (world-readable/writable), or create files in shared directories without protection. This enables information disclosure, data tampering, and symlink attacks where attackers can predict file locations and exploit race conditions.
+Three separable defects usually arrive together: a predictable name, permissions wider than the creating process needs, and a window between checking the name is free and creating it. The last is CWE-367, and an atomic exclusive create closes it without a check at all.
 
 ## Key Principles
 

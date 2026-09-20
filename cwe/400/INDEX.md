@@ -2,12 +2,7 @@
 
 ## LLM Guidance
 
-This weakness is a missing limit: a request, message, or file causes the application to allocate
-memory, open handles, spawn work, or spend CPU in proportion to something the attacker controls,
-until the service degrades or fails. The distinctive property is that each request is individually
-legitimate - there is no malformed input to reject - so the fix is a bound applied where the resource
-is acquired, not validation. Where the finding names a specific mechanism, prefer that entry:
-catastrophic regular-expression backtracking is CWE-1333, and unbounded recursion is CWE-674.
+The distinctive property is that each request is individually legitimate - there is no malformed input to reject - so the fix is a bound applied where the resource is acquired, not validation. Where the finding names a specific mechanism, prefer that entry: catastrophic regular-expression backtracking is CWE-1333, and unbounded recursion is CWE-674.
 
 ## Key Principles
 

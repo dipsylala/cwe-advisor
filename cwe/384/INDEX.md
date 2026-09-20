@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Session Fixation occurs when an application allows an attacker to set or reuse a session identifier for another user, enabling the attacker to hijack the victim's session after authentication. The core fix is to regenerate session identifiers whenever authentication or privilege level changes, ensuring that pre-authentication sessions never remain valid post-authentication.
+The session identifier itself is reused across a trust-level change. Where the session or token instead started legitimately and simply stays valid longer than it should, that is CWE-613.
 
 ## Key Principles
 

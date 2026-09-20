@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when backup, temporary, editor-swap, or archived copies of application files, such as files ending in .bak, .old, ~, .swp, or .zip, are left reachable by the web server or object storage. These files often bypass normal application routing and access control because they are served directly as static content, and can reveal source code, credentials, connection strings, or prior versions of sensitive logic. The core fix is to exclude these files from the deployed artifact entirely, rather than relying on access rules to block them after the fact.
+These copies bypass normal application routing and access control because the web server or object store serves them directly as static content - the application's own authorization never runs on the request.
 
 ## Key Principles
 

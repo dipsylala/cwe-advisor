@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-In languages where the default equality operator compares object identity/reference rather than string content, using it for a security-relevant string comparison can pass or fail unpredictably depending on how the strings were constructed (literal vs. dynamically built), enabling authentication bypass and logic errors. The core fix is to always use the language's explicit value/content-equality method for string comparison, never a bare identity operator, in security-critical code - and to confirm which semantics the language actually uses before assuming an operator is safe.
+Not every finding is a defect: in C# the operator is already a value comparison for two `string`-typed operands, so it is only real where one static type is not `string`. Recording that false positive with the types written down is a legitimate outcome.
 
 ## Key Principles
 
@@ -13,7 +13,6 @@ In languages where the default equality operator compares object identity/refere
 - Prioritize security-critical code: authentication, authorization, token validation
 - In a statically typed language the operator's meaning is settled by the static types, so the same line can compare content today and identity tomorrow because a refactor widened a declaration or the value now arrives from a generic API - and the compiler's diagnostic is inconsistent, warning while one side is a literal and going quiet once both are widened
 - In a loosely typed language the meaning is settled by the runtime types instead, so the same line can compare exactly for one request and coerce for the next
-- Not every finding is a defect: in C# the operator is already a value comparison for two `string`-typed operands, so it is only real if one static type is not `string` - recording that false positive with the types written down is a legitimate outcome
 - Fixing the operator is the whole fix for a role comparison and half of it for a secret, which still needs a constant-time comparison
 - Treat the reported line as a sample and fix the population with the language's own lint rule
 

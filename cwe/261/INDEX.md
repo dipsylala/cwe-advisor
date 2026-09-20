@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Weak encoding schemes (Base64, XOR, ROT13, URL encoding) are not cryptography and provide zero security. Encoded passwords are trivially reversible and offer no protection. Use strong cryptographic password hashing algorithms (bcrypt, Argon2, PBKDF2) instead of encoding.
+Encoding is neither encryption nor hashing: Base64, XOR and ROT13 are reversible by anyone who recognises them, so the finding is equivalent to plaintext storage, CWE-256. The fix is an adaptive password hash, which CWE-916 covers.
 
 ## Key Principles
 

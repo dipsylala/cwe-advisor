@@ -2,14 +2,13 @@
 
 ## LLM Guidance
 
-This weakness appears when an unsigned value larger than a signed type's maximum is cast, assigned, or implicitly converted into that signed type, most often a `size_t`-style length or count being assigned into a plain signed integer. The high bit of the unsigned representation becomes the sign bit, so a large legitimate value is silently reinterpreted as negative instead of being rejected, which then defeats bounds checks, loop conditions, or arithmetic that assume the value is non-negative. The fix is to validate the unsigned value against the destination signed type's maximum before the conversion happens, or to avoid the conversion by keeping the value unsigned.
+A large unsigned value assigned into a signed type - typically a `size_t` length or count into a plain `int` - where the high bit of the unsigned representation becomes the sign bit and a legitimate large value silently reads as negative. A mixed signed/unsigned *comparison* does not produce this direction and belongs to CWE-195; what belongs here is a value somebody has already cast.
 
 ## Key Principles
 
 - Primary defence: compare the unsigned value against the destination signed type's maximum before casting or assigning it.
 - Never assign a size/length/count result (string length, container size) directly into a plain signed type without a range check.
 - The damage is usually done by a *pair* of conversions: the value goes negative crossing into the signed type, passes an upper-bound-only check written for small positive numbers, then converts straight back at an allocator whose size parameter is unsigned - so a small negative becomes a value near the type's maximum, and the check meant to keep the request small is what let it through. Check the sign as well as the bound.
-- A mixed signed/unsigned *comparison* does not produce this direction and belongs to CWE-195; what belongs here is a value somebody has already cast.
 - Where the conversion is not actually required, keep the value unsigned for its entire lifetime instead of converting to signed to satisfy convenience or a legacy interface.
 - Do not trust "the value is usually small" as a substitute for enforcing the range; the failure only appears once an input crosses the boundary.
 - Prefer a single consistent type family for a given quantity (all unsigned, or a validated signed type) rather than converting back and forth.

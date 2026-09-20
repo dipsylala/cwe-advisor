@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness appears when a process acquires an elevated privilege to perform one specific operation, such as binding a low network port or making a single administrative call, and then continues running with that privilege afterward instead of dropping it the instant the operation completes. Because the elevated access outlives the task that needed it, any other vulnerability in the same process afterward executes with that same elevated access, widening a contained bug into a privilege-escalation path. The remediation is to acquire the privilege for the narrowest possible window, drop it permanently right after the privileged operation finishes, and confirm the drop actually took effect before proceeding.
+The privilege was legitimately needed for one operation - binding a low port, a single administrative call - and outlives it. Where the component is simply configured to run elevated for its whole lifetime with no such operation to point to, that is CWE-250, and the fix there is a lower-privilege identity from startup rather than a drop.
 
 ## Key Principles
 
@@ -11,7 +11,6 @@ This weakness appears when a process acquires an elevated privilege to perform o
 - Perform the drop unconditionally on every exit path from the privileged operation, including error and exception paths, not only the success path.
 - Do not assume a privilege-drop call succeeded; verify the drop took effect (for example, confirm the privilege cannot be re-acquired) before continuing.
 - Where the platform supports it, prefer a narrower mechanism that avoids needing full elevation at all, such as a capability scoped to exactly one action, over acquiring and then dropping broad privilege.
-- Distinguish this from a component that is configured to run with excess privilege for its entire lifetime with no specific privileged operation to point to; that broader, standing condition is a different weakness requiring a different fix.
 - Order the drop correctly, or the code looks complete and is not: `setgroups()`/`setgid()` must run *before* `setuid()`, since once the user id is gone those calls have no privilege left to succeed with - and an unchecked failure there silently leaves the groups attached
 - `seteuid()` changes only what the process currently acts as and leaves the saved user id at the privileged value, so a later call can silently re-acquire it; the permanent form (`setuid`) is what the drop needs
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Integer overflow occurs when an arithmetic operation produces a result larger than its integer type can hold, wrapping the value to a negative or small positive number. When the wrapped result sizes an allocation, a copy length, an index, or a security-relevant count, a value that looked safely large becomes small enough to bypass the check it was meant to satisfy. The fix is to validate operand ranges before the arithmetic runs, or use an operation that detects overflow itself, rather than trusting the result of unchecked arithmetic.
+The wrapped result is small where the true value was large, so a bound check written for the true value passes it. Confirm which boundary the calculation crosses - a subtraction falling below the minimum is CWE-191, and an unsafe *conversion* producing an unexpected value is CWE-192/195/196/197; the families chain together but the fixes differ.
 
 ## Key Principles
 
@@ -12,7 +12,6 @@ Integer overflow occurs when an arithmetic operation produces a result larger th
 - Use a wider or arbitrary-precision type for calculations whose legitimate range can exceed the native type, then validate the result against a practical application limit
 - Reject unreasonably large operands early, independent of whether the arithmetic would technically overflow, and validate the *result* of the calculation rather than only each operand - several individually reasonable fields can still combine into an overflow
 - Ship the checked path, do not merely test it: a sanitizer or checked-arithmetic debug mode that is not in the release build leaves production exactly as it was
-- Confirm which boundary the calculation crosses - a subtraction falling below the minimum is CWE-191, and an unsafe *conversion* producing an unexpected value is CWE-192/195/196/197; the two families chain together but have different fixes
 - Bounds-check immediately before an indexed access, not based on an earlier calculation that might itself have wrapped
 
 ## Remediation Steps

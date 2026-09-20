@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-CWE-83 is the attribute-injection form of XSS: untrusted data is placed inside an HTML attribute value - most dangerously an event-handler attribute (`onclick`, `onerror`, `onload`, `onmouseover`) or a URI-valued attribute (`href`, `src`, `action`, `formaction`) - without neutralizing characters that let the attacker break out of the attribute or supply a `javascript:` URI. Even when the surrounding markup is otherwise safe, a missing or incomplete attribute-value encoding, or an unquoted attribute, can let an attacker inject a new attribute or turn the existing one into executable script. The fix is attribute-context-aware output encoding plus consistently quoting every attribute value - encoding meant for the HTML body is not sufficient here, because an attribute value is parsed twice: the browser first reads it out of the markup, then hands the result to a parser chosen by the attribute (a URL parser for `href`/`src`, the JavaScript parser for `on*`, the CSS parser for `style`). Getting the first parse right says nothing about the second.
+An attribute value is parsed twice: the browser reads it out of the markup, then hands the result to a parser chosen by the attribute - a URL parser for `href`/`src`, the JavaScript parser for `on*`, CSS for `style`. Getting the first parse right says nothing about the second, which is why encoding meant for the HTML body is not enough here. Where the value lands in element content rather than in an attribute, use CWE-79.
 
 ## Key Principles
 

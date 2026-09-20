@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insufficient verification of data authenticity occurs when applications don't validate that data hasn't been tampered with during storage or transmission. This includes accepting unsigned data, not verifying signatures/MACs, or trusting unauthenticated sources, enabling data tampering, message forgery, and MITM attacks.
+The parent for authenticity failures. Verifying against a value the same source supplied is the recurring shape: CWE-354 where an integrity check value is the mechanism, CWE-347 where it is a signature, and CWE-494 where the thing fetched is code.
 
 ## Key Principles
 

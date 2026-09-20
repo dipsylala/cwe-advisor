@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Directory listing occurs when a web server or static-file component returns a browsable index of a directory's contents instead of a specific resource, typically because no index file is present and auto-index/directory browsing is enabled. This reveals file names, structure, and often backup or configuration files never meant to be public. The fix is to disable directory browsing at the serving layer itself, not to mask it by dropping placeholder index files into each directory.
+Check each layer's actual default rather than adding a setting everywhere: nginx `autoindex` is off by default, IIS directory browsing is disabled by default, and Tomcat's `DefaultServlet` `listings` init-param defaults to `false` - so the finding is usually something having switched one on. Disabling the listing does not protect a predictable name such as `.env` or `config.php.bak`, which is CWE-538.
 
 ## Key Principles
 
@@ -12,9 +12,7 @@ Directory listing occurs when a web server or static-file component returns a br
 - Do not rely on obscurity; unlinked but browsable directories are trivially found by automated scanning
 - Remove sensitive files (backups, VCS metadata, configuration) from served directories regardless of listing status
 - Check non-standard enumeration paths as well as the normal browser view, since some protocols can list a directory independently of auto-index
-- Check each layer's actual default rather than adding a setting everywhere: nginx `autoindex` is off by default, IIS directory browsing is disabled by default, and Tomcat's `DefaultServlet` `listings` init-param defaults to `false` - so the finding is usually something having switched one on
 - Express has no listing option at all: `express.static` serves named files and 404s a directory path, so a listing means the separate `serve-index` middleware is mounted and removing it is the fix
-- Disabling the listing does not protect a predictable name - `.env`, `config.php.bak`, `db.sql` are reachable without one (CWE-538)
 
 ## Remediation Steps
 

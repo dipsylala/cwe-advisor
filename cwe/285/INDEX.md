@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper Authorization occurs when applications fail to enforce or incorrectly implement authorization checks, allowing users to access resources or perform actions beyond their intended permissions. The core fix is to explicitly validate that the authenticated user has permission to access the specific resource or perform the requested operation before allowing the action.
+Where the check is absent altogether the entry is CWE-862, where it exists and its logic is wrong CWE-863, and where a user-controlled key reaches the record with no ownership test, CWE-639 - or CWE-566 for the SQL primary-key case. Use this entry for the general authorization failure that fits none of those.
 
 ## Key Principles
 

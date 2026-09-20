@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This vulnerability occurs when applications download code or executables from external sources without verifying their integrity, allowing attackers to inject malicious code. Only download and install code with integrity verification (cryptographic signatures or hashes) from trusted sources over secure transport.
+The code is fetched and run without being verified against something the downloader already holds. Verifying it against metadata the same source supplied is CWE-345 instead. The broader inclusion-from-an-untrusted-sphere entry is CWE-829, and its web-specific form CWE-830.
 
 ## Key Principles
 

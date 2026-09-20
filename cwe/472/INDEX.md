@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Assumed-immutable parameter vulnerabilities occur when applications trust that client-controlled data (hidden form fields, cookies, disabled inputs, URL parameters) remains unchanged, failing to validate on server-side. This enables price manipulation, privilege escalation, and business logic bypass.
+A Base-level child of CWE-642 and usually the better fit for it: a web parameter the application assumes cannot have changed - a hidden field, a cookie, a disabled input, a query string. Where the value is a configuration setting instead, use CWE-15.
 
 ## Key Principles
 

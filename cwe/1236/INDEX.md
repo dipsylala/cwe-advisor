@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Formula Injection (also known as CSV Injection or Excel Injection) occurs when untrusted data containing formula metacharacters (=, +, -, @, tab, carriage return) is exported to spreadsheet files (CSV, Excel, etc.) without proper sanitization. Spreadsheet applications interpret these characters as formula directives, executing embedded commands.
+The sink is the spreadsheet application rather than the exporting program: nothing in the application's own parsing is wrong, and the value becomes a formula only when someone opens the file. That is why output encoding for the web does nothing here and why the export path is the one to fix.
 
 ## Key Principles
 

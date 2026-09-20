@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Improper certificate hostname validation occurs when TLS/SSL clients don't verify the certificate's Common Name (CN) or Subject Alternative Name (SAN) matches the hostname being connected to. This enables man-in-the-middle attacks by allowing attackers to present valid certificates for different domains.
+Hostname verification is a separate check from chain validation, and a client can have one without the other. Chain trust is CWE-296, expiry CWE-298, revocation CWE-299, and CWE-295 is the parent to use where validation is disabled wholesale.
 
 ## Key Principles
 

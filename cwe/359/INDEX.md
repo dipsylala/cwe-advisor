@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Privacy violations occur when applications expose PII (names, SSN, medical data, financial info) through logs, error messages, APIs, URLs, or insufficient access controls, violating GDPR/CCPA/HIPAA and enabling identity theft, fraud, and legal liability. Core fix: minimize PII collection and enforce strict authorization with least disclosure principles.
+CWE-200 scoped to personal information, which is what makes it a compliance finding as well as a security one. Where the channel is the finding, use that entry instead: a response body is CWE-201, a log file CWE-532, and an error message CWE-209.
 
 ## Key Principles
 

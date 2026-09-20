@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-An off-by-one error occurs when a loop bound or boundary check is exactly one position wrong, typically from confusing a collection's size (how many elements it holds) with its highest valid index (size minus one) - an inclusive comparison used where an exclusive one belongs, or an allocation left one element short of what a terminator or sentinel needs. In native code this drives an out-of-bounds read or write past a buffer; in managed languages it typically raises an index exception or silently produces a wrong result. The fix is to use an exclusive upper bound against size everywhere, and add one element to any allocation that must hold a terminator or sentinel.
+In native code this lands as an out-of-bounds read (CWE-125) or write (CWE-787), and a finding will usually be filed as one of those; in a managed language it raises an index exception or quietly produces a wrong result instead.
 
 ## Key Principles
 

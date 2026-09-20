@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-System information exposure occurs when applications leak internal details (server versions, paths, database names, framework versions, OS info) through error messages, headers, APIs, or pages, providing attackers reconnaissance data for targeted exploits. The core fix is to minimize disclosure of system internals and restrict information to what users legitimately need.
+Version disclosure is reconnaissance rather than a leak of user data: it hands a scanner a ready-made bill of materials to cross-reference against CVE databases, so move it behind an authorization check rather than deleting it from the diagnostics that need it. Where the detail arrives through an error message the finding is CWE-209, and CWE-200 is the general parent.
 
 ## Key Principles
 
@@ -13,7 +13,6 @@ System information exposure occurs when applications leak internal details (serv
 - Limit information disclosure in API endpoints like /info, /status, /health
 - Check the places that answer on every request, not only the error page: `Server`, `X-Powered-By`, `X-AspNet-Version` and similar headers appear on redirects and error responses too, and a 404 that names the path it looked in or a 405 that lists allowed methods describes the routing table
 - Check diagnostic endpoints unauthenticated - `/info`, `/status`, `/version`, `/health`, `/actuator/*` - and the body content as well: version strings in HTML comments, generator meta tags, and build fields in API payloads
-- Version disclosure is reconnaissance rather than a leak of user data: it hands a scanner a ready-made bill of materials to cross-reference against CVE databases, so move it behind an authorization check rather than deleting it from the diagnostics that need it
 
 ## Remediation Steps
 

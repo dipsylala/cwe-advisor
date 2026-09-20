@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Applications fail to validate that required input parameters are present before use, causing null pointer exceptions, logic errors, security bypasses (missing authentication tokens), or crashes. The fix requires explicit validation that required parameters exist before accessing them, with proper error handling for missing values. Read the citation before acting on it: MITRE marks CWE-234 Discouraged and notes it conflates two ideas - a request arriving without a parameter the handler requires (this page) and a *call site* passing fewer arguments than a function declares, which is CWE-685 under CWE-628. For new findings prefer CWE-20.
+Read the citation before acting on it: MITRE marks CWE-234 Discouraged and notes that it conflates two ideas - a request arriving without a parameter the handler requires, which is this page, and a *call site* passing fewer arguments than a function declares, which is CWE-685 under CWE-628. For new findings prefer CWE-20.
 
 ## Key Principles
 

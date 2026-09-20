@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Weak password hashing uses fast cryptographic functions (MD5, SHA-1, SHA-256) or poorly configured algorithms that attackers can brute-force when database dumps are compromised. Password hashing requires intentionally slow, computationally expensive algorithms designed specifically for password storage to resist offline cracking attacks. Use adaptive algorithms like Argon2id, bcrypt, or scrypt with work factors tuned to current hardware.
+The algorithm is not so much the defect as its speed - a general-purpose hash is doing exactly what it was designed to do. No salt at all is CWE-759 and a predictable or shared salt is CWE-760; this entry is the broader insufficient-effort weakness, salted or not.
 
 ## Key Principles
 
@@ -13,7 +13,6 @@ Weak password hashing uses fast cryptographic functions (MD5, SHA-1, SHA-256) or
 - Implement password migration strategy when upgrading from weak algorithms
 - Tune the work factor on production-class hardware to a target cost (250-500ms per hash) rather than copying a number, and remember that raising it later applies to *new* hashes only - the plaintext needed to re-hash an existing one is gone, so each stored password upgrades at that user's next successful login
 - Choose in OWASP's order and know why: Argon2id first (memory-hard and side-channel resistant together), scrypt where it is unavailable, bcrypt only for legacy systems (CPU-hard but not memory-hard, and it carries an input-length trap), and PBKDF2 where FIPS-140 validation is required
-- No salt at all is CWE-759 and a predictable or shared salt is CWE-760; this entry is the broader insufficient-effort weakness, salted or not
 
 ## Remediation Steps
 

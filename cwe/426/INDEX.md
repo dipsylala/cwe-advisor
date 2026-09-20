@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Untrusted Search Path vulnerabilities occur when applications search for resources (executables, libraries, DLLs) in directories that attackers can control, allowing malicious file injection. The core fix is to eliminate reliance on untrusted search paths and use absolute paths for all resource loading.
+The search path itself is attacker-influenced. Where the path is fixed and one element already in it is attacker-writable, that is CWE-427 - a distinction that decides the fix, since the names in circulation (DLL preloading, binary planting, dependency confusion) are used for both.
 
 ## Key Principles
 

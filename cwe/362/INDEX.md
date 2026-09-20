@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-This weakness occurs when multiple threads, processes, or requests access the same shared resource - a counter, balance, file, database row, cache entry, or session - and the interleaving of their operations produces an incorrect or exploitable result, such as a lost update, a double-spend, or a security check that no longer holds by the time it is acted on. The core remediation is to make access to the resource atomic: serialize it behind an in-process lock, mutex, or atomic primitive when it lives in memory, or push the atomicity to the datastore via row locks, atomic increment/decrement, unique constraints, or optimistic locking with a version column when it is shared across processes or server instances. See CWE-367 for a check followed by a separate use of the same value (file existence before open, permission check before action), and CWE-366 for unsynchronized shared state confined to a single process's threads.
+Choose the entry by where the racing parties live: state shared between threads of one process is CWE-366, where an in-process lock suffices, and a check followed by a separate use of the same value is CWE-367. This entry covers races across processes, servers, or replicas, where the fix has to live in the datastore rather than in application code.
 
 ## Key Principles
 
@@ -12,7 +12,6 @@ This weakness occurs when multiple threads, processes, or requests access the sa
 - Never rely on request timing, UI throttling, or client-side controls to prevent concurrent access; concurrency must be enforced server-side
 - Keep locked or transactional critical sections minimal but complete: begin protection before the first read of the shared state and release only after the final write
 - Design idempotency keys and conflict detection as defence-in-depth for operations that cannot be fully serialized
-- Choose the entry by where the racing parties live: state shared between threads of one process is CWE-366 and an in-process lock suffices, a check followed by a use is CWE-367, and this entry covers races across processes, servers, or replicas where the fix has to live at the datastore
 - Push the precondition into the write where a datastore is involved (`UPDATE ... WHERE balance >= :amount`), which removes the separate read entirely rather than protecting it
 
 ## Remediation Steps

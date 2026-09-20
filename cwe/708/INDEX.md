@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Incorrect ownership assignment happens when a file, process, or other resource is assigned to a principal outside the application's intended control, letting that principal access it directly instead of through an access-controlled path. It commonly appears when ownership is set from an ambient default rather than an explicit intended owner, when an ownership change follows a symlink to an unintended target, or when a temporarily elevated owner is never restored. The fix is to assign ownership explicitly, verify the real target before changing it, and restore ownership as part of the same operation that granted it.
+Ownership handed to a principal outside the application's intended control, letting that principal reach the resource directly instead of through an access-controlled path. Where the ownership decision trusts an unverified claim about who a resource belongs to, it is also CWE-345.
 
 ## Key Principles
 
@@ -14,7 +14,6 @@ Incorrect ownership assignment happens when a file, process, or other resource i
 - Add periodic auditing of sensitive resource ownership against the expected principal as defence-in-depth
 - Name the target by an open handle rather than by a path: a path is resolved afresh by every call that takes one, so a symlink dropped in between sends the ownership change somewhere else - and because the operation runs privileged, the attacker borrows that privilege to reassign a file they could not otherwise touch
 - Implement the counterpart to any temporary grant: ownership handed to a user for the duration of a session must be taken back when it ends, or the permission outlives its justification and the previous user keeps access after the next one arrives
-- Where the ownership decision trusts an unverified claim about who a resource belongs to, it is also CWE-345
 
 ## Remediation Steps
 

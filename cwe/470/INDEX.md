@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Unsafe reflection occurs when applications use untrusted input to select classes, methods, or code via reflection APIs (Class.forName, eval, import), enabling arbitrary code execution and complete application compromise. Never allow untrusted input to directly select classes/types/methods for execution.
+Untrusted input selects *which* class or method runs rather than supplying code to run, so nothing is concatenated and nothing needs escaping. Supplying the code itself is CWE-94 or CWE-95, the general resource-identifier parent is CWE-99, and loading a whole component from an untrusted source is CWE-829.
 
 ## Key Principles
 
