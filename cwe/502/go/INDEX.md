@@ -12,7 +12,7 @@ Go's type system limits classic gadget-chain remote code execution, but `encodin
 - Avoid unmarshaling untrusted data into `interface{}` or `map[string]interface{}` with unchecked type assertions (`data["x"].(string)`); these panic on type mismatch and provide no schema enforcement
 - If using `gopkg.in/yaml.v2` or `v3`, treat "no code execution" as separate from "no need to validate"-apply the same field-level validation as JSON, and never build an `interface{}` field expansion from untrusted YAML tags
 - Determine privileged fields (admin status, balance, role) from server-side authorization/database lookups, never from deserialized client data
-- `gopkg.in/yaml.v3` does not construct arbitrary types the way Python's loader does, so the risk here is shape rather than execution: decode into a concrete struct rather than `map[string]interface{}`, and bound the input, since deeply nested or alias-heavy YAML is a resource-exhaustion vector
+- `gopkg.in/yaml.v3` does not construct arbitrary types the way Python's loader does, so the risk here is shape rather than execution: decode into a concrete struct rather than `map[string]interface{}`, and bound the request body as ordinary hygiene rather than as the alias defence - `gopkg.in/yaml.v2` 2.4.0 and `yaml.v3` 3.0.1 both refuse an alias bomb outright (`yaml: document contains excessive aliasing`) and cap nesting at 10000, measured
 
 ## Taint Sinks
 
@@ -26,4 +26,4 @@ Go's type system limits classic gadget-chain remote code execution, but `encodin
 - Bind, encode, validate, or authorize - Call `decoder.DisallowUnknownFields()`, then a `Validate()` method checking length/range/format on every field before use; resolve authorization fields via `checkAdminPermissions(ctx)` or a DB lookup, not the request struct
 - Break taint after allowlist validation - Construct the persistence/domain object explicitly from validated request fields plus server-computed authorization values, rather than reusing the decoded struct directly
 - Harden configuration - Wrap request bodies in `http.MaxBytesReader(w, r.Body, limit)` before decoding to prevent oversized-payload resource exhaustion
-- Test - Send payloads with extra fields (expect rejection), boundary/invalid types (expect validation error, not panic), and attempts to set privileged fields (expect no effect on authorization)
+- Test - on the JSON path send payloads with extra fields and expect rejection, since `DisallowUnknownFields()` is what produces it; on the gob path expect the opposite, because `gob.Decoder` has no such option and silently ignores fields absent from the destination type - there the assertion is that a privileged field the DTO does not declare has no effect. Add boundary and invalid types (expect a validation error, not a panic)

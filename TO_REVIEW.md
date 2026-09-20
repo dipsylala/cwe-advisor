@@ -72,7 +72,7 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 12 | 434 | Unrestricted File Upload | csharp, go, java, javascript, php, python | same | - | - | - |
 | 13 | 476 | NULL Pointer Dereference | c, cpp, java | none (root page only) | done (4/4 read) | 2026-09-20 | 5 found, 5 fixed |
 | 14 | 121 | Stack-based Buffer Overflow | c, cpp | same | done (3/3 read) | 2026-09-20 | 3 found, 3 fixed |
-| 15 | 502 | Deserialization of Untrusted Data | csharp, go, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 13 found, 0 fixed |
+| 15 | 502 | Deserialization of Untrusted Data | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 13 found, 13 fixed |
 | 16 | 122 | Heap-based Buffer Overflow | router entry, added | no FFG page | done (1/1) | 2026-09-20 | entry created |
 | 17 | 863 | Incorrect Authorization | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 9 found, 6 fixed |
 | 18 | 20 | Improper Input Validation | none | none | done (1/1 read) | 2026-09-20 | 3 found, 3 fixed |
@@ -140,7 +140,8 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 
 - **Six language files are over the ~800 word guideline and this campaign put them there**:
   `cwe/78/php` 928 (was 797), `cwe/862/java` 909 (was 821), `cwe/863/java` 863 (was 728),
-  `cwe/22/javascript` 859 (was 735),
+  `cwe/22/javascript` 859 (was 735), `cwe/502/java` 923 (was 827, and the only file so far to trip
+  the linter's own 950 warning before being trimmed back under it),
   `cwe/78/python` 858 (was 731), `cwe/78/csharp` 856 (was 768), `cwe/862/csharp` 838 (was 740). The
   linter does not fail until 950, so nothing is broken, and `cwe/78/php` is the one to watch. The
   additions were correctness fixes applied on top of files that were already dense; each was trimmed
@@ -153,6 +154,52 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, wave 2: CWE-502
+
+All thirteen findings applied. The format-swap regression `CLAUDE.md` records for this CWE has *not*
+come back - root, go, java and php all still lead with the format-preserving fix. What the scan found
+instead is the same doctrine missing from the two files that never had it, plus a cluster of version
+and API claims that do not survive a compiler.
+
+- **`ois.setObjectInputFilter(filter)` does not exist on Java 8.** The entry gave 8u121 as the floor
+  and that call as the way to attach the filter, so an LLM following it on a Java 8 project gets a
+  compile error - and the entry had already told it the commons-io fallback is "only below 8u121", so
+  it has nowhere to go. On 8u121 the type is `sun.misc.ObjectInputFilter` and the call is the static
+  `Config.setObjectInputFilter(ois, filter)`; jdk8u's own `ObjectInputStream` has only a private
+  internal setter reached through a shared-secrets hook. The `java.io` instance method is Java 9+.
+- **XStream's `setupDefaultSecurity()` is 1.4.10, not 1.4.7.** `javap` on the jars: absent from 1.4.7
+  and 1.4.9, present in 1.4.10. `addPermission()`/`allowTypes()` genuinely are 1.4.7, which is
+  presumably how the two got merged into one version claim. The entry's step told a model pinned to
+  1.4.7 to call a method that does not compile there.
+- **`new Phar()` does not deserialize metadata.** Reproduced on PHP 8.5.8 in a fresh process:
+  `file_get_contents('phar://...')`, `new Phar()` and even `hasMetadata()` all run without triggering
+  `__wakeup`; only `getMetadata()` does, and `getMetadata(['allowed_classes' => false])` returns
+  `__PHP_Incomplete_Class` instead. Listing the constructor as a trigger turns every `new Phar()` into
+  a false finding.
+- **`serialize-javascript`'s named fix was bypassed.** The entry cited CVE-2020-7660 and then declined
+  to give a floor at all ("take its minimum version from advisory or SCA data") - which `CLAUDE.md`
+  forbids, because SKILL.md Step 5 stops the model supplying one. GHSA-5c6j-r48x-rmvq is an incomplete
+  -fix bypass affecting everything up to 7.0.2, and CVE-2026-34043 is fixed in 7.0.5. Floor is 7.0.5.
+- **A CSP step on server-side sinks.** Every sink the javascript entry lists - `eval`, `Function`,
+  `vm.runInNewContext`, `node-serialize`, `funcster` - runs in the Node process. The Remediation Step
+  told the model to add a CSP header, which governs a browser, so it produced an unrelated change in
+  the diff. Removed from the step and corrected in the Key Principle that said the same thing.
+- **The go Test step contradicted the gob half of its own fix**: "send payloads with extra fields
+  (expect rejection)". `DisallowUnknownFields()` is a `json.Decoder` method and `gob.Decoder` has no
+  equivalent, so on the gob path the prescribed fix ignores extra fields by design and the test fails
+  against correct code. The two paths now have their own assertions.
+- **`.NET 9` did not remove the compatibility switch**, it made it insufficient: the unsupported
+  `System.Runtime.Serialization.Formatters` package plus the switch still restores `BinaryFormatter`.
+  The entry's conclusion (do not offer re-enabling) stands; the mechanism it gave was wrong, and a
+  project carrying that package is live again rather than dead.
+- Smaller: Newtonsoft's current hook is `ISerializationBinder` on `JsonSerializerSettings.SerializationBinder`
+  (the `Binder` property is the obsolete one); Kryo 5 already requires registration, so the finding
+  there is an explicit `setRegistrationRequired(false)`; both maintained Go YAML libraries already
+  refuse alias bombs and cap depth at 10000, so the entry's stated reason for bounding input was
+  stale even though the advice is fine; and csharp and python, the two files whose fix genuinely is a
+  format swap, never asked who else writes the payloads - `System.Formats.Nrbf` is Microsoft's own
+  answer for the .NET case and had gone unmentioned.
 
 ### 2026-09-20, wave 2: CWE-22
 

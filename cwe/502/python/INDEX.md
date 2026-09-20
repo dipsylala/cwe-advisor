@@ -25,7 +25,8 @@ Python's `pickle` module executes arbitrary code during deserialization, enablin
 
 - Identify all deserialization calls (`pickle.loads()`, `pd.read_pickle()`, `yaml.load()`, etc.)
 - Replace with safe alternatives - `json.loads()` for objects, `pd.read_parquet()` for DataFrames
-- Update file extensions and storage mechanisms (`.pkl` → `.json` or `.parquet`)
+- Identify every writer of the pickled value before changing the reader - a Celery producer, a cache backend, a session store, or a `.pkl` already on disk is outside a consumer-only edit, and changing the reader alone makes every legitimate value fail. Where a writer is outside the change, read the legacy values once in a trusted context and rewrite them, and state the format change as breaking
+- Update file extensions and storage mechanisms (`.pkl` to `.json` or `.parquet`)
 - Manually reconstruct objects from deserialized dictionaries with validation
 - For Django sessions, confirm rather than set `SESSION_SERIALIZER` - JSON has been the default since
   1.6, and `PickleSerializer` was deprecated in 4.1 and removed in 5.0, so on a current version this
