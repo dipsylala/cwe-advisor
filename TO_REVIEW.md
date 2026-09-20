@@ -60,7 +60,7 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 |---|---|---|---|---|---|---|---|
 | 1 | 79 | Cross-site Scripting | csharp, go, java, javascript, perl, php, python | same | done (8/8 read) | 2026-09-20 | 5 found, 5 fixed |
 | 2 | 89 | SQL Injection | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 3 found, 3 fixed |
-| 3 | 352 | Cross-Site Request Forgery | csharp, go, java, javascript, python | same | - | - | - |
+| 3 | 352 | Cross-Site Request Forgery | csharp, go, java, javascript, python | same | done (6/6 read) | 2026-09-20 | 5 found, 5 fixed |
 | 4 | 862 | Missing Authorization | csharp, go, java, javascript, php, python | same | - | - | - |
 | 5 | 787 | Out-of-bounds Write | c, cpp | same | - | - | - |
 | 6 | 22 | Path Traversal | csharp, go, java, javascript, php, python | same | - | - | - |
@@ -105,6 +105,38 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, CWE-352
+
+Read all 6 advisor files and their 6 FFG counterparts. Four findings were in `go`, one in the root.
+csharp, java, javascript and python came back clean, and their sharper claims were re-verified rather
+than assumed: `AntiforgeryOptions.HeaderName` does default to `RequestVerificationToken` (aspnetcore
+source), `CsrfConfigurer.spa()` exists in Spring Security 7.1.1 and `SpaCsrfTokenRequestHandler` ships
+in neither 6.5.7 nor 7.1.1 (javap), and `csrf-csrf` v4 does export `generateCsrfToken` and does throw
+without `getSessionIdentifier` (ran it).
+
+Carried forward:
+
+- **An entry can be updated in the half a reader reaches last.** `go`'s LLM Guidance and Key
+  Principles had been moved to `net/http.CrossOriginProtection`, including the finding that
+  `gorilla/csrf` has an unfixed CVE and must be replaced. Its Remediation Steps still said to add
+  `csrf.Protect(...)` and render `csrf.TemplateField(r)` - so the steps prescribed adopting the
+  library the principles above them say to rip out, and prescribed it in the one form
+  (`filippo.io/csrf/gorilla`) where those calls return stubs. The steps section is where an LLM
+  actually acts; check it against the principles whenever a primary defence changes.
+- **The test step has to test the fix that was prescribed.** The same file told the model to verify
+  with "missing, forged, and expired tokens" under a primary fix that has no tokens at all. Replaced
+  with a header replay, including the `Sec-Fetch-Site: same-site` case - reproduced on Go 1.25.5,
+  where it returns 403 while a `SameSite=Strict` cookie would still have been sent, so it is the
+  assertion that distinguishes the check from the cookie flag. The same run confirmed requests with
+  neither header are allowed (200) and that the `Origin` fallback compares hosts, not schemes.
+- **Check whether a wrapper survives how the server is started.** `gin.Engine.Run()` builds its own
+  `http.Server` around `engine.Handler()` and `echo.Echo.Start()` passes the `Echo` itself, so
+  wrapping a handler and then calling `r.Run()` compiles, serves every route and applies no check
+  (read from both projects' sources). This is the `CLAUDE.md` "ask what the edit does when applied"
+  rule in a shape worth looking for elsewhere: middleware that is constructed but never on the path.
+- **The root entry had no verification step at all**, unlike every sibling root read so far. Added
+  three assertions, the load-bearing one being a token minted in one session replayed in another.
 
 ### 2026-09-20, CWE-89
 
