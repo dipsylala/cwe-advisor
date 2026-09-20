@@ -189,6 +189,7 @@ Fallback for SKILL.md Step 1 when the developer describes a vulnerability by nam
 | 863 | Incorrect Authorization | authorization logic flaw |
 | 915 | Improperly Controlled Modification of Dynamically-Determined Object Attributes | mass assignment |
 | 916 | Use of Password Hash With Insufficient Computational Effort | weak password hashing |
+| 917 | Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection') | EL injection, SpEL injection, OGNL injection |
 | 918 | Server-Side Request Forgery (SSRF) | SSRF |
 | 926 | Improper Export of Android Application Components | exported Android component |
 | 942 | Permissive Cross-domain Security Policy with Untrusted Domains | CORS misconfiguration, wildcard CORS |

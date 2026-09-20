@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-A child of CWE-94, scoped to the eval-style function that compiles and executes a string as code. Use CWE-94 for the general case - a template engine, an expression language, a compiler API - and this entry where the sink is literally `eval` or its direct equivalent.
+A child of CWE-94, scoped to the eval-style function that compiles and executes a string as code. Use CWE-94 for the general case - a template engine, an expression language, a compiler API - and this entry where the sink is literally `eval` or its direct equivalent. An expression the application never chose to evaluate, interpolated by a framework layer, is CWE-917.
 
 ## Key Principles
 
