@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # Numeric CWE directories live under cwe/ so the repo root stays readable.
 CWE_ROOT = ROOT / "cwe"
 
-SKIP_DIRS = {".git", "evals"}
+SKIP_DIRS = {".git", "evals", "FlawFixingGuidance"}
 
 ROOT_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles"]
 LANG_REQUIRED_HEADINGS = ["## LLM Guidance", "## Key Principles", "## Taint Sinks"]
@@ -145,7 +145,8 @@ def main():
                 check_language_file(sub, cwe_id)
 
     # Prune the skipped directories while walking rather than filtering afterwards: rglob would
-    # otherwise descend into evals/ (node_modules, vendor, run records), which takes minutes.
+    # otherwise descend into evals/ (node_modules, vendor, run records) and the gitignored
+    # FlawFixingGuidance/ clone (.venv, site/, test node_modules), which takes minutes.
     for md_file in iter_md_files(ROOT):
         check_links(md_file)
 
