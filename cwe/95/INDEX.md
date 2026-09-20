@@ -7,7 +7,7 @@ Eval Injection occurs when untrusted input (from HTTP requests, external APIs, d
 ## Key Principles
 
 - Never pass untrusted data to an eval-style dynamic code evaluation function
-- Replace dynamic code evaluation with safe alternatives: JSON parsers, template engines with auto-escaping, or expression evaluators with strict allowlists
+- Replace dynamic code evaluation with safe alternatives: JSON parsers, a template engine rendering a template that comes from the source tree with request data passed as values only, or expression evaluators with strict allowlists. Auto-escaping is not the control here - it is an output-encoding measure and does nothing about a template body built from a request
 - Treat all external data sources (user input, APIs, databases, files, configuration) as untrusted
 - Use static analysis tools to detect and eliminate dangerous functions
 - Do not keep a filtered `eval()` for the one case a literal-only parser cannot handle - that single fallback restores the whole attack surface the migration removed
@@ -18,7 +18,7 @@ Eval Injection occurs when untrusted input (from HTTP requests, external APIs, d
 
 - Trace data flow: Identify where untrusted data enters (source), how it moves through the application, and where it reaches code execution functions (sink)
 - Remove eval-style functions: Refactor code to eliminate dynamic code evaluation entirely (see the language-specific guidance's Taint Sinks for concrete function names)
-- Use safe alternatives: Replace with a dedicated data parser (not a code evaluator) for structured data, template engines with auto-escaping for rendering, or sandboxed expression evaluators with strict syntax allowlists
+- Use safe alternatives: Replace with a dedicated data parser (not a code evaluator) for structured data, a template engine rendering a template from the source tree, with request data as values only, or sandboxed expression evaluators with strict syntax allowlists
 - Validate and sanitize: If dynamic evaluation is unavoidable, implement strict allowlists for permitted operations and reject any input that doesn't match
 - Apply defence in depth: Run code in sandboxed environments with minimal privileges and monitor for suspicious execution patterns; a timeout or size limit alone bounds resource exhaustion and does nothing to stop file reads, outbound sockets, or secret access before it fires
 - Conduct security review: Use static analysis tools and manual code review to find all instances of dangerous functions

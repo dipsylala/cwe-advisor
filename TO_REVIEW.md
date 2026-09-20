@@ -67,7 +67,7 @@ finding. FFG `tests/` directories are fixtures, not guidance, and are out of sco
 | 7 | 416 | Use After Free | c, cpp | same | - | - | - |
 | 8 | 125 | Out-of-bounds Read | c, cpp | same | done (3/3 read) | 2026-09-20 | 1 found, 1 fixed |
 | 9 | 78 | OS Command Injection | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 7 found, 6 fixed, 1 reported |
-| 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | scanned, NOT applied | 2026-09-20 | 22 found, 0 fixed |
+| 10 | 94 | Code Injection | csharp, java, javascript, php, python | same | done (6/6 read) | 2026-09-20 | 22 found, 22 fixed |
 | 11 | 120 | Classic Buffer Overflow | none (router to 121/787) | no FFG page | done (1/1 read) | 2026-09-20 | 0 findings |
 | 12 | 434 | Unrestricted File Upload | csharp, go, java, javascript, php, python | same | done (7/7 read) | 2026-09-20 | 17 found, 17 fixed |
 | 13 | 476 | NULL Pointer Dereference | c, cpp, java | none (root page only) | done (4/4 read) | 2026-09-20 | 5 found, 5 fixed |
@@ -140,7 +140,8 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 
 - **Six language files are over the ~800 word guideline and this campaign put them there**:
   `cwe/78/php` 928 (was 797), `cwe/862/java` 909 (was 821), `cwe/863/java` 863 (was 728),
-  `cwe/22/javascript` 859 (was 735), `cwe/502/java` 923 (was 827, and the only file so far to trip
+  `cwe/22/javascript` 859 (was 735), `cwe/94/java` 938 (was 782),
+  `cwe/502/java` 923 (was 827, and the first file to trip
   the linter's own 950 warning before being trimmed back under it),
   `cwe/78/python` 858 (was 731), `cwe/78/csharp` 856 (was 768), `cwe/862/csharp` 838 (was 740). The
   linter does not fail until 950, so nothing is broken, and `cwe/78/php` is the one to watch. The
@@ -154,6 +155,55 @@ consistent. Run these once the per-CWE rows are done, and record the outcome her
 Findings that were confirmed but not fixed in the scan that found them, and decisions worth
 carrying forward. Fixed findings live in `git log`; a shape that recurs twice belongs in
 `CLAUDE.md`'s *Remediation Claims* section instead of here.
+
+### 2026-09-20, wave 2: CWE-94 - campaign complete
+
+All twenty-two findings applied. Ranks 1-20 are now scanned and applied.
+
+The headline is one this repo's own rules predicted. `cwe/94/java` said
+`SimpleEvaluationContext` "exposes property access only". Reproduced on spring-expression 6.2.19 -
+the *patched* release - with a root object carrying a `secret()` method:
+
+```text
+  name           -> alice
+  secret         -> ZERO-ARG-METHOD-RAN      <- the method ran
+  secret.length  -> 19
+  secret()       -> SpelEvaluationException  <- explicit call refused
+  {secret}       -> [ZERO-ARG-METHOD-RAN]
+```
+
+SpEL resolves a bare name through the record-style plain accessor on *any* class, not only records,
+so the root object's entire public zero-arg non-void surface is reachable by naming it. "Property
+access only" is true as a category and badly misleading as a boundary. The entry also named no
+version: OSV shows spring-expression carrying CVE-2026-41850, CVE-2026-41851 and CVE-2026-41852 all
+fixed in 6.2.19 / 7.0.8, with the 6.1 and 5.3 lines showing `last_affected` and no OSS fix at all.
+
+Other findings worth carrying:
+
+- **Three of the four "sandboxed evaluator" recommendations needed the default stated before the
+  change.** JEXL 3.7.0's builder already refuses `new(...)`, so the prescribed
+  `JexlFeatures.newInstance(false)` is a no-op there; its default `JexlPermissions` already evaluate
+  `Runtime` and `Class.forName` to `null` with no sandbox configured, which means the entry's own
+  prescribed test passes against an engine that was never sandboxed. DynamicExpresso has reflection
+  off by default, so the entry's `System.IO.File.Delete(...)` probe is refused before the fix as well.
+- **Four libraries named without a floor, two of them where the missing floor voids the advice.**
+  Jinja2's `SandboxedEnvironment` has had three escapes since 3.1.4 (floor 3.1.6); `expr-eval-fork`
+  was given as "3.0.0 and later" when 3.0.0 is still inside the CVE-2025-12735 range (floor 3.0.1);
+  `NCalc.Core` 6.1.1 fixes a non-terminating factorial reachable from untrusted expressions;
+  spring-expression as above.
+- **`setTimeout(string)` is a browser sink.** On Node it throws `ERR_INVALID_ARG_TYPE` before running
+  anything, so a server-side finding on that line is a crash, not an injection - the entry listed it
+  unqualified in the guidance, the sink list and a remediation step.
+- **`isolated-vm` was offered as an alternative to a separate process.** Its own README asks to be
+  run in a separate process anyway, says the library is in maintenance mode, and says it does not make
+  an application safe by itself.
+- **The allowlist-as-default shape appeared in four of the five language files** - the eval-run-17
+  regression - and three files had no test step at all.
+- **Cross-entry**: `cwe/95` offered "template engines with auto-escaping" as a code-injection control,
+  which `cwe/94`'s javascript and python entries both explicitly deny (auto-escaping is an XSS control
+  and does nothing about a template *body* built from a request). Corrected in 95, the second time
+  this campaign has had to fix an out-of-scope sibling that contradicted an in-scope entry - the first
+  was `cwe/73`'s NFC claim.
 
 ### 2026-09-20, wave 2: CWE-434
 

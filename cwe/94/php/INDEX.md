@@ -13,10 +13,12 @@ Code injection in PHP most commonly occurs via `eval()`, the `preg_replace()` `/
 - Confirm rather than assume the include hardening: `allow_url_include` already defaults to `0` and
   has been deprecated since PHP 7.4, so setting it is usually recording intent rather than closing
   anything, while `allow_url_fopen` defaults to `1` and is the one likely to need changing. Neither
-  affects a *local* file inclusion through the same sink, which is the more common finding.
-  `disable_functions` cannot close `eval` because `eval` is a language construct rather than a
-  function, so listing it there records a control that was never applied - and the manual warns the
-  directive "can be circumvented and should not be considered a sufficient security measure"; `disable_functions` cannot close `eval` because `eval` is a language construct rather than a function, so listing it there records a control that was never applied - the directive is still worth setting for `system`, `exec`, `passthru`, `proc_open` and `popen`
+  affects a *local* file inclusion through the same sink, which is the more common finding
+- `disable_functions` cannot close `eval` at all, because `eval` is a language construct rather than a
+  function, so listing it there records a control that was never applied. The manual's own warning is
+  scoped: the directive can be circumvented and should not be considered a sufficient security measure
+  *for shared hosting environments*. It is still worth setting for `system`, `exec`, `passthru`,
+  `proc_open` and `popen`
 
 ## Taint Sinks
 
@@ -31,4 +33,4 @@ Code injection in PHP most commonly occurs via `eval()`, the `preg_replace()` `/
 - For `include`/`require` with variable paths, replace with an allowlist: `$allowed = ['home', 'about']; if (in_array($page, $allowed, true)) include __DIR__ . "/pages/{$page}.php";`
 - Establish the PHP version before triaging `assert($string)`, the `/e` modifier and `create_function()` - all three had stopped executing by PHP 8.0, so on a current target they are dead code to delete rather than live sinks; on PHP 7 disable string assertions with `zend.assertions = -1` in `php.ini` - that directive arrived in 7.0, so a PHP 5 target uses `assert.active` instead
 - Enable `display_errors = Off` in production so error messages don't reveal code-injection paths
-- Test by submitting `system('id')` or `phpinfo()` as input values and confirming they are not executed
+- Test each sink with the payload that sink actually takes. A code string such as `system('id')` discriminates only for `eval()`: against `include`/`require` the payload is a path, so assert that a traversal or a `php://` wrapper is refused by the allowlist, and note that `assert()` with a string and the removed `/e` and `create_function` sinks do not execute on PHP 8 before the fix either, so a code-string probe passes against them unchanged
