@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Use-after-free is dereferencing a pointer after `free()` has run on it. C tracks no pointer validity, so nothing stops a stale address being read, written, or passed on after the allocator has reused the block. The fix is to decide which single component owns each allocation and give it a release function taking `T **`, so releasing nulls the owner's variable rather than a copy; nulling is what turns a stray later use into an immediate fault instead of silent corruption of whatever now occupies that memory.
+C tracks no pointer validity, so nothing stops a stale address being read, written, or passed on after the allocator has reused the block. The fix is to decide which single component owns each allocation and give it a release function taking `T **`, so releasing nulls the owner's variable rather than a copy; nulling is what turns a stray later use into an immediate fault instead of silent corruption of whatever now occupies that memory.
 
 ## Key Principles
 

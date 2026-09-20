@@ -28,8 +28,8 @@ NoSQL injection in Java needs a hole to come through: a parameter typed `Object`
 
 - `$regex` is a sink in its own right, not just a probe: an attacker-supplied pattern runs on the
   MongoDB server under its own engine, so nothing configured in the application's regex library
-  applies. Escape the term before it becomes a pattern - `re.escape`, `Pattern.quote`, `Regex.Escape` -
-  or match exactly instead
+  applies. Escape the term with `Pattern.quote` before it becomes a pattern, or match
+  exactly instead
 - Watch the failure direction when a filter is built conditionally: silently dropping a condition that
   could not be validated leaves the query *wider* than the caller asked for, and an endpoint that has
   quietly stopped filtering still answers 200

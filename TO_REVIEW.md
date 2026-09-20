@@ -215,9 +215,72 @@ Twenty entries route in their guidance to a CWE with no directory here (`917`, `
 SKILL.md Step 2 says "If the child's directory doesn't exist, continue with the parent." Whether any
 of them deserves its own entry is a separate question and a reasonable source of future work.
 
-Not done, and still open: the eight over-length *language* files. Run 22 is what shows the language
-file carries the weight of a fix, so they cannot inherit its null result and want their own
-measurement rather than this one's answer.
+**The "eight over-length language files" figure was stale - recount gives 33**, now 31. The note
+dated from before the correctness campaign added text. Recount before trusting a tracked total.
+
+## Language-file survey, 2026-09-20 (read-only, then three targeted fixes)
+
+Surveyed before cutting, and the survey argued against a wholesale cut. The language corpus is
+339 files, 202,963 words, with 28,236 words of `LLM Guidance` at mean 83 - same length as the roots
+were, different content: **88% name a concrete API in backticks**, against the 35% of root guidance
+that carried anything repo-specific. The thing a root cannot carry is what these are made of.
+
+Duplication, measured three ways: within a CWE family across languages, 7,678 words; within one
+language across CWEs, ~540; a language file repeating its own root, 69 detected. The within-family
+figure is the only large one and is mostly **not** a defect - SKILL.md loads one root and one
+language file, so `78/python` and `78/java` are never in context together and repetition between
+siblings costs the reader nothing. The real risk there is CLAUDE.md's family-constant shape, which
+is a correctness question rather than a redundancy one.
+
+Three fixes followed, in descending value:
+
+1. **CWE-78 root duplication.** All six language files carried a ~75-word restatement of the root's
+   incidental-versus-feature decision, and the root says it better - it has the `ping` example and
+   the changed-return-shape case the copies drop. Removed from all six, with the identical 28-word
+   definition opener from the five that had one. The audit also found a gap: `cwe/78/go` was the
+   only language file with no `ping` guidance, while the root says the keep-and-execute-safely case
+   applies wherever the runtime ships no ICMP class - and its Remediation Steps pointed at the Go
+   stdlib "network" API, which for a ping means `net.Dial`, the TCP-not-ICMP trap every sibling
+   warns about. Filled, verified against `golang.org/x/net/icmp`'s own doc (not stdlib;
+   `ListenPacket` needs `"ip4:icmp"` with raw-socket privilege, or `"udp4"` for the unprivileged
+   path its documentation limits to Darwin and Linux). Step corrected alongside the principle.
+2. **CWE-943, the family-constant defect.** One sentence copied into four language files naming
+   *three* languages' escapers in all four - `re.escape`, `Pattern.quote`, `Regex.Escape`. Two of
+   the three are noise in `csharp`, `java` and `python`; in `javascript` **all three are unusable**,
+   and JavaScript's real answer was missing. Each file now names only its own, and the JS file
+   names `RegExp.escape` (ES2025, verified present on Node 24.3.0 / V8 13.6) with the manual
+   fallback. The two known past defects of this shape were regression-checked and are still
+   correct: bcrypt's 72-byte ceiling is stated with six different behaviours across six ecosystems,
+   and all ten `_FORTIFY_SOURCE` mentions are `=3` with none left on `=2`.
+3. **Definition openers.** The heuristic flagged 88 sections; reading them, most are legitimate
+   language framing ("Insufficient entropy in .NET is *not* about `RandomNumberGenerator`...",
+   "In Spring, Missing Authorization typically appears as a `@RestController` method..."), and
+   `cwe/502/csharp`'s definitional frame carries the BinaryFormatter list. Only 21 were pure
+   definition and were cut. **A flag count is not a finding count here** - the heuristic
+   over-counted roughly four to one.
+
+Net across the three: 2,121 words removed, 1,118 written, -1,003 over 31 files.
+
+### The detector, and why two versions of it were wrong
+
+Worth keeping, because the failure generalises. Detecting "an API from ecosystem X named in
+ecosystem Y's file" by token distribution does not work on the case that matters:
+
+- v1 flagged a token unique to one language. Copying `re.escape` into four languages' files
+  destroyed its uniqueness, so v1 scored **zero** on the defect it was built for.
+- v2 attributed a token to the language where it predominates. Four-way copying left every language
+  at 25%, so nothing was attributed and v2 missed it too.
+- v3 works on a signal the copying cannot erase: a token appearing in >= 2 *other* languages' files
+  and **nowhere else in its own language's files**. A name the ecosystem really has turns up
+  somewhere else in its own files. With a filter to API-shaped tokens it gives 58 flags on the
+  pre-fix corpus, top-ranked being all four CWE-943 files, and it carries a self-test asserting
+  that. `scratchpad/crosslang3.py`.
+
+The lesson is that a defect which spreads uniformly defeats any instrument keyed on distribution -
+validate a detector against a known instance before believing a zero.
+
+Still open: the 31 over-length language files. Run 22 is what shows the language file carries the
+weight of a fix, so they cannot inherit its null result and want their own measurement.
 
 Not yet done: the remaining 172 roots, and the eight over-length language files. The next eval run is
 the check on whether any of this moved fix quality; the prediction is that it did not, since the

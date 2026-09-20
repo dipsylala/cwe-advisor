@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insecure deserialization occurs when untrusted data is used to create objects, potentially allowing attackers to execute arbitrary code, manipulate application logic, or achieve denial of service. Java's native serialization is particularly dangerous because it can invoke methods during deserialization.
+Java's native serialization is particularly dangerous because it can invoke methods during deserialization.
 
 **Primary Defence:** Where every producer of the stream is in the same change, move to JSON (Jackson, Gson). Where it is not - a queue, cache or RMI peer that still emits native serialization - keep `ObjectInputStream` and attach an `ObjectInputFilter` allowlist to it; switching only the consumer's format rejects every legitimate message rather than closing the finding. Its floor is not JDK 9: JEP 290 was backported to 8u121, so `ValidatingObjectInputStream` (Apache Commons IO) is needed only below that.
 

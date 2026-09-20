@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Storing sensitive data (passwords, cryptographic keys, tokens) in memory as cleartext in JavaScript exposes it to memory dumps, debugging tools, and memory disclosure vulnerabilities. JavaScript strings are immutable, so nothing in the language lets you proactively zero one - the problem is not that a string "persists" longer than any other garbage-collected value, only that you cannot overwrite it before it becomes unreachable. Use `Buffer` for sensitive data, clear buffers explicitly with `fill(0)`, and avoid logging or concatenating sensitive values.
+JavaScript strings are immutable, so nothing in the language lets you proactively zero one - the problem is not that a string "persists" longer than any other garbage-collected value, only that you cannot overwrite it before it becomes unreachable. Use `Buffer` for sensitive data, clear buffers explicitly with `fill(0)`, and avoid logging or concatenating sensitive values.
 
 ## Key Principles
 

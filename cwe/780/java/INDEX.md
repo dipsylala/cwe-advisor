@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Using RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) enables padding oracle attacks, chosen ciphertext attacks, and message malleability. In Java, this commonly occurs when using `Cipher.getInstance("RSA")` without specifying the padding mode, which defaults to the insecure PKCS#1 v1.5 padding. Always use `Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")` with explicit OAEP parameters.
+In Java, this commonly occurs when using `Cipher.getInstance("RSA")` without specifying the padding mode, which defaults to the insecure PKCS#1 v1.5 padding. Always use `Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")` with explicit OAEP parameters.
 
 ## Key Principles
 

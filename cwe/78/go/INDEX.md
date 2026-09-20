@@ -2,11 +2,12 @@
 
 ## LLM Guidance
 
-`os/exec` does not invoke a shell when given a command and separate arguments, so most Go command injection comes from explicitly invoking `sh -c`, `bash -c`, or `cmd /C` with a concatenated or `fmt.Sprintf`-built string. The primary remediation, where the command is incidental, is replacing it with Go standard library equivalents (`os`, `net`, `net/http`, `archive/zip`, `archive/tar`). If a command is truly unavoidable, use `exec.Command`/`exec.CommandContext` with a separate argument list, never a shell. Decide first which case this is: where the command is incidental - a wrapper around something the language does natively - replacing it removes the sink entirely and is the better fix; where running a command is the feature the endpoint exists for, removing it is not a fix but a regression, and the work is to execute safely. In either case the remediated code must return what the original returned: a replacement that emits data the original discarded introduces an information leak while closing the injection.
+`os/exec` does not invoke a shell when given a command and separate arguments, so most Go command injection comes from explicitly invoking `sh -c`, `bash -c`, or `cmd /C` with a concatenated or `fmt.Sprintf`-built string. The primary remediation, where the command is incidental, is replacing it with Go standard library equivalents (`os`, `net`, `net/http`, `archive/zip`, `archive/tar`). If a command is truly unavoidable, use `exec.Command`/`exec.CommandContext` with a separate argument list, never a shell.
 
 ## Key Principles
 
 - Eliminate command execution first: replace with `os`, `net`, `net/http`, `archive/tar`/`archive/zip` for the equivalent operation
+- `net` is TCP and UDP only: Go ships no ICMP in the standard library, so a `net.Dial` probe answers a different question for a host that replies to `ping` with the probed port closed. `golang.org/x/net/icmp` is the ICMP option and is not stdlib - `ListenPacket` needs `"ip4:icmp"` with raw-socket privilege, or `"udp4"` for the unprivileged datagram path its own documentation limits to Darwin and Linux, where `net.ipv4.ping_group_range` must also admit the process's group. Keep `ping` under `exec.Command` with the host as its own argument and the count flag fixed, returning the output the caller had
 - Never call `exec.Command("sh", "-c", ...)`, `"bash", "-c", ...`, or `"cmd", "/C", ...` with any untrusted string
 - Pass each argument as a separate `exec.Command` parameter; never build a single command string with `+` or `fmt.Sprintf`
 - Use `exec.CommandContext` with a timeout to bound any unavoidable process execution
@@ -28,7 +29,7 @@
 
 - Locate - find `os/exec` usage: `exec.Command`, `exec.CommandContext`, `cmd.Run`/`Output`/`CombinedOutput`
 - Trace data flow - identify request or config data reaching the command name or its arguments
-- Replace the unsafe pattern - substitute the Go standard library API that performs the same operation (file, network, archive) instead of shelling out
+- Replace the unsafe pattern - substitute the Go standard library API that performs the same operation (file, archive, HTTP) instead of shelling out; there is none for `ping`, and `net` is not one because it cannot send ICMP
 - Bind, encode, validate, or authorize - if exec is unavoidable, pass each user-controlled value as its own `exec.Command` argument, and validate it only where the application defines its format
 - Break taint - where a map lookup or validation exists, use its result (for example, a resolved map value) as the argument, never the raw input
 - Harden configuration - run with a least-privilege OS account, apply `exec.CommandContext` timeouts, and pass absolute binary paths to avoid `PATH` ambiguity - note Go 1.19 already stopped resolving a program to a path relative to the current directory, returning an error satisfying `errors.Is(err, exec.ErrDot)` instead, so on older toolchains this is a live risk rather than belt-and-braces

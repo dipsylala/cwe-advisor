@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Storing sensitive data (passwords, API keys, cryptographic keys) in memory as cleartext in Python exposes it to memory dumps, debuggers, and memory disclosure vulnerabilities. Python strings and many library APIs create immutable copies, so Python cannot reliably guarantee complete memory clearing. Minimize lifetime and copies, use mutable buffers when downstream APIs accept them, and explicitly zero those buffers after use.
+Python strings and many library APIs create immutable copies, so Python cannot reliably guarantee complete memory clearing. Minimize lifetime and copies, use mutable buffers when downstream APIs accept them, and explicitly zero those buffers after use.
 
 ## Key Principles
 

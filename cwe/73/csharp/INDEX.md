@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-External control of file names or paths occurs when user-supplied input constructs file system paths without validation in C#/.NET applications. The .NET `System.IO` namespace provides minimal built-in protection against path traversal attacks. Use `Path.GetFullPath()` and `Path.GetRelativePath()` to ensure resolved paths remain within intended base directories.
+The .NET `System.IO` namespace provides minimal built-in protection against path traversal attacks. Use `Path.GetFullPath()` and `Path.GetRelativePath()` to ensure resolved paths remain within intended base directories.
 
 ## Key Principles
 

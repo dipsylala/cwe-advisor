@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Process control vulnerabilities in JavaScript/Node.js applications occur when untrusted user input controls process execution, lifecycle, or module/library loading. Node.js's `child_process` module makes command-injection-style process control dangerous, while its CommonJS module resolution and native addon loading make dynamic `require()` calls and `NODE_OPTIONS`/native `.node` addons a library-loading equivalent of DLL hijacking. Always validate and sanitize input before using it in process-related or module-loading operations, and use allowlists to restrict what can be spawned or loaded.
+Node.js's `child_process` module makes command-injection-style process control dangerous, while its CommonJS module resolution and native addon loading make dynamic `require()` calls and `NODE_OPTIONS`/native `.node` addons a library-loading equivalent of DLL hijacking. Always validate and sanitize input before using it in process-related or module-loading operations, and use allowlists to restrict what can be spawned or loaded.
 
 ## Key Principles
 

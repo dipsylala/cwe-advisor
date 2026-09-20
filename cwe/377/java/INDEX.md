@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insecure temporary file creation occurs when applications create files with predictable names, weak permissions, or in shared directories without proper safeguards, enabling symlink attacks and data tampering. Always use `Files.createTempFile()` with restrictive permissions and ensure proper cleanup.
+Always use `Files.createTempFile()` with restrictive permissions and ensure proper cleanup.
 
 ## Key Principles
 

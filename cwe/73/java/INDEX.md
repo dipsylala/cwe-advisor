@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-External control of file names or paths occurs when untrusted input (HTTP requests, uploads, APIs) constructs file system paths without validation in Java applications. Java's `File`, `Path`, and I/O classes lack built-in path traversal protection, making applications vulnerable when user input directly influences file operations.
+Java's `File`, `Path`, and I/O classes lack built-in path traversal protection, making applications vulnerable when user input directly influences file operations.
 
 ## Key Principles
 

@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insecure temporary file creation in Node.js occurs when applications create files with predictable names, insecure permissions, or without proper cleanup in shared directories. Attackers can exploit race conditions, overwrite files, or access sensitive data. Use secure libraries like `tmp`, `temp`, or `fs.mkdtemp()` with proper permissions and automatic cleanup.
+Use secure libraries like `tmp`, `temp`, or `fs.mkdtemp()` with proper permissions and automatic cleanup.
 
 ## Key Principles
 

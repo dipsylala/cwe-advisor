@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-External control of file names or paths occurs when user-supplied input constructs file system paths without proper validation, enabling attackers to access unauthorized files through path traversal. Python's `open()`, `os.path`, and `pathlib` modules provide minimal built-in protection against these attacks. Use `Path.resolve()` with `relative_to()` validation to ensure canonicalized paths (with symlinks resolved) remain within intended directories.
+Python's `open()`, `os.path`, and `pathlib` modules provide minimal built-in protection against these attacks. Use `Path.resolve()` with `relative_to()` validation to ensure canonicalized paths (with symlinks resolved) remain within intended directories.
 
 ## Key Principles
 

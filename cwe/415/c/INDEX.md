@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Double free is `free()` running twice on the same pointer with no intervening allocation. C has no ownership tracking, so it almost always reduces to unclear responsibility: an error path and the normal path both release, or a linked structure is traversed twice, each believing it must free the same block. Deciding that exactly one function owns each allocation is the fix; nulling the pointer after release is what makes a stray second call harmless.
+C has no ownership tracking, so it almost always reduces to unclear responsibility: an error path and the normal path both release, or a linked structure is traversed twice, each believing it must free the same block. Deciding that exactly one function owns each allocation is the fix; nulling the pointer after release is what makes a stray second call harmless.
 
 ## Key Principles
 

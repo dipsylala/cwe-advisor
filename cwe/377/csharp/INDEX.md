@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Insecure temporary file creation occurs when applications create files with predictable names, insecure permissions, or without proper cleanup mechanisms. Create temporary files atomically with unpredictable names, exclusive access, delete-on-close cleanup, and restrictive ACLs.
+Create temporary files atomically with unpredictable names, exclusive access, delete-on-close cleanup, and restrictive ACLs.
 
 ## Key Principles
 

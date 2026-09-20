@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Process control vulnerabilities occur when untrusted input influences process creation, termination, or management operations, or when it influences which library or module gets loaded. Attackers can spawn malicious processes, kill critical services, exhaust system resources, or trick the interpreter into loading an attacker-supplied `.so`/`.dll`/module instead of the intended one. Always validate process identifiers and library/module names, use allowlists, and avoid passing user input directly to process control or dynamic-loading functions.
+Attackers can spawn malicious processes, kill critical services, exhaust system resources, or trick the interpreter into loading an attacker-supplied `.so`/`.dll`/module instead of the intended one. Always validate process identifiers and library/module names, use allowlists, and avoid passing user input directly to process control or dynamic-loading functions.
 
 ## Key Principles
 

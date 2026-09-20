@@ -30,8 +30,9 @@ NoSQL injection in Node.js happens when a decoded request body reaches a query f
 
 - `$regex` is a sink in its own right, not just a probe: an attacker-supplied pattern runs on the
   MongoDB server under its own engine, so nothing configured in the application's regex library
-  applies. Escape the term before it becomes a pattern - `re.escape`, `Pattern.quote`, `Regex.Escape` -
-  or match exactly instead
+  applies. JavaScript has no long-standing escaper for this - `RegExp.escape` is ES2025 and
+  is present in Node 24, so check availability and escape the metacharacters yourself on an
+  older runtime. Matching exactly is better than either
 - Watch the failure direction when a filter is built conditionally: silently dropping a condition that
   could not be validated leaves the query *wider* than the caller asked for, and an endpoint that has
   quietly stopped filtering still answers 200

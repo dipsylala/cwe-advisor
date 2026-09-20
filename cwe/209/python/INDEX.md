@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Error Message Information Leak occurs when Python applications expose sensitive details through exception tracebacks, debug output, or verbose error messages in responses. These leaks reveal file paths, code structure, library versions, SQL queries, and internal logic to attackers. Return generic error messages to users while logging detailed exceptions securely server-side.
+Return generic error messages to users while logging detailed exceptions securely server-side.
 
 ## Key Principles
 

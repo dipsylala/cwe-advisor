@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-Using RSA encryption without OAEP padding enables padding oracle attacks, chosen ciphertext attacks, and message malleability. This occurs when using deprecated PyCrypto or not specifying OAEP padding with the `cryptography` library. Prefer the modern `cryptography` library with explicit OAEP padding and SHA-256 or stronger hash algorithms; PyCryptodome can also be safe when configured with OAEP and SHA-256.
+This occurs when using deprecated PyCrypto or not specifying OAEP padding with the `cryptography` library. Prefer the modern `cryptography` library with explicit OAEP padding and SHA-256 or stronger hash algorithms; PyCryptodome can also be safe when configured with OAEP and SHA-256.
 
 ## Key Principles
 

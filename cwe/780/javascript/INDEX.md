@@ -2,7 +2,7 @@
 
 ## LLM Guidance
 
-RSA encryption without OAEP (Optimal Asymmetric Encryption Padding) is vulnerable to padding oracle attacks and chosen ciphertext attacks. Node's `crypto.publicEncrypt()`/`crypto.privateDecrypt()` already default `padding` to `crypto.constants.RSA_PKCS1_OAEP_PADDING` - the finding here is almost always an explicit `padding: crypto.constants.RSA_PKCS1_PADDING` override, not a silently-insecure default. The live default worth fixing is `oaepHash`, which defaults to `'sha1'` when OAEP padding is used without it set explicitly.
+Node's `crypto.publicEncrypt()`/`crypto.privateDecrypt()` already default `padding` to `crypto.constants.RSA_PKCS1_OAEP_PADDING` - the finding here is almost always an explicit `padding: crypto.constants.RSA_PKCS1_PADDING` override, not a silently-insecure default. The live default worth fixing is `oaepHash`, which defaults to `'sha1'` when OAEP padding is used without it set explicitly.
 
 ## Key Principles
 
